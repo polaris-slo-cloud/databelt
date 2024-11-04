@@ -1,0 +1,26 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: example_app
+spec:
+  template:
+    spec:
+      containers:
+        - image: guelmino/skylark:ex_fn_1
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TARGET
+              value: "Knative"
+        - image: guelmino/skylark:ex_fn_2
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TARGET
+              value: "Knative"
+        - image: guelmino/skylark:ex_fn_3
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TARGET
+              value: "Knative"

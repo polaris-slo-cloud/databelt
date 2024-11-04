@@ -52,5 +52,10 @@ Knative Eventing CRDs/Core Components, Broker (MT-Channel-Based Broker)
 * kubectl apply -f https://github.com/knative/eventing/releases/download/knative-v1.12.1/eventing-core.yaml
 * kubectl apply -f https://github.com/knative/eventing/releases/download/knative-v1.12.1/mt-channel-broker.yaml
 
-### Setup WasmEdge
+### Push to registry
+``` bash
+docker buildx build --platform wasi/wasm -t guelmino/skylark:<tag> .
+docker push guelmino/skylark:<tag>
+```
 
+Tags: ex_fn_1, ex_fn_2, ex_fn_3
