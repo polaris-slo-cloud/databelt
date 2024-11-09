@@ -23,19 +23,13 @@ impl State {
     }
 }
 
-pub fn skylarkhello() -> String {
-    "Hello from skylark!".to_owned()
+pub fn get_version() -> &'static str {
+    env!("CARGO_PKG_VERSION")
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn hello() {
-        let result = skylarkhello();
-        assert_eq!(result, "Hello from skylark!");
-    }
 
     #[test]
     fn set_and_get_key() {

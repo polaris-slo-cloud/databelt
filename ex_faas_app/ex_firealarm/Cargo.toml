@@ -9,7 +9,7 @@ socket2 = { git = "https://github.com/second-state/socket2.git", branch = "v0.5.
 hyper = { git = "https://github.com/second-state/wasi_hyper.git", branch = "v0.14.x" }
 
 [dependencies]
-skylark = {path = "../../skylark"}
+skylark = {path = "./lib/skylark"}
 rand = "0.8"
 sha2 = "0.9"
 anyhow = "1.0"

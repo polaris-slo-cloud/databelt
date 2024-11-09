@@ -15,12 +15,13 @@ docker push guelmino/skylark-ex-firealarm:latest
 ```
 ### Deploy
 ```bash
-microk8s kubectl apply -f ex-firealarm-service.yaml
+kubectl apply -f ex-firealarm-service.yaml
 ```
 ### Troubleshoot
 ```bash
+kubectl get pods
 kubectl describe pod skylark-ex-firealarm
-kubectl logs skylark-ex-firealarm-
+kubectl logs skylark-ex-firealarm-00001-deployment-
 ```
 ### Remove
 ```bash

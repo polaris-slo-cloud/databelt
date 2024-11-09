@@ -89,8 +89,6 @@ docker push guelmino/skylark:latest
 docker run --runtime=io.containerd.wasmedge.v1 --platform=wasi/wasm guelmino/skylark:client
 ```
 
-
-
 ## Todo Implementation
 - [ ] create an app for state propagation
   - [ ] write 3 separate functions (f1, f2, f3) which are invoked by their predecessor (f1->f2->f3) via http request

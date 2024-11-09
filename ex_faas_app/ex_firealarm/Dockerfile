@@ -4,6 +4,7 @@ RUN rustup target add wasm32-wasi
 WORKDIR /src
 
 FROM --platform=$BUILDPLATFORM buildbase AS buildexfirealarm
+COPY lib/skylark ./lib/skylark
 COPY . /src
 RUN --mount=type=cache,target=/usr/local/cargo/git/db \
     --mount=type=cache,target=/usr/local/cargo/registry/cache \
