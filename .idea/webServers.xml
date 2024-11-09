@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="aab0426e-75ce-46c3-86c8-5e8df4656410" name="pi5u1">
+        <fileTransfer rootFolder="/home/skylark/deployment" accessType="SFTP" host="10.0.0.243" port="22" sshConfigId="ccd3a214-075b-4bb4-b8ed-cde0019277b3" sshConfig="pi5u1@243">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="03cd908b-3efe-4ca4-a558-dbc12f8b68a5" name="pi5u2">
+        <fileTransfer rootFolder="/home/skylark/deployment" accessType="SFTP" host="10.0.0.34" port="22" sshConfigId="429044de-d340-49b5-ad5e-ceabde1ea114" sshConfig="pi5u2@34">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="79b5a5fb-0e62-4d27-8038-df622ffd6120" name="pi5u3">
+        <fileTransfer rootFolder="/home/skylark/deployment" accessType="SFTP" host="10.0.0.45" port="22" sshConfigId="32f53ec3-3736-41c1-9fd2-362e8aecb461" sshConfig="pi5u3@45">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="541e60b4-722e-461f-b251-4c4f1cdd2ddd" name="pi5u4">
+        <fileTransfer rootFolder="/home/skylark/deployment" accessType="SFTP" host="10.0.0.167" port="22" sshConfigId="e12d8348-8d11-4496-a147-047f4ae25846" sshConfig="pi5u4@167">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="88830a62-55cc-4e28-9274-88dbb7765551" name="pi4p1">
+        <fileTransfer rootFolder="/home/skylark/deployment" accessType="SFTP" host="10.0.0.245" port="22" sshConfigId="17b07d76-bcd6-4fcc-90fc-94ef70e9f130" sshConfig="pi4p1@245">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

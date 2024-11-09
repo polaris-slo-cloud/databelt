@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="EMPTY_MODULE" version="4">
+  <component name="FacetManager">
+    <facet type="Python" name="Python facet">
+      <configuration sdkName="Python 3.11 (skylark)" />
+    </facet>
+  </component>
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/example_faas_app/example_fn_1/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/testfn/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_fn_1/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_fn_2/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_fn_3/src" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/example_faas_app/example_fn_1/target" />
+      <excludeFolder url="file://$MODULE_DIR$/testfn/target" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_fn_1/target" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_fn_2/target" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_fn_3/target" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_fn_4/.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_fn_4/.venv/bin" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_fn_4/.venv/lib" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/neighbors_service/.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/neighbors_service/.venv/bin" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/neighbors_service/.venv/lib" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/rsclient/target" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Python 3.11 (skylark) interpreter library" level="application" />
+  </component>
+</module>
