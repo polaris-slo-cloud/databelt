@@ -17,6 +17,11 @@ kubectl describe pod skylark-neighbors
 kubectl delete ksvc --all
 ```
 
+Get nodes from cli
+```bash
+curl -X GET -v http://10.152.183.152/neighbors -H "Host: skylark-neighbors.default.svc.cluster.local"
+```
+
 Access Redis
 ```bash
 kubectl exec -it redis-HASH -- redis-cli

@@ -4,13 +4,14 @@ use sha2::{Sha256, Digest};
 use std::env;
 use anyhow::Result;
 use bytes::Bytes;
-use futures_util::StreamExt;
+use futures_util::{StreamExt, TryFutureExt};
 use axum::{extract::BodyStream, routing::get, routing::post, Json, Router};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use tokio::net::TcpListener;
 use serde_json::json;
 use skylark::get_version;
+use skylark::get_nodes;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
@@ -21,9 +22,11 @@ async fn main() {
         .route("/health", get(health_probe))
         .route("/echo", post(echo));
 
-    println!("Sanity: {}", env::var("SANITY").unwrap_or_else(|_| "nope".to_string()));
     println!("Skylark library loaded: {}", get_version());
     let addr = "0.0.0.0:8080";
+
+    let neighbor_nodes = get_nodes().await.unwrap();
+    println!("fetched neighbor nodes: {}", json!(neighbor_nodes));
     let tcp_listener = TcpListener::bind(addr).await.unwrap();
     println!("listening on {}", addr);
     axum::Server::from_tcp(tcp_listener.into_std().unwrap())

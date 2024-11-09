@@ -15,6 +15,7 @@
       <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_firealarm/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_img_preprocessor/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_obj_detector/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/rsclient/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/skylark/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/example_faas_app/example_fn_1/target" />
       <excludeFolder url="file://$MODULE_DIR$/testfn/target" />
@@ -25,7 +26,9 @@
       <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_fn_4/.venv" />
       <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_fn_4/.venv/bin" />
       <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_fn_4/.venv/lib" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_img_preprocessor/lib" />
       <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_img_preprocessor/target" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_obj_detector/lib" />
       <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_obj_detector/target" />
       <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/neighbors_service/.venv" />
       <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/neighbors_service/.venv/bin" />

@@ -4,8 +4,9 @@ Provides apis for state retrieval and -propagation mechanisms.
 ### Build locally
 ```bash
 cargo build --target wasm32-wasi --release
-
-# Optional: optimize using `wasmedge compile`
+```
+### Optional: optimize using `wasmedge compile`
+```bash
 wasmedge compile target/wasm32-wasi/release/skylark.wasm skylark.wasm
 ```
 ### Docker Build and Push

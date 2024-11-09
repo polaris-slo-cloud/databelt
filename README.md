@@ -109,7 +109,7 @@ kubectl delete ValidatingWebhookConfiguration validation.webhook.serving.knative
 kubectl get pods
 kubectl logs NAME
 kubectl describe pod skylark
-kubectl apply -f ex2.yaml
+kubectl apply -f <name>.yaml
 kubectl get ksvc --all
 kubectl delete ksvc --all
 kubectl apply -f ex2.yaml
@@ -117,6 +117,6 @@ kubectl get events NAME -n NAMESPACE
 microk8s inspect
 
 microk8s add-node
-
+kubectl get service.serving.knative.dev
 curl -X POST -v -H "Host: skylark-pyclient.default.svc.cluster.local" http://10.152.183.152
 ```

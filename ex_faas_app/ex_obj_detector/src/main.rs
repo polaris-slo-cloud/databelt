@@ -10,6 +10,8 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use tokio::net::TcpListener;
 use serde_json::json;
+use skylark::get_version;
+
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
     println!("ex_obj_detector starting");
@@ -20,6 +22,7 @@ async fn main() {
         .route("/echo", post(echo));
 
     println!("Sanity: {}", env::var("SANITY").unwrap_or_else(|_| "nope".to_string()));
+    println!("Skylark library loaded: {}", get_version());
 
     let addr = "0.0.0.0:8080";
     let tcp_listener = TcpListener::bind(addr).await.unwrap();
