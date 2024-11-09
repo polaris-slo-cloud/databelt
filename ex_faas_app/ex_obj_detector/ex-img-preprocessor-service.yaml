@@ -1,7 +1,7 @@
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: skylark-rsclient
+  name: skylark-ex-obj-detector
   namespace: default
 spec:
   template:
@@ -11,7 +11,7 @@ spec:
     spec:
       runtimeClassName: wasmedge
       containers:
-        - image: guelmino/skylark:rsclient
+        - image: guelmino/skylark-ex-obj-detector:latest
           ports:
             - containerPort: 8080
           readinessProbe:

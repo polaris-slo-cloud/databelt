@@ -1,0 +1,36 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: skylark-ex-firealarm
+  namespace: default
+spec:
+  template:
+    metadata:
+      annotations:
+        module.wasm.image/variant: compat-smart
+    spec:
+      runtimeClassName: wasmedge
+      containers:
+        - image: guelmino/skylark-ex-firealarm:latest
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+          env:
+            - name: REDIS_HOST
+              value: "10.152.183.37"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: RUST_BACKTRACE
+              value: "full"
+            - name: SANITY
+              value: "given"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

@@ -1,4 +1,7 @@
-# skylark
+# Skylark
+The implementation of the skylark model. Provides mechanisms to 
+1. Fetch and store bundled state of serverless functions in a request-optimized way.
+2. Propagates function state to the potential local execution environment of neighboring nodes.
 
 ## Setup Test Environment
 
@@ -52,10 +55,64 @@ Knative Eventing CRDs/Core Components, Broker (MT-Channel-Based Broker)
 * kubectl apply -f https://github.com/knative/eventing/releases/download/knative-v1.12.1/eventing-core.yaml
 * kubectl apply -f https://github.com/knative/eventing/releases/download/knative-v1.12.1/mt-channel-broker.yaml
 
-### Push to registry
-``` bash
-docker buildx build --platform wasi/wasm -t guelmino/skylark:<tag> .
-docker push guelmino/skylark:<tag>
+### Docker secret to pull images from registry
+```bash
+kubectl create secret docker-registry regcred \
+--docker-server=https://index.docker.io/v1/ \
+--docker-username=guelmino \
+--docker-password=your-password \
+--docker-email=your-email@example.com
+
+kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "regcred"}]}'
+```
+### Rust development
+Build
+```bash
+cargo build --target wasm32-wasi --release
+```
+Optional: optimize using `wasmedge compile`
+```bash
+wasmedge compile target/wasm32-wasi/release/ex_fn_1.wasm appname.wasm
 ```
 
-Tags: ex_fn_1, ex_fn_2, ex_fn_3
+### Package and push to registry
+In the respective function root folder, run:
+``` bash
+docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark:rsclient .
+docker push guelmino/skylark:latest
+docker run --runtime=io.containerd.wasmedge.v1 --platform=wasi/wasm guelmino/skylark:client
+```
+
+
+
+## Todo Implementation
+- [ ] create an app for state propagation
+  - [ ] write 3 separate functions (f1, f2, f3) which are invoked by their predecessor (f1->f2->f3) via http request
+### A 3-function chain serverless app
+- 3 Wasm functions running in a wasmedge vm on knative microk8s. 
+- Each of them make calls to a KV store to store and retrieve state information
+- each functions makes dummy computation (calculating hashes) on the input payload.
+- Each function calls the successor function via HTTP before terminating
+
+### Model implementation
+Initially, the implementation is just code within the serverless app functions.
+- the retrieval/propagation mode is determined by the input flags, 
+
+### useful kubectl commands
+microk8s kubectl get pods
+``` bash
+kubectl delete ValidatingWebhookConfiguration validation.webhook.serving.knative.dev
+kubectl get pods
+kubectl logs NAME
+kubectl describe pod skylark
+kubectl apply -f ex2.yaml
+kubectl get ksvc --all
+kubectl delete ksvc --all
+kubectl apply -f ex2.yaml
+kubectl get events NAME -n NAMESPACE
+microk8s inspect
+
+microk8s add-node
+
+curl -X POST -v -H "Host: skylark-pyclient.default.svc.cluster.local" http://10.152.183.152
+```

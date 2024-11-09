@@ -12,7 +12,7 @@ use tokio::net::TcpListener;
 use serde_json::json;
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
-    println!("rsclient starting");
+    println!("ex_firealarm starting");
     let app = Router::new()
         .route("/", get(help))
         .route("/hash", get(hash))
