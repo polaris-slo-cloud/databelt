@@ -1,5 +1,5 @@
 [package]
-name = "ex_fn_2"
+name = "rsclient"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,12 +9,15 @@ socket2 = { git = "https://github.com/second-state/socket2.git", branch = "v0.5.
 hyper = { git = "https://github.com/second-state/wasi_hyper.git", branch = "v0.14.x" }
 
 [dependencies]
-hyper = { version = "0.14", features = ["full"] }
-tokio = { version = "1", features = [
-    "rt",
-    "macros",
-    "net",
-    "time",
-    "io-util",
+rand = "0.8"
+sha2 = "0.9"
+anyhow = "1.0"
+bytes = "1"
+axum = "0.6"
+futures-util = "0.3.30"
+chrono = { version = "0.4", features = ["serde"] }
+tokio = { version = "1", features = ["full"] }
+redis = { version = "0.25.4", default-features = false, features = [
+    "tokio-comp",
 ] }
-pretty_env_logger = "0.4.0"
+serde_json = "1.0.132"
