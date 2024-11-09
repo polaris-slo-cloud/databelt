@@ -3,6 +3,12 @@ The implementation of the skylark model. Provides mechanisms to
 1. Fetch and store bundled state of serverless functions in a request-optimized way.
 2. Propagates function state to the potential local execution environment of neighboring nodes.
 
+This repository includes the following subprojects: 
+- [Skylark:](skylark/README.md) Implementation of the proposed mechanisms in the thesis as a rust library.  
+- [Example firealarm](ex_faas_app/ex_firealarm/README.md)
+- [Example image preprocessor](ex_faas_app/ex_img_preprocessor/README.md)
+- [Example object detector](ex_faas_app/ex_obj_detector/README.md)
+- [Example firealarm](ex_faas_app/neighbors_service/README.md)
 ## Setup Test Environment
 
 Debian 12 on VirtualBox
