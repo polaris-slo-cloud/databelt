@@ -9,11 +9,6 @@ This repository includes the following subprojects:
 - [Example image preprocessor](ex_faas_app/ex_img_preprocessor/README.md)
 - [Example object detector](ex_faas_app/ex_obj_detector/README.md)
 - [Example firealarm](ex_faas_app/neighbors_service/README.md)
-## Setup Test Environment
-
-Debian 12 on VirtualBox
-
-ssh-keygen -t rsa -b 4096 -C "leonard.guelmino@gmx.at"
 
 ### General setup
 * sudo apt update
@@ -31,18 +26,6 @@ ssh-keygen -t rsa -b 4096 -C "leonard.guelmino@gmx.at"
 * sudo usermod \-aG kubeconfig $(whoami)
 * sudo ufw allow 6443/tcp
 * reboot
-
-### Setup k3s
-
-* install and run with `curl -sfL https://get.k3s.io | sh -`
-* check status sudo systemctl status k3s
-* export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
-* echo "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml" \>\> \~/.bashrc
-* source \~/.bashrc
-* sudo chown root:kubeconfig /etc/rancher/k3s/k3s.yaml
-* sudo chmod 640 /etc/rancher/k3s/k3s.yaml
-* newgrp kubeconfig
-* kubectl get nodes
 
 
 ### Setup Knative Serving
@@ -88,6 +71,33 @@ docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark
 docker push guelmino/skylark:latest
 docker run --runtime=io.containerd.wasmedge.v1 --platform=wasi/wasm guelmino/skylark:client
 ```
+### WASM Deployment
+If the wasm module acts as a client, the dns server has to be specified in the deployment yaml. Get the dns cluster ip
+```bash
+kubectl get svc -n kube-system kube-dns
+```
+```yaml
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: skylark-reqwestclient
+  namespace: default
+spec:
+  template:
+    metadata:
+      annotations:
+        module.wasm.image/variant: compat-smart
+        autoscaling.knative.dev/minScale: "0" # to ensure scaling to zero
+    spec:
+      dnsPolicy: ClusterFirst
+      runtimeClassName: wasmedge
+      containers:
+        - image: guelmino/skylark-reqwestclient:latest
+          command: ["./reqwestclient.wasm"]
+          env:
+            - name: DNS_SERVER
+              value: "10.152.183.10:53"
+```
 
 ## Todo Implementation
 - [ ] create an app for state propagation
@@ -105,7 +115,7 @@ Initially, the implementation is just code within the serverless app functions.
 ### useful kubectl commands
 microk8s kubectl get pods
 ``` bash
-kubectl delete ValidatingWebhookConfiguration validation.webhook.serving.knative.dev
+microk8s kubectl delete ValidatingWebhookConfiguration validation.webhook.serving.knative.dev
 kubectl get pods
 kubectl logs NAME
 kubectl describe pod skylark

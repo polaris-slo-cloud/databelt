@@ -1,7 +1,7 @@
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: skylark-rsclient
+  name: skylark-reqwestclient
   namespace: default
 spec:
   template:
@@ -12,8 +12,8 @@ spec:
     spec:
       runtimeClassName: wasmedge
       containers:
-        - image: guelmino/skylark-rsclient:latest
-          command: ["./rsclient.wasm"]
+        - image: guelmino/skylark-reqwestclient:latest
+          command: ["./reqwestclient.wasm"]
           env:
             - name: DNS_SERVER
               value: "10.152.183.10:53"
