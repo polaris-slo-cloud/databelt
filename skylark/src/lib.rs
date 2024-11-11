@@ -1,11 +1,12 @@
-use hyper::body::Buf;
-use hyper::{Client, Uri};
+use hyper::{Body, Client, Method, Request, Uri};
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::env;
-use std::error::Error;
 use std::sync::Mutex;
+use hyper::body::HttpBody;
+type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
+
 pub struct State {
     data: Mutex<HashMap<String, String>>,
 }
@@ -33,22 +34,29 @@ impl State {
     }
 }
 
-pub async fn get_nodes() -> Result<Vec<NodeInfo>, Box<dyn Error>> {
+pub async fn get_nodes() -> Result<()> {
     println!("skylark::get_nodes: init");
-    let url = "http://skylark-neighbors.default.svc.cluster.local:8080/neighbors"
+    let url = "http://10.152.183.152/neighbors"
         .parse::<Uri>()
         .expect("Invalid URI");
     println!("skylark::get_nodes: url {}", url);
     let client = Client::new();
-    let res = client.get(url).await?;
-    println!("skylark::get_nodes: res status {}", res.status());
-    if res.status() != 200 {
-        return Err(format!("Received non-200 response: {}", res.status()).into());
+    let req = Request::builder()
+        .method(Method::GET)
+        .header(hyper::header::HOST, hyper::header::HeaderValue::from_static("skylark-neighbors.default.svc.cluster.local"))
+        .uri(url)
+        .body(Body::empty())
+        .expect("Unable to build hyper::Request");
+
+    let mut res = client.request(req).await?;
+    let mut resp_data = Vec::new();
+    while let Some(next) = res.data().await {
+        let chunk = next?;
+        resp_data.extend_from_slice(&chunk);
     }
-    let body = hyper::body::aggregate(res).await?;
-    let node_info: Vec<NodeInfo> = serde_json::from_reader(body.reader())?;
-    println!("skylark::get_nodes: node_info {:?}", node_info);
-    Ok(node_info)
+    println!("{}", String::from_utf8_lossy(&resp_data));
+
+    Ok(())
 }
 
 pub fn get_version() -> &'static str {

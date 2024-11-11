@@ -4,7 +4,7 @@ use sha2::{Sha256, Digest};
 use std::env;
 use anyhow::Result;
 use bytes::Bytes;
-use futures_util::{StreamExt, TryFutureExt};
+use futures_util::{StreamExt};
 use axum::{extract::BodyStream, routing::get, routing::post, Json, Router};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
@@ -25,8 +25,9 @@ async fn main() {
     println!("Skylark library loaded: {}", get_version());
     let addr = "0.0.0.0:8080";
 
-    let neighbor_nodes = get_nodes().await.unwrap();
-    println!("fetched neighbor nodes: {}", json!(neighbor_nodes));
+    get_nodes().await.expect("TODO: oof");
+
+
     let tcp_listener = TcpListener::bind(addr).await.unwrap();
     println!("listening on {}", addr);
     axum::Server::from_tcp(tcp_listener.into_std().unwrap())

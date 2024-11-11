@@ -19,6 +19,8 @@ spec:
               path: /health
               port: 8080
           env:
+            - name: DNS_SERVER
+              value: "10.152.183.10:53"
             - name: REDIS_HOST
               value: "10.152.183.37"
             - name: REDIS_PORT
