@@ -17,7 +17,7 @@ docker push guelmino/skylark:latest
 
 ### Access Redis
 ```bash
-kubectl exec -it redis-HASH -- redis-cli
+kubectl exec -it redis-2v4gc -- redis-cli
 ```
 
 

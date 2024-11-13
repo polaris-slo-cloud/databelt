@@ -3,14 +3,14 @@ FROM --platform=$BUILDPLATFORM rust:1.70 AS buildbase
 RUN rustup target add wasm32-wasi
 WORKDIR /src
 
-FROM --platform=$BUILDPLATFORM buildbase AS buildobjdetector
-COPY lib/skylark ./lib/skylark
+FROM --platform=$BUILDPLATFORM buildbase AS buildpreprocess
+COPY skylark ./skylark
 COPY . /src
 RUN --mount=type=cache,target=/usr/local/cargo/git/db \
     --mount=type=cache,target=/usr/local/cargo/registry/cache \
     --mount=type=cache,target=/usr/local/cargo/registry/index \
     RUSTFLAGS="--cfg wasmedge --cfg tokio_unstable" cargo build --target wasm32-wasi --release
 
-FROM scratch AS objdetector
-ENTRYPOINT [ "ex_obj_detector.wasm" ]
-COPY --link --from=buildexfirealarm /src/target/wasm32-wasi/release/ex_obj_detector.wasm  ex_obj_detector.wasm
+FROM scratch AS preprocess
+ENTRYPOINT [ "ex_preprocess.wasm" ]
+COPY --link --from=buildpreprocess /src/target/wasm32-wasi/release/ex_preprocess.wasm  ex_preprocess.wasm

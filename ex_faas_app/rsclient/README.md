@@ -6,7 +6,7 @@ Takes an image as input and simulates image detection by performing hash workloa
 cargo build --target wasm32-wasi --release
 
 # Optional: optimize using `wasmedge compile`
-wasmedge compile target/wasm32-wasi/release/ex_obj_detector.wasm ex_obj_detector.wasm
+wasmedge compile target/wasm32-wasi/release/ex_detect.wasm ex_detect.wasm
 ```
 ### Docker Build and Push
 ```bash
@@ -28,7 +28,7 @@ kubectl delete ksvc skylark-rsclient
 ```
 ### Access Redis
 ```bash
-kubectl exec -it redis-HASH -- redis-cli
+kubectl exec -it redis-2v4gc -- redis-cli
 ```
 
 

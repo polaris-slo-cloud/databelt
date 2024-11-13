@@ -15,9 +15,9 @@ use skylark::get_nodes;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
-    println!("ex_firealarm starting");
+    println!("ex_preprocess starting");
     let app = Router::new()
-        .route("/", get(help))
+        .route("/", get(info))
         .route("/hash", get(hash))
         .route("/health", get(health_probe))
         .route("/echo", post(echo));
@@ -37,8 +37,8 @@ async fn main() {
         .unwrap();
 }
 
-async fn help() -> &'static str {
-    "Try POSTing data to /echo such as: `curl localhost:8080/echo -XPOST -d 'hello world'`\n"
+async fn info() -> &'static str {
+    "Example Image Preprocessor"
 }
 
 async fn echo(mut stream: BodyStream) -> Bytes {

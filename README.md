@@ -5,10 +5,10 @@ The implementation of the skylark model. Provides mechanisms to
 
 This repository includes the following subprojects: 
 - [Skylark:](skylark/README.md) Implementation of the proposed mechanisms in the thesis as a rust library.  
-- [Example firealarm](ex_faas_app/ex_firealarm/README.md)
-- [Example image preprocessor](ex_faas_app/ex_img_preprocessor/README.md)
-- [Example object detector](ex_faas_app/ex_obj_detector/README.md)
-- [Example firealarm](ex_faas_app/neighbors_service/README.md)
+- [Example alarm](ex_faas_app/ex_alarm/README.md)
+- [Example image preprocessor](ex_faas_app/ex_preprocess/README.md)
+- [Example object detector](ex_faas_app/ex_detect/README.md)
+- [Example alarm](ex_faas_app/neighbors_service/README.md)
 
 ### General setup
 * sudo apt update
@@ -102,6 +102,7 @@ spec:
 ## Todo Implementation
 - [ ] create an app for state propagation
   - [ ] write 3 separate functions (f1, f2, f3) which are invoked by their predecessor (f1->f2->f3) via http request
+  - [ ] implement SLO awareness to the skylark lib (controlled via config file) and the neighbor node service (latency). 
 ### A 3-function chain serverless app
 - 3 Wasm functions running in a wasmedge vm on knative microk8s. 
 - Each of them make calls to a KV store to store and retrieve state information
@@ -116,7 +117,7 @@ Initially, the implementation is just code within the serverless app functions.
 microk8s kubectl get pods
 ``` bash
 microk8s kubectl delete ValidatingWebhookConfiguration validation.webhook.serving.knative.dev
-kubectl get pods
+kubectl get pods -o wide
 kubectl logs NAME
 kubectl describe pod skylark
 kubectl apply -f <name>.yaml
@@ -129,4 +130,23 @@ microk8s inspect
 microk8s add-node
 kubectl get service.serving.knative.dev
 curl -X POST -v -H "Host: skylark-pyclient.default.svc.cluster.local" http://10.152.183.152
+
+# get dns info of cluster services
+kubectl get svc -n default
+
 ```
+
+### ChatGPT prompting
+Techstack
+```text
+My techstack is rust with the wasm32-wasi target for serverless function development, knative on microk8s with kwasm and wasm as runtimeClass as serverless platform. The cluster runs on raspberry 4 raspberry pi 5 with each 8gb ram.
+To deploy a function, I run a docker build script targeting the wasm platform and push it to dockerhub. This image is pulled via deployment yamls using kubectl apply
+```
+Usecase
+```text
+The use case is wildfire detection with earth observation satellites. EO satellites send raw image data to computing satellites which are able to act as a edge node in the edge-cloud-space continuum. The edge computing satellites are used for image preprocessing and object detection. If a fire is detected in the object detection stage, a alarm is triggered.
+```
+
+### Open questions
+- Should I run my cluster with all mixed or single control plane nodes?
+- is high availability (HA) a thing I should care about?

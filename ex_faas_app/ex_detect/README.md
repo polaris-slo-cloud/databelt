@@ -1,0 +1,35 @@
+# Example Object Detector Service `f2`
+Takes an image from `f1` as input and simulates image detection by performing hash workloads and outputing a dataset.
+The output data is sent to `f3` if a wildfire is detected.
+
+### Build locally
+```bash
+cargo build --target wasm32-wasi --release
+
+# Optional: optimize using `wasmedge compile`
+wasmedge compile target/wasm32-wasi/release/ex_detect.wasm ex_detect.wasm
+```
+### Docker Build and Push
+```bash
+docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-detect:latest .
+docker push guelmino/skylark-ex-detect:latest
+```
+### Deploy
+```bash
+microk8s kubectl apply -f ex-detect-service.yaml
+```
+### Troubleshoot
+```bash
+kubectl describe pod skylark-ex-detect
+kubectl logs skylark-ex-detect-00001-deployment-
+```
+### Remove
+```bash
+kubectl delete ksvc skylark-ex-detect
+```
+### Access Redis
+```bash
+kubectl exec -it redis-2v4gc -- redis-cli
+```
+
+

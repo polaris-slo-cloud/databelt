@@ -25,7 +25,7 @@ def get_node_info():
             addresses = node.status.addresses
             internal_ip = next((addr.address for addr in addresses if addr.type == "InternalIP"), None)
             if internal_ip:
-                nodes_info.append({"name": name, "host": internal_ip})
+                nodes_info.append({"name": name, "host": internal_ip, "latency": random.randint(1, 100)})
     except Exception as e:
         print(f"Error fetching node information: {e}")
     return nodes_info

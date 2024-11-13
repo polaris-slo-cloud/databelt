@@ -4,27 +4,30 @@ use sha2::{Sha256, Digest};
 use std::env;
 use anyhow::Result;
 use bytes::Bytes;
-use futures_util::StreamExt;
+use futures_util::{StreamExt};
 use axum::{extract::BodyStream, routing::get, routing::post, Json, Router};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use tokio::net::TcpListener;
 use serde_json::json;
 use skylark::get_version;
+use skylark::get_nodes;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
-    println!("ex_obj_detector starting");
+    println!("ex_detect starting");
     let app = Router::new()
-        .route("/", get(help))
+        .route("/", get(info))
         .route("/hash", get(hash))
         .route("/health", get(health_probe))
         .route("/echo", post(echo));
 
-    println!("Sanity: {}", env::var("SANITY").unwrap_or_else(|_| "nope".to_string()));
     println!("Skylark library loaded: {}", get_version());
-
     let addr = "0.0.0.0:8080";
+
+    get_nodes().await.expect("TODO: oof");
+
+
     let tcp_listener = TcpListener::bind(addr).await.unwrap();
     println!("listening on {}", addr);
     axum::Server::from_tcp(tcp_listener.into_std().unwrap())
@@ -34,8 +37,8 @@ async fn main() {
         .unwrap();
 }
 
-async fn help() -> &'static str {
-    "Try POSTing data to /echo such as: `curl localhost:8080/echo -XPOST -d 'hello world'`\n"
+async fn info() -> &'static str {
+    "Example Image Object Detector"
 }
 
 async fn echo(mut stream: BodyStream) -> Bytes {

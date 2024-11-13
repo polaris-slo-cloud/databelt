@@ -1,7 +1,7 @@
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: skylark-ex-firealarm
+  name: skylark-ex-preprocess
   namespace: default
 spec:
   template:
@@ -11,7 +11,7 @@ spec:
     spec:
       runtimeClassName: wasmedge
       containers:
-        - image: guelmino/skylark-ex-firealarm:latest
+        - image: guelmino/skylark-ex-preprocess:latest
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -22,7 +22,7 @@ spec:
             - name: DNS_SERVER
               value: "10.152.183.10:53"
             - name: REDIS_HOST
-              value: "10.152.183.37"
+              value: "redis.default.svc.cluster.local"
             - name: REDIS_PORT
               value: "6379"
             - name: RUST_BACKTRACE
@@ -31,10 +31,3 @@ spec:
               value: "http://skylark-neighbors.default.svc.cluster.local"
             - name: NEIGHBOR_NODE_SERVICE_PORT
               value: "8080"
-          resources:
-            requests:
-              memory: "256Mi"
-              cpu: "250m"
-            limits:
-              memory: "512Mi"
-              cpu: "500m"
