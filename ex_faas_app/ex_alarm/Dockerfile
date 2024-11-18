@@ -12,5 +12,6 @@ RUN --mount=type=cache,target=/usr/local/cargo/git/db \
     RUSTFLAGS="--cfg wasmedge --cfg tokio_unstable" cargo build --target wasm32-wasi --release
 
 FROM scratch AS exalarm
+ENV TZ="Austria/Vienna"
 ENTRYPOINT [ "ex_alarm.wasm" ]
 COPY --link --from=buildexalarm /src/target/wasm32-wasi/release/ex_alarm.wasm  ex_alarm.wasm

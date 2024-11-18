@@ -27,6 +27,8 @@ spec:
               value: "6379"
             - name: RUST_BACKTRACE
               value: "full"
+            - name: RUST_LOG
+              value: "info"
             - name: NEIGHBOR_NODE_SERVICE_HOST
               value: "http://skylark-neighbors.default.svc.cluster.local"
             - name: NEIGHBOR_NODE_SERVICE_PORT

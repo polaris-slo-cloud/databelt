@@ -1,9 +1,14 @@
 # Neighbor Simulation Service
 Returns available neighbor nodes via http GET.
 
+### Docker Build and Push
+```bash
+docker build -t guelmino/skylark-neighbors:latest --platform linux/arm64 .
+docker push guelmino/skylark-neighbors:latest
+```
 ### Deploy
 ```bash
-kubectl apply -f neighbors-service.yaml
+kubectl apply -f ~/deployment/service/neighbors-service.yaml
 ```
 ### Troubleshoot
 ```bash

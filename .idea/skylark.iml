@@ -2,7 +2,7 @@
 <module type="EMPTY_MODULE" version="4">
   <component name="FacetManager">
     <facet type="Python" name="Python facet">
-      <configuration sdkName="Python 3.11 (skylark)" />
+      <configuration sdkName="Python 3.11 (skylark) (3)" />
     </facet>
   </component>
   <component name="NewModuleRootManager">
@@ -18,6 +18,10 @@
       <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/rsclient/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/skylark/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/reqwest/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_alarm/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_detect/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_preprocess/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/evnt_preprocessor/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/example_faas_app/example_fn_1/target" />
       <excludeFolder url="file://$MODULE_DIR$/testfn/target" />
       <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_fn_1/target" />
@@ -37,9 +41,15 @@
       <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/rsclient/target" />
       <excludeFolder url="file://$MODULE_DIR$/skylark/target" />
       <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/reqwest/target" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_alarm/target" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_detect/target" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_eo_service/.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_eo_service/eo.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_preprocess/target" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/evnt_preprocessor/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Python 3.11 (skylark) interpreter library" level="application" />
+    <orderEntry type="library" name="Python 3.11 (skylark) (3) interpreter library" level="application" />
   </component>
 </module>

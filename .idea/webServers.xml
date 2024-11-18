@@ -46,6 +46,13 @@
       <webServer id="69006159-db0e-483b-9213-6e8e1f36fbf2" name="skylark -&gt; ex_img_preprocessor" url="http://localhost">
         <fileTransfer mountedRoot="$PROJECT_DIR$/ex_faas_app/ex_img_preprocessor/lib" accessType="MOUNT" port="0" />
       </webServer>
+      <webServer id="49acbc96-c06a-4773-b7a5-e18e4bf37fbc" name="pi5u1">
+        <fileTransfer rootFolder="/home/skylark/" accessType="SFTP" host="10.0.0.243" port="22" sshConfigId="ccd3a214-075b-4bb4-b8ed-cde0019277b3" sshConfig="pi5u1@243">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
     </option>
   </component>
 </project>

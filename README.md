@@ -43,7 +43,12 @@ Knative Eventing CRDs/Core Components, Broker (MT-Channel-Based Broker)
 * kubectl apply -f https://github.com/knative/eventing/releases/download/knative-v1.12.1/eventing-crds.yaml
 * kubectl apply -f https://github.com/knative/eventing/releases/download/knative-v1.12.1/eventing-core.yaml
 * kubectl apply -f https://github.com/knative/eventing/releases/download/knative-v1.12.1/mt-channel-broker.yaml
+* kubectl apply -f https://github.com/knative/eventing/releases/download/knative-v1.12.1/in-memory-channel.yaml
 
+### Setup Redis
+KV-Stores will be availiable on each node. In order to trigger services based on changes in KV stores we use a RedisStreamSource
+* kubectl apply -f https://github.com/knative-extensions/eventing-redis/releases/download/knative-v1.16.0/redis-source.yaml
+* kubectl apply -f daemonset/redis-daemonset.yaml && kubectl apply -f service/redis-headless-service.yaml && kubectl apply -f source/redis-image-source.yaml
 ### Docker secret to pull images from registry
 ```bash
 kubectl create secret docker-registry regcred \
@@ -67,9 +72,9 @@ wasmedge compile target/wasm32-wasi/release/ex_fn_1.wasm appname.wasm
 ### Package and push to registry
 In the respective function root folder, run:
 ``` bash
-docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark:rsclient .
+docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark:latest .
 docker push guelmino/skylark:latest
-docker run --runtime=io.containerd.wasmedge.v1 --platform=wasi/wasm guelmino/skylark:client
+docker run --runtime=io.containerd.wasmedge.v1 --platform=wasi/wasm guelmino/skylark:latest
 ```
 ### WASM Deployment
 If the wasm module acts as a client, the dns server has to be specified in the deployment yaml. Get the dns cluster ip
@@ -99,29 +104,15 @@ spec:
               value: "10.152.183.10:53"
 ```
 
-## Todo Implementation
-- [ ] create an app for state propagation
-  - [ ] write 3 separate functions (f1, f2, f3) which are invoked by their predecessor (f1->f2->f3) via http request
-  - [ ] implement SLO awareness to the skylark lib (controlled via config file) and the neighbor node service (latency). 
-### A 3-function chain serverless app
-- 3 Wasm functions running in a wasmedge vm on knative microk8s. 
-- Each of them make calls to a KV store to store and retrieve state information
-- each functions makes dummy computation (calculating hashes) on the input payload.
-- Each function calls the successor function via HTTP before terminating
-
-### Model implementation
-Initially, the implementation is just code within the serverless app functions.
-- the retrieval/propagation mode is determined by the input flags, 
-
 ### useful kubectl commands
 microk8s kubectl get pods
 ``` bash
-microk8s kubectl delete ValidatingWebhookConfiguration validation.webhook.serving.knative.dev
+kubectl delete ValidatingWebhookConfiguration validation.webhook.serving.knative.dev
 kubectl get pods -o wide
 kubectl logs NAME
 kubectl describe pod skylark
 kubectl apply -f <name>.yaml
-kubectl get ksvc --all
+kubectl get ksvc
 kubectl delete ksvc --all
 kubectl apply -f ex2.yaml
 kubectl get events NAME -n NAMESPACE
@@ -130,23 +121,20 @@ microk8s inspect
 microk8s add-node
 kubectl get service.serving.knative.dev
 curl -X POST -v -H "Host: skylark-pyclient.default.svc.cluster.local" http://10.152.183.152
+kubectl exec -it redis -- sh
 
 # get dns info of cluster services
 kubectl get svc -n default
 
+# status 
+kubectl get pods -o wide
+kubectl get ksvc -o wide
+
+# ping source
+kubectl apply -f ~/deployment/eventing/eo-ping-source.yaml
+kubectl get pingsources.sources.knative.dev --all-namespaces
+kubectl get pingsource eo-ping-source -n default -o yaml
+kubectl delete -f ~/deployment/eventing/eo-ping-source.yaml
+kubectl logs deployment/pingsource-mt-adapter -n knative-eventing
 ```
 
-### ChatGPT prompting
-Techstack
-```text
-My techstack is rust with the wasm32-wasi target for serverless function development, knative on microk8s with kwasm and wasm as runtimeClass as serverless platform. The cluster runs on raspberry 4 raspberry pi 5 with each 8gb ram.
-To deploy a function, I run a docker build script targeting the wasm platform and push it to dockerhub. This image is pulled via deployment yamls using kubectl apply
-```
-Usecase
-```text
-The use case is wildfire detection with earth observation satellites. EO satellites send raw image data to computing satellites which are able to act as a edge node in the edge-cloud-space continuum. The edge computing satellites are used for image preprocessing and object detection. If a fire is detected in the object detection stage, a alarm is triggered.
-```
-
-### Open questions
-- Should I run my cluster with all mixed or single control plane nodes?
-- is high availability (HA) a thing I should care about?

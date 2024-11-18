@@ -16,12 +16,18 @@ docker push guelmino/skylark-ex-detect:latest
 ```
 ### Deploy
 ```bash
-microk8s kubectl apply -f ex-detect-service.yaml
+microk8s kubectl apply -f ~/deployment/service/ex-detect-service.yaml
 ```
 ### Troubleshoot
 ```bash
+kubectl get pods
 kubectl describe pod skylark-ex-detect
 kubectl logs skylark-ex-detect-00001-deployment-
+```
+### API
+```bash
+# generate hash and store it to local redis
+curl -v http://10.152.183.152/hash -H "Host: skylark-ex-detect.default.svc.cluster.local"
 ```
 ### Remove
 ```bash

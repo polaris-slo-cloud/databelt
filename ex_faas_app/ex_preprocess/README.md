@@ -17,12 +17,15 @@ docker push guelmino/skylark-ex-preprocess:latest
 ```
 ### Deploy
 ```bash
-microk8s kubectl apply -f ex-preprocess-service.yaml
+kubectl apply -f ~/deployment/service/ex-preprocess-service.yaml
 ```
 ### Troubleshoot
 ```bash
+kubectl get pods -o wide
 kubectl describe pod skylark-ex-preprocess
 kubectl logs skylark-ex-preprocess-00001-deployment-
+curl -X POST -v http://10.152.183.152/ -H "Host: skylark-ex-preprocess.default.svc.cluster.local" -d "skldfjerg"
+
 ```
 ### Remove
 ```bash

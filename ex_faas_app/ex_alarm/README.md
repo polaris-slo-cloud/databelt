@@ -15,11 +15,11 @@ docker push guelmino/skylark-ex-alarm:latest
 ```
 ### Deploy
 ```bash
-kubectl apply --force -f ex-alarm-service.yaml
+kubectl apply -f ~/deployment/service/ex-alarm-service.yaml
 ```
 ### Troubleshoot
 ```bash
-kubectl get pods
+kubectl get pods -o wide
 kubectl describe pod skylark-ex-alarm
 kubectl logs skylark-ex-alarm-00001-deployment-
 ```
@@ -30,7 +30,7 @@ kubectl delete ksvc skylark-ex-alarm
 ### API
 ```bash
 # generate hash and store it to local redis
-curl GET -v http://10.152.183.152/hash -H "Host: skylark-ex-alarm.default.svc.cluster.local"
+curl -v http://10.152.183.152/hash -H "Host: skylark-ex-alarm.default.svc.cluster.local"
 ```
 ### Access Redis
 ```bash

@@ -15,7 +15,7 @@ docker push guelmino/skylark-rsclient:latest
 ```
 ### Deploy
 ```bash
-kubectl apply -f rsclient-service.yaml
+kubectl apply -f ~/deployment/service/rsclient-service.yaml
 ```
 ### Troubleshoot
 ```bash

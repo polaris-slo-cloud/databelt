@@ -15,7 +15,7 @@ docker push guelmino/skylark-reqwestclient:latest
 ```
 ### Deploy
 ```bash
-kubectl apply -f reqwestclient-service.yaml
+kubectl apply -f ~/deployment/service/reqwestclient-service.yaml
 ```
 ### Run
 ```bash
