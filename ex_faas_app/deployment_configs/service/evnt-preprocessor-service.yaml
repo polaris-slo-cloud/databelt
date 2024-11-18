@@ -1,0 +1,40 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: skylark-evnt-preprocessor
+  namespace: default
+spec:
+  template:
+    metadata:
+      annotations:
+        module.wasm.image/variant: compat-smart
+    spec:
+      runtimeClassName: wasmedge
+      containers:
+        - image: guelmino/skylark-evnt-preprocessor:latest
+          args: ["/path/to/input_image.jpg"]
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+          env:
+            - name: WASI_SOCKS
+              value: "1"
+            - name: DNS_SERVER
+              value: "10.152.183.10:53"
+            - name: REDIS_HOST
+              value: "redis.default.svc.cluster.local"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: RUST_BACKTRACE
+              value: "full"
+            - name: NEIGHBOR_NODE_SERVICE_HOST
+              value: "http://skylark-neighbors.default.svc.cluster.local"
+            - name: NEIGHBOR_NODE_SERVICE_PORT
+              value: "8080"
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
