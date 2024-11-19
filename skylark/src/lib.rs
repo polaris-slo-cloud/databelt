@@ -5,15 +5,34 @@ use std::collections::HashMap;
 use std::env;
 use std::sync::Mutex;
 use hyper::body::HttpBody;
+extern crate pretty_env_logger;
+#[macro_use]
+extern crate log;
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
 pub struct State {
     data: Mutex<HashMap<String, String>>,
 }
 #[derive(Serialize, Deserialize, Debug)]
-pub struct NodeInfo {
+struct Edge {
+    bandwidth: String,
+    latency: String,
+    source: String,
+    target: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Node {
     name: String,
-    host: String,
+    redis_pod_name: String,
+    status: String,
+    node_type: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct NetworkTopology {
+    edges: Vec<Edge>,
+    nodes: Vec<Node>,
 }
 
 impl State {
@@ -36,14 +55,13 @@ impl State {
 
 pub async fn get_nodes() -> Result<()> {
     println!("skylark::get_nodes: init");
-    let url = "http://10.152.183.152/neighbors"
+    let url = "http://skylark-neighbors.default.svc.cluster.local/node-topology"
         .parse::<Uri>()
         .expect("Invalid URI");
     println!("skylark::get_nodes: url {}", url);
     let client = Client::new();
     let req = Request::builder()
         .method(Method::GET)
-        .header(hyper::header::HOST, hyper::header::HeaderValue::from_static("skylark-neighbors.default.svc.cluster.local"))
         .uri(url)
         .body(Body::empty())
         .expect("Unable to build hyper::Request");
