@@ -1,94 +1,75 @@
+mod model;
+mod service;
+mod mechanism;
+
+use std::cmp::PartialEq;
+use hyper::body::HttpBody;
 use hyper::{Body, Client, Method, Request, Uri};
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::env;
+use std::fmt::format;
 use std::sync::Mutex;
-use hyper::body::HttpBody;
+use uuid::uuid;
+use crate::service::{get_node_graph, get_redis_metadata, get_skylark_state, get_slos};
+use crate::model::{Node, NodeGraph, NodeType, Skylark, SkylarkKey, SkylarkMetadata, SkylarkMode, SkylarkRedisMetadata, SkylarkSLOs, SkylarkState};
+
 extern crate pretty_env_logger;
 #[macro_use]
 extern crate log;
-type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
-
-pub struct State {
-    data: Mutex<HashMap<String, String>>,
-}
-#[derive(Serialize, Deserialize, Debug)]
-struct Edge {
-    bandwidth: String,
-    latency: String,
-    source: String,
-    target: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct Node {
-    name: String,
-    redis_pod_name: String,
-    status: String,
-    node_type: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct NetworkTopology {
-    edges: Vec<Edge>,
-    nodes: Vec<Node>,
-}
-
-impl State {
-    pub fn new() -> Self {
-        State {
-            data: Mutex::new(HashMap::new()),
-        }
-    }
-
-    pub fn set(&self, key: String, value: String) {
-        let mut data = self.data.lock().unwrap();
-        data.insert(key, value);
-    }
-
-    pub fn get(&self, key: &str) -> Option<String> {
-        let data = self.data.lock().unwrap();
-        data.get(key).cloned()
-    }
-}
-
-pub async fn get_nodes() -> Result<()> {
-    println!("skylark::get_nodes: init");
-    let url = "http://skylark-neighbors.default.svc.cluster.local/node-topology"
-        .parse::<Uri>()
-        .expect("Invalid URI");
-    println!("skylark::get_nodes: url {}", url);
-    let client = Client::new();
-    let req = Request::builder()
-        .method(Method::GET)
-        .uri(url)
-        .body(Body::empty())
-        .expect("Unable to build hyper::Request");
-
-    let mut res = client.request(req).await?;
-    let mut resp_data = Vec::new();
-    while let Some(next) = res.data().await {
-        let chunk = next?;
-        resp_data.extend_from_slice(&chunk);
-    }
-    println!("{}", String::from_utf8_lossy(&resp_data));
-
-    Ok(())
-}
 
 pub fn get_version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn set_and_get_key() {
-        let state = State::new();
-        state.set("key1".to_string(), "value1".to_string());
-        assert_eq!(state.get("key1"), Some("value1".to_string()));
+pub async fn init(mode: String, fn_name: String, node_name: String, key: String) {
+    pretty_env_logger::init_timed();
+    info!("skylark::init");
+    let mut predecessor_key = SkylarkKey::from(key);
+    let node_graph: NodeGraph;
+    let redis_metadata: SkylarkRedisMetadata;
+    let mut slos: SkylarkSLOs = SkylarkSLOs::new("Mbps".parse().unwrap(), "ms".parse().unwrap(), 90, 40);
+    let predecessor_state: SkylarkState;
+    let node = Node::new(node_name, NodeType::Sat);
+    match get_node_graph().await {
+        Err(err) => error!("skylark::init: Error fetching NodeGraph: {}", err),
+        Some(nodeGraph) => {
+            info!("skylark::init: NodeGraph received");
+            trace!("skylark::init: NodeGraph: {:?}", nodeGraph);
+            node_graph = nodeGraph;
+        }
     }
+    match get_redis_metadata().await {
+        Err(err) => error!("skylark::init: Error fetching Redis Metadata: {}", err),
+        Some(redisMeteData) => {
+            info!("skylark::init: Redis Metadata received");
+            trace!("skylark::init: Redis Metadata: {:?}", redisMeteData);
+            redis_metadata = redisMeteData;
+        }
+    }
+    match get_slos().await {
+        Err(err) => error!("skylark::init: Error fetching SLOs: {}", err),
+        Some(SLOs) => {
+            info!("skylark::init: SLOs received");
+            trace!("skylark::init: SLOs: {:?}", SLOs);
+            slos = SLOs;
+        }
+    }
+    match get_skylark_state(predecessor_key.clone(), None).await {
+        Err(err) => error!("skylark::init: Error fetching predecessor state: {}", err),
+        Some(state) => {
+            info!("skylark::init: predecessor state received");
+            trace!("skylark::init: predecessor state: {:?}", state);
+            predecessor_state = state;
+        }
+    }
+
+    let node_graph = get_node_graph();
+    let skylark = Skylark::new(
+        SkylarkMetadata::new(node, predecessor_key.clone().chain_id(), fn_name.clone(), SkylarkMode::from(mode)),
+        SkylarkState::new(SkylarkKey::new(Option::from(predecessor_key.chain_id()), fn_name), None),
+        node_graph,
+        slos);
+    info!(skylark, "skylark::init: Finished initializing");
 }

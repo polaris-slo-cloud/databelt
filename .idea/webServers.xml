@@ -31,7 +31,7 @@
         </fileTransfer>
       </webServer>
       <webServer id="88830a62-55cc-4e28-9274-88dbb7765551" name="pi4p1">
-        <fileTransfer rootFolder="/home/skylark/deployment" accessType="SFTP" host="10.0.0.245" port="22" sshConfigId="17b07d76-bcd6-4fcc-90fc-94ef70e9f130" sshConfig="pi4p1@245">
+        <fileTransfer rootFolder="/home/skylark/deployment" accessType="SFTP" host="10.0.0.245" port="22" sshConfigId="17b07d76-bcd6-4fcc-90fc-94ef70e9f130" sshConfig="zpi4p1@245">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>

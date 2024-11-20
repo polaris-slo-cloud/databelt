@@ -2,8 +2,8 @@
 <project version="4">
   <component name="SshConfigs">
     <configs>
-      <sshConfig authType="PASSWORD" host="10.0.0.245" id="17b07d76-bcd6-4fcc-90fc-94ef70e9f130" port="22" customName="pi4p1@245" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
-        <option name="customName" value="pi4p1@245" />
+      <sshConfig authType="PASSWORD" host="10.0.0.245" id="17b07d76-bcd6-4fcc-90fc-94ef70e9f130" port="22" customName="zpi4p1@245" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
+        <option name="customName" value="zpi4p1@245" />
       </sshConfig>
       <sshConfig authType="PASSWORD" host="10.0.0.243" id="ccd3a214-075b-4bb4-b8ed-cde0019277b3" port="22" customName="pi5u1@243" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
         <option name="customName" value="pi5u1@243" />

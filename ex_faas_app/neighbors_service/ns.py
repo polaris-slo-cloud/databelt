@@ -24,9 +24,6 @@ def load_config():
 
 def get_default_node_info():
     """Fetches nodes from the Kubernetes cluster."""
-    redis_pods = v1.list_pod_for_all_namespaces(label_selector="app=redis").items
-    redis_pod_mapping = {pod.spec.node_name: pod.metadata.name for pod in redis_pods}
-
     nodes_info = []
     try:
         nodes = v1.list_node().items
@@ -34,11 +31,11 @@ def get_default_node_info():
             node_name = node.metadata.name
             node_conditions = node.status.conditions
             ready_status = next((cond.status for cond in node_conditions if cond.type == "Ready"), "Unknown")
+            if ready_status.__eq__("Unknown"): continue
             addresses = node.status.addresses
-            redis_pod_name = redis_pod_mapping.get(node_name, "No Redis pod on this node")
             internal_ip = next((addr.address for addr in addresses if addr.type == "InternalIP"), None)
             if internal_ip:
-                nodes_info.append({"name": node_name, "status": ready_status, "node_type": "Satellite", "redis_pod_name": redis_pod_name})
+                nodes_info.append({"name": node_name, "node_type": "Satellite"})
     except Exception as e:
         print(f"Error fetching node information: {e}")
     return nodes_info
@@ -48,12 +45,13 @@ def generate_edges(nodes):
     edges = []
     if len(nodes) > 1:
         for i in range(len(nodes) - 1):
-            if nodes[i]["status"].__eq__("Unknown"): continue
             edges.append({
                 "source": nodes[i]["name"],
                 "target": nodes[i + 1]["name"],
-                "bandwidth": f"{random.randint(50, 200)}Mbps",
-                "latency": f"{random.randint(5, 50)}ms"
+                "bandwidth": {random.randint(50, 200)},
+                "latency": {random.randint(5, 50)},
+                "bandwidth_metric": "Mbps",
+                "latency_metric": "ms"
             })
     return edges
 
@@ -83,7 +81,7 @@ def get_redis_pods_info():
         pods = v1.list_pod_for_all_namespaces(label_selector="app=redis").items
         for pod in pods:
             redis_pods_info.append({
-                "node_name": pod.spec.node_name,
+                "node": {"name": pod.spec.node_name, "node_type": "Satellite"},
                 "pod_name": pod.metadata.name,
                 "pod_ip": pod.status.pod_ip
             })
@@ -98,6 +96,11 @@ def redis_pods():
     if not pods_info:
         return jsonify({"error": "No Redis pods found or unable to fetch pods info"}), 500
     return jsonify(pods_info)
+
+@app.route("/slo", methods=["GET"])
+def redis_pods():
+    """Returns Cluster SLOs"""
+    return jsonify({"bandwidth_metric": "Mbps", "latency_metric": "ms", "min_bandwidth": 100, "max_latency": 40})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

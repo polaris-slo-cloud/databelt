@@ -2,7 +2,7 @@
 <module type="EMPTY_MODULE" version="4">
   <component name="FacetManager">
     <facet type="Python" name="Python facet">
-      <configuration sdkName="Python 3.11 (skylark) (3)" />
+      <configuration sdkName="Python 3.11 (skylark)" />
     </facet>
   </component>
   <component name="NewModuleRootManager">
@@ -47,9 +47,10 @@
       <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_eo_service/eo.venv" />
       <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_preprocess/target" />
       <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/evnt_preprocessor/target" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/neighbors_service/ns.venv" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Python 3.11 (skylark) (3) interpreter library" level="application" />
+    <orderEntry type="library" name="Python 3.11 (skylark) interpreter library" level="application" />
   </component>
 </module>
