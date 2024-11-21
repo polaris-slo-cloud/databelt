@@ -20,3 +20,4 @@ chrono = "0.4"
 redis = { version = "0.25.4", default-features = false, features = [
     "tokio-comp",
 ] }
+lazy_static = "1.5.0"

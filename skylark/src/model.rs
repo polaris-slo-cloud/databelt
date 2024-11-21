@@ -1,5 +1,7 @@
+
 // This is a part of Skylark.
 // See README.md and LICENSE for details.
+use std::collections::HashMap;
 use chrono::{Local};
 use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize)]
@@ -174,13 +176,13 @@ impl NodeGraph {
         self.edges = edges;
     }
 }
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
 pub enum NodeType {
     Cloud,
     Edge,
     Sat,
 }
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Hash, Eq)]
 pub struct Node {
     name: String,
     node_type: NodeType,
@@ -307,14 +309,17 @@ impl SkylarkSLOs {
 }
 #[derive(Serialize, Deserialize)]
 pub enum SkylarkMode {
-    Single,
-    Bundled,
+    Cloud,
+    Edge,
+    Sat,
 }
 impl From<String> for SkylarkMode {
     fn from(mode: String) -> Self {
         match mode.as_ref() {
-            "bundled" => SkylarkMode::Bundled,
-            _ => SkylarkMode::Single,
+            "satellite" => SkylarkMode::Sat,
+            "sat" => SkylarkMode::Sat,
+            "edge" => SkylarkMode::Edge,
+            _ => SkylarkMode::Cloud
         }
     }
 }
@@ -324,27 +329,32 @@ pub struct SkylarkMetadata {
     chain_id: String,
     fn_name: String,
     mode: SkylarkMode,
+    redis_info: HashMap<Node, PodInfo>,
 }
 
 impl SkylarkMetadata {
-    pub fn new(node_info: Node, chain_id: String, fn_name: String, mode: SkylarkMode) -> Self {
-        Self { node_info, chain_id, fn_name, mode }
+    pub fn new(node_info: Node, chain_id: String, fn_name: String, mode: SkylarkMode, redis_info: HashMap<Node, PodInfo>) -> Self {
+        Self { node_info, chain_id, fn_name, mode, redis_info }
     }
 
     pub fn node_info(&self) -> &Node {
         &self.node_info
     }
 
-    pub fn chain_id(self) -> String {
-        self.chain_id
+    pub fn chain_id(&self) -> &str {
+        &self.chain_id
     }
 
-    pub fn fn_name(self) -> String {
-        self.fn_name
+    pub fn fn_name(&self) -> &str {
+        &self.fn_name
     }
 
     pub fn mode(&self) -> &SkylarkMode {
         &self.mode
+    }
+
+    pub fn redis_info(&self) -> &HashMap<Node, PodInfo> {
+        &self.redis_info
     }
 
     pub fn set_node_info(&mut self, node_info: Node) {
@@ -362,34 +372,29 @@ impl SkylarkMetadata {
     pub fn set_mode(&mut self, mode: SkylarkMode) {
         self.mode = mode;
     }
+
+    pub fn set_redis_info(&mut self, redis_info: HashMap<Node, PodInfo>) {
+        self.redis_info = redis_info;
+    }
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct SkylarkRedisMetadata {
-    node: Node,
+pub struct PodInfo {
     pod_name: String,
     pod_ip: String,
 }
 
-impl SkylarkRedisMetadata {
-    pub fn new(node: Node, pod_name: String, pod_ip: String) -> Self {
-        Self { node, pod_name, pod_ip }
+impl PodInfo {
+    pub fn new(pod_name: String, pod_ip: String) -> Self {
+        Self { pod_name, pod_ip }
     }
 
-    pub fn node(&self) -> &Node {
-        &self.node
+    pub fn pod_name(&self) -> &str {
+        &self.pod_name
     }
 
-    pub fn pod_name(self) -> String {
-        self.pod_name
-    }
-
-    pub fn pod_ip(self) -> String {
-        self.pod_ip
-    }
-
-    pub fn set_node(&mut self, node: Node) {
-        self.node = node;
+    pub fn pod_ip(&self) -> &str {
+        &self.pod_ip
     }
 
     pub fn set_pod_name(&mut self, pod_name: String) {

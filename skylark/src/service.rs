@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::env;
 use hyper::{Body, Client, Method, Request, Uri};
-use crate::model::{Node, NodeGraph, SkylarkKey, SkylarkRedisMetadata, SkylarkSLOs, SkylarkState};
+use crate::model::{Node, NodeGraph, PodInfo, SkylarkKey, SkylarkRedisMetadata, SkylarkSLOs, SkylarkState};
 use redis::{AsyncCommands, RedisResult};
 use serde::Serialize;
 use serde_json::json;
@@ -17,12 +17,12 @@ pub async fn get_node_graph() -> Result<NodeGraph> {
     let node_graph: NodeGraph = serde_json::from_str(res.into_body().try_into()?)?;
     Ok(node_graph)
 }
-pub async fn get_redis_metadata() -> Result<SkylarkRedisMetadata> {
+pub async fn get_redis_metadata() -> Result<HashMap<Node, PodInfo>> {
     info!("skylark::get_redis_metadata: init");
     let client = Client::new();
     let mut res = client.get(Uri::from(format!("{}/redis-pods", {NODE_SERVICE_URL}))).await?;
     info!("skylark::get_redis_metadata: response status {}", res.status());
-    let redis_metadata: SkylarkRedisMetadata = serde_json::from_str(res.into_body().try_into()?)?;
+    let redis_metadata: HashMap<Node, PodInfo> = serde_json::from_str(res.into_body().try_into()?)?;
     Ok(redis_metadata)
 }
 pub async fn get_slos() -> Result<SkylarkSLOs> {
@@ -54,7 +54,7 @@ pub async fn get_skylark_state(key: SkylarkKey, url: Option<String>) -> RedisRes
     }
 }
 
-pub async fn store_skylark_state(state: SkylarkState, url: Option<String>) -> Result<()> {
+pub async fn store_skylark_state(state: &SkylarkState, url: Option<String>) -> Result<()> {
     let url = url.unwrap_or_else(|| String::from(LOCAL_REDIS_URL));
     info!("store_skylark_state: Connecting to Redis at URL: {}", url);
     let client = redis::Client::open(url)?;
