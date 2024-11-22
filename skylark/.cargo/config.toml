@@ -4,3 +4,6 @@ rustflags = ["--cfg", "wasmedge", "--cfg", "tokio_unstable"]
 
 [target.wasm32-wasi]
 runner = "wasmedge"
+
+[env]
+K8S_OPENAPI_ENABLED_VERSION="1.31"

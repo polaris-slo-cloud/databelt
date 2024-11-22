@@ -20,4 +20,11 @@ docker push guelmino/skylark:latest
 kubectl exec -it redis-2v4gc -- redis-cli
 ```
 
+### Env Vars
+The following environment variables may be set to control Skylark's behavior
 
+| Name              | Value         | Description                                                  |
+|-------------------|---------------|--------------------------------------------------------------|
+| REDIS_LOCAL_URL   | <REDIS_URI>   | example: redis://redis.default.svc.cluster.local:6379        |   
+| REDIS_CLOUD_URL   | <REDIS_URI>   |                                                              |
+| NODE_PROVIDER_URL | <KNATIVE_URL> | example: http://skylark-neighbors.default.svc.cluster.local  |

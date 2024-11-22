@@ -1,60 +1,66 @@
 use std::collections::HashMap;
 use std::env;
-use hyper::{Body, Client, Method, Request, Uri};
-use crate::model::{Node, NodeGraph, PodInfo, SkylarkKey, SkylarkRedisMetadata, SkylarkSLOs, SkylarkState};
-use redis::{AsyncCommands, RedisResult};
-use serde::Serialize;
-use serde_json::json;
+use std::string::ToString;
+use crate::model::{SkylarkKey, SkylarkState};
+use redis::{AsyncCommands};
+use serde::de::DeserializeOwned;
 
-const NODE_SERVICE_URL: &str = "http://skylark-neighbors.default.svc.cluster.local";
-const LOCAL_REDIS_URL: &str = "redis://redis.default.svc.cluster.local:6379";
-type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
-pub async fn get_node_graph() -> Result<NodeGraph> {
-    info!("skylark::get_node_graph: init");
-    let client = Client::new();
-    let mut res = client.get(Uri::from(format!("{}/node-topology", {NODE_SERVICE_URL}))).await?;
-    info!("skylark::get_node_graph: response status {}", res.status());
-    let node_graph: NodeGraph = serde_json::from_str(res.into_body().try_into()?)?;
-    Ok(node_graph)
+static NODE_SERVICE_URL: &str = "http://skylark-neighbors.default.svc.cluster.local";
+static LOCAL_REDIS_URL: &str = "redis://redis.default.svc.cluster.local:6379";
+type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+
+pub async fn get_from_node_provider<T>(path: &str) -> Result<T>
+where
+    T: DeserializeOwned,
+{
+    info!("skylark::get_from_node_provider: init");
+    let node_url = format!("{}/{}",env::var("NODE_PROVIDER_URL").unwrap_or_else(|_| NODE_SERVICE_URL.parse().unwrap()), path);
+    info!("skylark::get_from_node_provider: node_url: {}", node_url);
+    let response = reqwest::get(node_url).await;
+
+    match response {
+        Ok(res) => {
+            match res.status().is_success() {
+                true => {
+                    let json : Result<T> = res.json().await?;
+                    match json {
+                        Ok(json_data) => {
+                            Ok(json_data)
+                        },
+                        Err(e) => {
+                            Err(Box::new(e))
+                        },
+                    }
+                },
+                false => {
+                    Err(Box::new(std::io::Error::new(
+                        std::io::ErrorKind::Other,
+                        format!("Request failed with status: {}", res.status()),
+                    )))
+                },
+            }
+        },
+        Err(err) => {
+            Err(Box::new(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Request failed : {}", err.to_string()),
+            )))
+        },
+    }
 }
-pub async fn get_redis_metadata() -> Result<HashMap<Node, PodInfo>> {
-    info!("skylark::get_redis_metadata: init");
-    let client = Client::new();
-    let mut res = client.get(Uri::from(format!("{}/redis-pods", {NODE_SERVICE_URL}))).await?;
-    info!("skylark::get_redis_metadata: response status {}", res.status());
-    let redis_metadata: HashMap<Node, PodInfo> = serde_json::from_str(res.into_body().try_into()?)?;
-    Ok(redis_metadata)
-}
-pub async fn get_slos() -> Result<SkylarkSLOs> {
-    info!("skylark::get_slo: init");
-    let client = Client::new();
-    let mut res = client.get(Uri::from(format!("{}/slo", {NODE_SERVICE_URL}))).await?;
-    info!("skylark::get_slo: response status {}", res.status());
-    let cluster_slos: SkylarkSLOs = serde_json::from_str(res.into_body().try_into().unwrap())?;
-    Ok(cluster_slos)
-}
-pub async fn get_skylark_state(key: SkylarkKey, url: Option<String>) -> RedisResult<Option<SkylarkState>> {
+
+pub async fn get_skylark_state(key: &SkylarkKey, url: Option<String>) -> Result<SkylarkState> {
     let url = url.unwrap_or_else(|| String::from(LOCAL_REDIS_URL));
     info!("get_skylark_state: Connecting to Redis at URL: {}", url);
     let client = redis::Client::open(url)?;
     let mut con = client.get_multiplexed_async_connection().await?;
     info!("get_skylark_state: Attempting to receive key: {}", key);
-    let res_hash: HashMap<String, String> = con.hgetall(key).await?;
-    match res_hash {
-        Some(hash) => {
-            info!("get_skylark_state: Received hashmap wih length: {}", hash.len());
-            let json_string = serde_json::to_string(&hash).unwrap();
-            let skylark_state: SkylarkState = serde_json::from_str(&json_string).unwrap();
-            Ok(skylark_state)
-        }
-        None => {
-            warn!("get_skylark_state: key not found");
-            Ok(None)
-        }
-    }
+    let res_hash = con.hgetall(key.to_string())?;
+    let json_string = serde_json::to_string(&res_hash)?;
+    serde_json::from_str(&json_string)?
 }
 
-pub async fn store_skylark_state(state: &SkylarkState, url: Option<String>) -> Result<()> {
+pub async fn store_skylark_state(state: &SkylarkState, url: Option<String>) -> Result<String> {
     let url = url.unwrap_or_else(|| String::from(LOCAL_REDIS_URL));
     info!("store_skylark_state: Connecting to Redis at URL: {}", url);
     let client = redis::Client::open(url)?;
@@ -66,10 +72,8 @@ pub async fn store_skylark_state(state: &SkylarkState, url: Option<String>) -> R
         .iter()
         .map(|(k, v)| (k.clone(), v.to_string()))
         .collect();
-
     for (field, value) in value_map {
-        con.hset(state.get_key(), field, value).await?;
+        con.hset(state.get_key(), field, value);
     }
-    info!("store_skylark_state: SkylarkState successfully stored in Redis");
-    Ok(())
+    Ok(state.get_key())
 }

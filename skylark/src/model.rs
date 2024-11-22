@@ -6,46 +6,46 @@ use chrono::{Local};
 use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize)]
 pub struct Skylark {
-    metadata: SkylarkMetadata,
-    state: SkylarkState,
-    node_graph: NodeGraph,
-    objectives: SkylarkSLOs,
+    metadata: Option<SkylarkMetadata>,
+    state: Option<SkylarkState>,
+    node_graph: Option<NodeGraph>,
+    objectives: Option<SkylarkSLOs>,
 }
 
 impl Skylark {
-    pub fn new(metadata: SkylarkMetadata, state: SkylarkState, node_graph: NodeGraph, objectives: SkylarkSLOs) -> Self {
+    pub fn new(metadata: Option<SkylarkMetadata>, state: Option<SkylarkState>, node_graph: Option<NodeGraph>, objectives: Option<SkylarkSLOs>) -> Self {
         Self { metadata, state, node_graph, objectives }
     }
 
-    pub fn metadata(&self) -> &SkylarkMetadata {
+    pub fn metadata(&self) -> &Option<SkylarkMetadata> {
         &self.metadata
     }
 
-    pub fn state(&self) -> &SkylarkState {
+    pub fn state(&self) -> &Option<SkylarkState> {
         &self.state
     }
 
-    pub fn node_graph(&self) -> &NodeGraph {
+    pub fn node_graph(&self) -> &Option<NodeGraph> {
         &self.node_graph
     }
 
-    pub fn objectives(&self) -> &SkylarkSLOs {
+    pub fn objectives(&self) -> &Option<SkylarkSLOs> {
         &self.objectives
     }
 
-    pub fn set_metadata(&mut self, metadata: SkylarkMetadata) {
+    pub fn set_metadata(&mut self, metadata: Option<SkylarkMetadata>) {
         self.metadata = metadata;
     }
 
-    pub fn set_state(&mut self, state: SkylarkState) {
+    pub fn set_state(&mut self, state: Option<SkylarkState>) {
         self.state = state;
     }
 
-    pub fn set_node_graph(&mut self, node_graph: NodeGraph) {
+    pub fn set_node_graph(&mut self, node_graph: Option<NodeGraph>) {
         self.node_graph = node_graph;
     }
 
-    pub fn set_objectives(&mut self, objectives: SkylarkSLOs) {
+    pub fn set_objectives(&mut self, objectives: Option<SkylarkSLOs>) {
         self.objectives = objectives;
     }
 }
@@ -57,20 +57,27 @@ pub struct SkylarkKey {
 }
 
 impl SkylarkKey {
-    pub fn new(chain_id: Option<String>, fn_name: String) -> Self {
-        SkylarkKey {
-            chain_id: chain_id.unwrap_or(uuid::Uuid::new_v4().to_string()),
-            fn_name,
-        }
-    }
+
     pub fn to_string(&self) -> String {format!("{}:{}", self.chain_id, self.fn_name)}
 
-    pub fn chain_id(self) -> String {
-        self.chain_id
+    pub fn new(chain_id: String, fn_name: String) -> Self {
+        Self { chain_id, fn_name }
     }
 
-    pub fn fn_name(self) -> String {
-        self.fn_name
+    pub fn chain_id(&self) -> &str {
+        &self.chain_id
+    }
+
+    pub fn fn_name(&self) -> &str {
+        &self.fn_name
+    }
+
+    pub fn set_chain_id(&mut self, chain_id: String) {
+        self.chain_id = chain_id;
+    }
+
+    pub fn set_fn_name(&mut self, fn_name: String) {
+        self.fn_name = fn_name;
     }
 }
 impl From<String> for SkylarkKey {
@@ -378,30 +385,39 @@ impl SkylarkMetadata {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct PodInfo {
     pod_name: String,
-    pod_ip: String,
+    pod_ip: Option<String>,
+    pod_url: Option<String>,
 }
 
 impl PodInfo {
-    pub fn new(pod_name: String, pod_ip: String) -> Self {
-        Self { pod_name, pod_ip }
+    pub fn new(pod_name: String, pod_ip: Option<String>, pod_url: Option<String>) -> Self {
+        Self { pod_name, pod_ip, pod_url }
     }
 
     pub fn pod_name(&self) -> &str {
         &self.pod_name
     }
 
-    pub fn pod_ip(&self) -> &str {
+    pub fn pod_ip(&self) -> &Option<String> {
         &self.pod_ip
+    }
+
+    pub fn pod_url(&self) -> &Option<String> {
+        &self.pod_url
     }
 
     pub fn set_pod_name(&mut self, pod_name: String) {
         self.pod_name = pod_name;
     }
 
-    pub fn set_pod_ip(&mut self, pod_ip: String) {
+    pub fn set_pod_ip(&mut self, pod_ip: Option<String>) {
         self.pod_ip = pod_ip;
+    }
+
+    pub fn set_pod_url(&mut self, pod_url: Option<String>) {
+        self.pod_url = pod_url;
     }
 }

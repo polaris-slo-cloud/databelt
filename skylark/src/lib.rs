@@ -3,100 +3,103 @@ mod model;
 mod service;
 
 use crate::model::{Node, NodeGraph, NodeType, PodInfo, Skylark, SkylarkKey, SkylarkMetadata, SkylarkMode, SkylarkSLOs, SkylarkState};
-use crate::service::{get_node_graph, get_redis_metadata, get_skylark_state, get_slos, store_skylark_state};
-use hyper::body::HttpBody;
-use hyper::{Body, Client, Method, Request, Uri};
+use crate::service::{get_skylark_state, store_skylark_state, get_from_node_provider};
 use lazy_static::lazy_static;
-use serde::Deserialize;
-use serde::Serialize;
-use std::cmp::PartialEq;
 use std::collections::HashMap;
 use std::env;
-use std::fmt::format;
+use std::string::ToString;
 use std::sync::Mutex;
-use uuid::uuid;
 use crate::mechanism::compute_viable_nodes;
-
 extern crate pretty_env_logger;
+use k8s_openapi::api::core::v1 as api;
+use k8s_openapi::Metadata;
+use uuid::{Uuid};
+
 #[macro_use]
 extern crate log;
 
-lazy_static! {
-    static ref SKYLARK: Mutex<Skylark> = Mutex::new(Skylark::new(
-        SkylarkMetadata::new(
-            Node::new("unknown".to_string(), NodeType::Sat),
-            "unknown".to_string(),
-            "unknown".to_string(),
-            SkylarkMode::from("unknown".to_string()),
-            Default::default()
-        ),
-        SkylarkState::new(
-            SkylarkKey::new(Option::from("unknown".to_string()), "unknown".to_string()),
-            None,
-        ),
-        NodeGraph::new(vec![], vec![]),
-        SkylarkSLOs::new("unknown".to_string(), "unknown".to_string(), 0, 0),));
-}
 
+
+
+lazy_static! {
+    static ref SKYLARK: Mutex<Skylark> = Mutex::new(Skylark::new(None, None, None, None));
+}
 pub fn get_version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }
 
-pub async fn init(mode: String, fn_name: String, node_name: String, key: String) {
+pub async fn init(mode: String, fn_name: String, key: Option<String>) -> Result<Option<SkylarkState>, Box<dyn std::error::Error>> {
     pretty_env_logger::init_timed();
     info!("skylark::init");
-    let mut predecessor_key = SkylarkKey::from(key);
+    let self_node_info: Node = Node::new(api::Node::metadata(&Default::default()).name.clone().unwrap(), NodeType::Sat);
+    let cloud_node_info: Node = Node::new(api::Node::metadata(&Default::default()).name.clone().unwrap(), NodeType::Cloud);
+    let local_redis_pod_info: PodInfo = PodInfo::new("redis".to_string(), None, Option::from("redis://redis.default.svc.cluster.local:6379".to_string()));
+    let local_redis_info: HashMap<Node, PodInfo> = HashMap::from([(cloud_node_info.clone(), local_redis_pod_info.clone())]);
+    let default_slo_config: SkylarkSLOs = SkylarkSLOs::new("Mbps".to_string(), "ms".to_string(), 100, 100);
+    let local_key : SkylarkKey;
+    let predecessor_key: SkylarkKey;
     let node_graph: NodeGraph;
-    let mut redis_metadata: HashMap<Node, PodInfo> = Default::default();
-    let mut slos: SkylarkSLOs =
-        SkylarkSLOs::new("Mbps".parse().unwrap(), "ms".parse().unwrap(), 90, 40);
-    let predecessor_state: SkylarkState;
-    let node = Node::new(node_name, NodeType::Sat);
-    match get_node_graph().await {
-        Err(err) => error!("skylark::init: Error fetching NodeGraph: {}", err),
-        Some(nodeGraph) => {
-            info!("skylark::init: NodeGraph received");
-            trace!("skylark::init: NodeGraph: {:?}", nodeGraph);
-            node_graph = nodeGraph;
+    let redis_metadata: HashMap<Node, PodInfo>;
+    let objectives: SkylarkSLOs;
+    let mut initial_state: Option<SkylarkState> = None;
+
+    match get_from_node_provider("node-topology").await {
+        Err(e) => {
+            warn!("skylark::init: failed to get node graph, moving on with empty graph: {:?}", e);
+            node_graph = NodeGraph::new(vec![], vec![]);
         }
+        Ok(graph) => node_graph = graph,
     }
-    match get_redis_metadata().await {
-        Err(err) => error!("skylark::init: Error fetching Redis Metadata: {}", err),
-        Some(redisMeteData) => {
-            info!("skylark::init: Redis Metadata received");
-            trace!("skylark::init: Redis Metadata: {:?}", redisMeteData);
-            redis_metadata = redisMeteData;
+    match get_from_node_provider("redis-pods").await {
+        Err(e) => {
+            warn!("skylark::init: failed to get redis metadata: {:?}", e);
+            info!("skylark::init: assuming default redis info");
+            redis_metadata = local_redis_info;
         }
+        Ok(metadata) => redis_metadata = metadata,
     }
-    match get_slos().await {
-        Err(err) => error!("skylark::init: Error fetching SLOs: {}", err),
-        Some(SLOs) => {
-            info!("skylark::init: SLOs received");
-            trace!("skylark::init: SLOs: {:?}", SLOs);
-            slos = SLOs;
+    match get_from_node_provider("slo").await {
+        Err(e) => {
+            warn!("skylark::init: failed to get SLOs: {:?}", e);
+            info!("skylark::init: assuming default SLOs");
+            objectives = default_slo_config
         }
+        Ok(o) => objectives = o,
     }
-    match get_skylark_state(predecessor_key.clone(), None).await {
-        Err(err) => error!("skylark::init: Error fetching predecessor state: {}", err),
-        Some(state) => {
-            info!("skylark::init: predecessor state received");
-            trace!("skylark::init: predecessor state: {:?}", state);
-            predecessor_state = state;
+
+    match key{
+        Some(k) => {
+            predecessor_key = SkylarkKey::from(k);
+            local_key = SkylarkKey::new(predecessor_key.chain_id().to_string(), fn_name.clone());
+            match get_skylark_state(&predecessor_key, local_redis_pod_info.pod_url().clone()).await {
+                Err(e) => {
+                    warn!("skylark::init: failed to get predecessor state from local store: {:?}", e);
+                    info!("skylark::init: Fallback: fetch from cloud");
+                    let cloud_pod_url = redis_metadata.get(&cloud_node_info).unwrap().pod_url().clone();
+                    match get_skylark_state(&predecessor_key, cloud_pod_url).await {
+                        Err(e) => {
+                            error!("skylark::init: failed to get predecessor state from cloud store: {:?}", e);
+                            info!("skylark::init: Fallback: move on with empty predecessor state");
+                        },
+                        Ok(state) => initial_state = Option::from(state),
+                    }
+                },
+                Ok(state) => initial_state = Option::from(state),
+            }
+        }
+        None => {
+            local_key = SkylarkKey::new(Uuid::new_v4().to_string(), fn_name.clone());
         }
     }
 
-    let node_graph = get_node_graph();
     let mut skylark = SKYLARK.lock().unwrap();
-    skylark.set_metadata(SkylarkMetadata::new(node, predecessor_key.clone().chain_id(), fn_name.clone(), SkylarkMode::from(mode), redis_metadata));
-    skylark.set_state(SkylarkState::new(
-        SkylarkKey::new(Option::from(predecessor_key.chain_id()), fn_name),
-        None,
-    ));
-    skylark.set_node_graph(node_graph);
-    skylark.set_objectives(slos);
-    info!(skylark, "skylark::init: Finished initializing");
+    skylark.set_metadata(Option::from(SkylarkMetadata::new(self_node_info, local_key.chain_id().to_string(), fn_name.clone(), SkylarkMode::from(mode), redis_metadata)));
+    skylark.set_node_graph(Option::from(node_graph));
+    skylark.set_objectives(Option::from(objectives));
+    info!("skylark::init: Finished initializing");
+    Ok(initial_state)
 }
-pub fn store_state(final_state: String) {
+pub async fn store_state(final_state: String) -> Result<String, Box<dyn std::error::Error>> {
     info!("skylark::store_state");
     trace!("skylark::store_state: {}", final_state);
     let mut skylark = SKYLARK.lock().unwrap();
@@ -109,16 +112,16 @@ pub fn store_state(final_state: String) {
         }
         SkylarkMode::Sat => {
             info!("skylark::store_state::Sat - Save to viable nodes");
-            for node in compute_viable_nodes(skylark.metadata().node_info(), skylark.node_graph(), skylark.objectives()){
-                match skylark.metadata().redis_info().get(&node){
-                    Some(info) => {store_skylark_state(skylark.state(), Option::from(info.pod_ip().to_string()))}
-                    None => {info!("skylark::store_state::Sat - No redis info found for node {}", node);}
+            for node in compute_viable_nodes(skylark.metadata().node_info(), skylark.node_graph(), skylark.objectives()) {
+                match skylark.metadata().redis_info().get(&node) {
+                    Some(info) => { store_skylark_state(skylark.state(), Option::from(info.pod_ip().to_string())) }
+                    None => { info!("skylark::store_state::Sat - No redis info found for node {}", node); }
                 }
             }
         }
         SkylarkMode::Edge => {
             info!("skylark::store_state::Edge - Save to local node");
-            store_skylark_state(skylark.state(), None)
+            store_skylark_state(skylark.state(), None).await
         }
     }
 }
