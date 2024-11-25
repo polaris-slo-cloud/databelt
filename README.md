@@ -4,7 +4,8 @@ The implementation of the skylark model. Provides mechanisms to
 2. Propagates function state to the potential local execution environment of neighboring nodes.
 
 This repository includes the following subprojects: 
-- [Skylark:](skylark/README.md) Implementation of the proposed mechanisms in the thesis as a rust library.  
+- [Skylark api: ](skylark_api/README.md) Implementation of the proposed mechanisms for state propagation and bundled state retrieval
+- [Skylark lib: ](skylark_lib/README.md) Wrapper lib to access the Skylark API  
 - [Example alarm](ex_faas_app/ex_alarm/README.md)
 - [Example image preprocessor](ex_faas_app/ex_preprocess/README.md)
 - [Example object detector](ex_faas_app/ex_detect/README.md)
