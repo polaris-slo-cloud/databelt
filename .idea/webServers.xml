@@ -38,13 +38,13 @@
         </fileTransfer>
       </webServer>
       <webServer id="463ca506-8230-498b-8d1b-af3d7367d9f6" name="skylark -&gt; ex_firealarm" url="http://localhost">
-        <fileTransfer mountedRoot="$PROJECT_DIR$/ex_faas_app/ex_firealarm/lib" accessType="MOUNT" port="0" />
+        <fileTransfer mountedRoot="$PROJECT_DIR$/ex_faas_app/ex_alarm/skylark_lib" accessType="MOUNT" port="0" />
       </webServer>
       <webServer id="36123c1b-0f2c-4282-84b7-c2ad9673bfd9" name="skylark -&gt; ex_obj_detector" url="http://localhost">
-        <fileTransfer mountedRoot="$PROJECT_DIR$/ex_faas_app/ex_obj_detector/lib" accessType="MOUNT" port="0" />
+        <fileTransfer mountedRoot="$PROJECT_DIR$/ex_faas_app/ex_detect/skylark_lib" accessType="MOUNT" port="0" />
       </webServer>
       <webServer id="69006159-db0e-483b-9213-6e8e1f36fbf2" name="skylark -&gt; ex_img_preprocessor" url="http://localhost">
-        <fileTransfer mountedRoot="$PROJECT_DIR$/ex_faas_app/ex_img_preprocessor/lib" accessType="MOUNT" port="0" />
+        <fileTransfer mountedRoot="$PROJECT_DIR$/ex_faas_app/ex_preprocess/skylark_lib" accessType="MOUNT" port="0" />
       </webServer>
       <webServer id="49acbc96-c06a-4773-b7a5-e18e4bf37fbc" name="pi5u1">
         <fileTransfer rootFolder="/home/skylark/" accessType="SFTP" host="10.0.0.243" port="22" sshConfigId="ccd3a214-075b-4bb4-b8ed-cde0019277b3" sshConfig="pi5u1@243">
@@ -52,6 +52,9 @@
             <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>
         </fileTransfer>
+      </webServer>
+      <webServer id="37381c4b-6cf2-49c5-ab72-9e5bfc8df7cb" name="skylark_lib -&gt; all_ex_fn" url="">
+        <fileTransfer mountedRoot="$PROJECT_DIR$/ex_faas_app" accessType="MOUNT" port="0" />
       </webServer>
     </option>
   </component>
