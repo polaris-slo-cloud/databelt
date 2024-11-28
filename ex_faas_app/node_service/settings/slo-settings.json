@@ -1,0 +1,6 @@
+{
+  "bandwidth_metric": "Mbps",
+  "latency_metric": "ms",
+  "min_bandwidth": 250,
+  "max_latency": 25
+}
