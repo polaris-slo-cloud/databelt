@@ -4,8 +4,7 @@ use hyper::{Body, Method, Request};
 use rand::{distributions::Alphanumeric, Rng};
 use redis::AsyncCommands;
 use sha2::{Digest, Sha256};
-use skylark::get_nodes;
-use skylark::get_version;
+use skylark_lib::{get_version, init_and_get_predecessor_state, store_state};
 use std::env;
 use tokio::net::TcpListener;
 extern crate pretty_env_logger;
@@ -28,7 +27,6 @@ async fn main() {
     debug!("Skylark library loaded: {}", get_version());
     let addr = "0.0.0.0:8080";
 
-    get_nodes().await.expect("TODO: oof");
 
     let tcp_listener = TcpListener::bind(addr).await.unwrap();
     info!("listening on {}", addr);

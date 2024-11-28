@@ -1,7 +1,7 @@
 use axum::{http::StatusCode, response::IntoResponse, routing::get, routing::post, Router};
 use rand::{distributions::Alphanumeric, Rng};
 use sha2::{Digest, Sha256};
-use skylark_lib::{get_version, store_state};
+use skylark_lib::{get_version, store_state, init_and_get_predecessor_state};
 use std::env;
 use tokio::net::TcpListener;
 extern crate pretty_env_logger;

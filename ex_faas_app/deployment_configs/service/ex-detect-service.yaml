@@ -21,15 +21,7 @@ spec:
           env:
             - name: DNS_SERVER
               value: "10.152.183.10:53"
-            - name: REDIS_HOST
-              value: "redis.default.svc.cluster.local"
-            - name: REDIS_PORT
-              value: "6379"
             - name: RUST_BACKTRACE
               value: "full"
             - name: RUST_LOG
               value: "info"
-            - name: NEIGHBOR_NODE_SERVICE_HOST
-              value: "http://skylark-neighbors.default.svc.cluster.local"
-            - name: NEIGHBOR_NODE_SERVICE_PORT
-              value: "8080"

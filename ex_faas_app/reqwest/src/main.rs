@@ -26,7 +26,7 @@ async fn main() -> Result<(), reqwest::Error> {
 
     eprintln!("Fetching {:?}...", url);
     let mut headers = reqwest::header::HeaderMap::new();
-    headers.insert(reqwest::header::HOST, reqwest::header::HeaderValue::from_static("skylark-neighbors.default.svc.cluster.local"));
+    headers.insert(reqwest::header::HOST, reqwest::header::HeaderValue::from_static("skylark-node-service.default.svc.cluster.local"));
     let client = reqwest::Client::builder().default_headers(headers).build()?;
     let res = client.get(url).send().await?;
     eprintln!("Response: {:?} {}", res.version(), res.status());

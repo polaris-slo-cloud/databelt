@@ -3,10 +3,10 @@ Takes an image as input and simulates image detection by performing hash workloa
 
 ### Build locally
 ```bash
-cargo build --target wasm32-wasi --release
+cargo build --target wasm32-wasip1 --release
 
 # Optional: optimize using `wasmedge compile`
-wasmedge compile target/wasm32-wasi/release/ex_detect.wasm ex_detect.wasm
+wasmedge compile target/wasm32-wasip1/release/ex_detect.wasm ex_detect.wasm
 ```
 ### Docker Build and Push
 ```bash

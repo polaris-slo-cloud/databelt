@@ -13,11 +13,7 @@ skylark_lib = {path = "./skylark_lib"}
 pretty_env_logger = "0.5.0"
 rand = "0.8"
 sha2 = "0.9"
-axum = "0.6"
 chrono = { version = "0.4", features = ["serde"] }
 tokio = { version = "1", features = ["full"] }
-redis = { version = "0.25.4", default-features = false, features = [
-    "tokio-comp",
-] }
 hyper = { version = "0.14", features = ["full"] }
 log = "0.4.22"

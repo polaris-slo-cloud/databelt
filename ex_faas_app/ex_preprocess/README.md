@@ -4,10 +4,10 @@ This output triggers the object detector function `f2`.
 
 ### Build locally
 ```bash
-cargo build --target wasm32-wasi --release
+cargo build --target wasm32-wasip1 --release
 
 # Optional: optimize using `wasmedge compile`
-wasmedge compile target/wasm32-wasi/release/ex_preprocess.wasm ex_preprocess.wasm
+wasmedge compile target/wasm32-wasip1/release/ex_preprocess.wasm ex_preprocess.wasm
 ```
 
 ### Docker Build and Push

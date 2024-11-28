@@ -9,7 +9,7 @@ This repository includes the following subprojects:
 - [Example alarm](ex_faas_app/ex_alarm/README.md)
 - [Example image preprocessor](ex_faas_app/ex_preprocess/README.md)
 - [Example object detector](ex_faas_app/ex_detect/README.md)
-- [Example alarm](ex_faas_app/neighbors_service/README.md)
+- [Example alarm](ex_faas_app/node_service/README.md)
 
 ### General setup
 * sudo apt update
@@ -28,16 +28,14 @@ This repository includes the following subprojects:
 * sudo ufw allow 6443/tcp
 * reboot
 
-
+## Cluster Setup
 ### Setup Knative Serving
 Knative Serving CRDs/Core Components, Kurier (Networking)
-* kubectl apply \-f https://github.com/knative/serving/releases/download/knative-v1.12.1/serving-crds.yaml
-* kubectl apply \-f https://github.com/knative/serving/releases/download/knative-v1.12.1/serving-core.yaml
-* kubectl apply \-f https://github.com/knative/net-kourier/releases/download/knative-v1.12.1/kourier.yaml
-* kubectl patch configmap/config-network \\  
-  \--namespace knative-serving \\  
-  \--patch '{"data":{"ingress.class":"kourier.ingress.networking.knative.dev"}}'
-* kubectl get pods \-n knative-serving
+* kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.12.1/serving-crds.yaml
+* kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.12.1/serving-core.yaml
+* kubectl apply -f https://github.com/knative/net-kourier/releases/download/knative-v1.12.1/kourier.yaml
+* kubectl patch configmap/config-network --namespace knative-serving --patch '{"data":{"ingress.class":"kourier.ingress.networking.knative.dev"}}'
+* kubectl get pods -n knative-serving
 
 ### Setup Knative Eventing
 Knative Eventing CRDs/Core Components, Broker (MT-Channel-Based Broker)
@@ -46,10 +44,6 @@ Knative Eventing CRDs/Core Components, Broker (MT-Channel-Based Broker)
 * kubectl apply -f https://github.com/knative/eventing/releases/download/knative-v1.12.1/mt-channel-broker.yaml
 * kubectl apply -f https://github.com/knative/eventing/releases/download/knative-v1.12.1/in-memory-channel.yaml
 
-### Setup Redis
-KV-Stores will be availiable on each node. In order to trigger services based on changes in KV stores we use a RedisStreamSource
-* kubectl apply -f https://github.com/knative-extensions/eventing-redis/releases/download/knative-v1.16.0/redis-source.yaml
-* kubectl apply -f daemonset/redis-daemonset.yaml && kubectl apply -f service/redis-headless-service.yaml && kubectl apply -f source/redis-image-source.yaml
 ### Docker secret to pull images from registry
 ```bash
 kubectl create secret docker-registry regcred \
@@ -60,14 +54,15 @@ kubectl create secret docker-registry regcred \
 
 kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "regcred"}]}'
 ```
-### Rust development
+
+## Development
 Build
 ```bash
-cargo build --target wasm32-wasi --release
+cargo build --target wasm32-wasip1 --release
 ```
 Optional: optimize using `wasmedge compile`
 ```bash
-wasmedge compile target/wasm32-wasi/release/ex_fn_1.wasm appname.wasm
+wasmedge compile target/wasm32-wasip1/release/ex_fn_1.wasm appname.wasm
 ```
 
 ### Package and push to registry
@@ -115,6 +110,8 @@ kubectl describe pod skylark
 kubectl apply -f <name>.yaml
 kubectl get ksvc
 kubectl delete ksvc --all
+kubectl delete pods --all
+kubectl delete svc --all
 kubectl apply -f ex2.yaml
 kubectl get events NAME -n NAMESPACE
 microk8s inspect
@@ -137,5 +134,27 @@ kubectl get pingsources.sources.knative.dev --all-namespaces
 kubectl get pingsource eo-ping-source -n default -o yaml
 kubectl delete -f ~/deployment/eventing/eo-ping-source.yaml
 kubectl logs deployment/pingsource-mt-adapter -n knative-eventing
+
+# testing
+kubectl run curl-service --image=curlimages/curl -i --tty -- sh
+kubectl attach curl-service -c curl-service -i -t
 ```
 
+## Experiments
+
+### Techstack
+- MicroK8s
+- Knative
+- WasmEdge
+
+### Cluster
+4x Raspberry Pi 5 Nodes
+1x Cloud node, 3x Satellite Node
+`kubectl label node pi5u1 node-type=Cloud`
+
+| Node  | Node Type (node-type label) | 
+|-------|-----------------------------|
+| pi5u1 | Cloud                       | 
+| pi5u2 | Satellite                   |
+| pi5u3 | Satellite                   |
+| pi5u4 | Satellite                   |
