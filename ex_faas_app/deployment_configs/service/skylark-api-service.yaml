@@ -1,0 +1,32 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: skylark-api
+  namespace: default
+spec:
+  template:
+    metadata:
+      annotations:
+        module.wasm.image/variant: compat-smart
+        autoscaling.knative.dev/scale-to-zero-pod-retention-period: "10m"
+    spec:
+      nodeSelector:
+        node-type: Sat
+      runtimeClassName: wasmedge
+      containers:
+        - image: guelmino/skylark-api:latest
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+          env:
+            - name: DNS_SERVER
+              value: "10.152.183.10:53"
+            - name: RUST_BACKTRACE
+              value: "full"
+            - name: RUST_LOG
+              value: "debug"
+            - name: NODE_SERVICE_URL
+              value: "http://10.1.46.194:8080"

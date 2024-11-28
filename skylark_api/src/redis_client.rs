@@ -4,7 +4,6 @@ use redis::{AsyncCommands, Client, RedisResult, Commands};
 use std::sync::Mutex;
 static LOCAL_REDIS_URL: &str = "redis://redis.default.svc.cluster.local:6379";
 static GLOBAL_REDIS_URL: &str = "redis://redis.default.svc.cluster.local:6379";
-type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 lazy_static! {
     static ref LOCAL_REDIS_CLIENT: Mutex<Client> = {

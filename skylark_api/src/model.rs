@@ -101,6 +101,7 @@ pub enum NodeType {
     Edge,
     Sat,
 }
+
 #[derive(Serialize, Deserialize, Clone, Hash, Eq)]
 pub struct SkylarkNode {
     node_name: String,

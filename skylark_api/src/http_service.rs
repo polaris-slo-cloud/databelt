@@ -1,12 +1,13 @@
+use reqwest::Client;
 use serde::de::DeserializeOwned;
+
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 pub async fn get_from_url<T>(url: String) -> Result<T>
 where
     T: DeserializeOwned,
 {
     info!("skylark::get_from_node_provider: url: {}", url);
-    let response = reqwest::get(url).await;
-
+    let response = Client::new().get(url).send().await;
     match response {
         Ok(res) => {
             match res.status().is_success() {

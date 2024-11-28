@@ -1,23 +1,26 @@
-mod model;
+mod http_service;
 mod mechanisms;
-mod http_client;
+#[allow(dead_code)]
+mod model;
 mod redis_client;
 
-use hyper::{Response, StatusCode};
-use hyper::{Body, Method, Request};
-use tokio::net::TcpListener;
+use crate::http_service::get_from_url;
+use crate::mechanisms::compute_viable_nodes;
 use crate::model::{NodeGraph, SkylarkKey, SkylarkNode, SkylarkSLOs, SkylarkState};
+use crate::redis_client::{
+    del_global_state, del_local_state, get_global_state, get_local_state, store_global_state,
+    store_local_state, store_state_by_url,
+};
+use hyper::server::conn::Http;
+use hyper::service::service_fn;
+use hyper::{Body, Method, Request};
+use hyper::{Response, StatusCode};
 use lazy_static::lazy_static;
 use std::env;
 use std::net::SocketAddr;
-use std::ops::Deref;
 use std::string::ToString;
 use std::sync::{Mutex};
-use hyper::server::conn::Http;
-use hyper::service::service_fn;
-use crate::http_client::get_from_url;
-use crate::mechanisms::compute_viable_nodes;
-use crate::redis_client::{del_global_state, del_local_state, get_global_state, get_local_state, store_global_state, store_local_state, store_state_by_url};
+use tokio::net::TcpListener;
 
 extern crate pretty_env_logger;
 #[macro_use]
@@ -41,9 +44,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             error!("main: Error while initializing skylark: {:?}", e);
         }
     }
-    info!("Starting Example Preprocessor {}", env!("CARGO_PKG_VERSION"));
+    info!(
+        "Starting Example Preprocessor {}",
+        env!("CARGO_PKG_VERSION")
+    );
 
-    info!("Skylark library loaded: {}", get_version());
+    info!("Skylark API version: {}", get_version());
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
 
     let listener = TcpListener::bind(addr).await?;
@@ -52,7 +58,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let (stream, _) = listener.accept().await?;
 
         tokio::task::spawn(async move {
-            if let Err(err) = Http::new().serve_connection(stream, service_fn(http_handler)).await {
+            if let Err(err) = Http::new()
+                .serve_connection(stream, service_fn(http_handler))
+                .await
+            {
                 error!("Error serving connection: {:?}", err);
             }
         });
@@ -68,19 +77,31 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             let key = req.uri().query().unwrap().split_at(3).1;
             match get_local_state(&SkylarkKey::from(key.to_string())).await {
                 Ok(state) => {
-                    info!("main::http_handler::GET_STATE: local redis result: {:?}", state.clone());
+                    info!(
+                        "main::http_handler::GET_STATE: local redis result: {:?}",
+                        state.clone()
+                    );
                     Ok(Response::new(Body::from(state)))
                 }
                 Err(e) => {
-                    error!("main::http_handler::GET_STATE: Error getting local state: {:?}", e);
+                    error!(
+                        "main::http_handler::GET_STATE: Error getting local state: {:?}",
+                        e
+                    );
                     match get_global_state(&SkylarkKey::from(key.to_string())).await {
                         Ok(state) => {
-                            info!("main::http_handler::GET_STATE: global redis result: {:?}", state.clone());
+                            info!(
+                                "main::http_handler::GET_STATE: global redis result: {:?}",
+                                state.clone()
+                            );
                             Ok(Response::new(Body::from(state)))
                         }
                         Err(e) => {
                             error!("main::http_handler::GET_STATE: Error fetching global and local state: {:?}", e);
-                            Ok(Response::builder().status(StatusCode::NOT_FOUND).body(Body::empty()).unwrap())
+                            Ok(Response::builder()
+                                .status(StatusCode::NOT_FOUND)
+                                .body(Body::empty())
+                                .unwrap())
                         }
                     }
                 }
@@ -96,7 +117,10 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     info!("main::http_handler::DELETE_STATE: successfully deleted local state");
                 }
                 Err(e) => {
-                    warn!("main::http_handler::DELETE_STATE: Error deleting local state: {:?}", e);
+                    warn!(
+                        "main::http_handler::DELETE_STATE: Error deleting local state: {:?}",
+                        e
+                    );
                     err = true;
                 }
             }
@@ -105,12 +129,18 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     info!("main::http_handler::DELETE_STATE: successfully deleted global state");
                 }
                 Err(e) => {
-                    warn!("main::http_handler::DELETE_STATE: Error deleting global state: {:?}", e);
+                    warn!(
+                        "main::http_handler::DELETE_STATE: Error deleting global state: {:?}",
+                        e
+                    );
                     err = true;
                 }
             }
             if err {
-                Ok(Response::builder().status(StatusCode::INTERNAL_SERVER_ERROR).body(Body::empty()).unwrap())
+                Ok(Response::builder()
+                    .status(StatusCode::INTERNAL_SERVER_ERROR)
+                    .body(Body::empty())
+                    .unwrap())
             } else {
                 Ok(Response::new(Body::from("Successfully deleted state")))
             }
@@ -126,34 +156,49 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                 match store_state_by_url(&state, viable_node.redis_host().to_string()).await {
                     Ok(_) => {
                         propagated_node_name = viable_node.node_name().to_string();
-                        info!("main::http_handler::SAVE_SAT: successfully stored state to node {}", propagated_node_name)
+                        info!(
+                            "main::http_handler::SAVE_SAT: successfully stored state to node {}",
+                            propagated_node_name
+                        )
                     }
                     Err(e) => {
-                        error!("main::http_handler::SAVE_SAT: Error propagating state: {:?}", e);
+                        error!(
+                            "main::http_handler::SAVE_SAT: Error propagating state: {:?}",
+                            e
+                        );
                         err = true;
                     }
                 }
                 match store_global_state(&state).await {
                     Ok(_) => {
-                        info!("main::http_handler::SAVE_SAT: successfully stored state to cloud node")
+                        info!(
+                            "main::http_handler::SAVE_SAT: successfully stored state to cloud node"
+                        )
                     }
                     Err(e) => {
-                        error!("main::http_handler::SAVE_SAT: Error saving global state: {:?}", e);
+                        error!(
+                            "main::http_handler::SAVE_SAT: Error saving global state: {:?}",
+                            e
+                        );
                         err = true;
                     }
                 }
-
             } else {
                 warn!("main::http_handler::SAVE_SAT: No viable node found");
                 err = true;
             }
             if err {
-                Ok(Response::builder().status(StatusCode::INTERNAL_SERVER_ERROR).body(Body::empty()).unwrap())
+                Ok(Response::builder()
+                    .status(StatusCode::INTERNAL_SERVER_ERROR)
+                    .body(Body::empty())
+                    .unwrap())
             } else {
                 info!("main::http_handler::SAVE_SAT: successfully propagated state to viable node- and global store");
-                Ok(Response::new(Body::from(format!("Successfully stored state on node {}", propagated_node_name))))
+                Ok(Response::new(Body::from(format!(
+                    "Successfully stored state on node {}",
+                    propagated_node_name
+                ))))
             }
-
         }
         (&Method::POST, "/save/edge") => {
             info!("main::http_handler::SAVE_EDGE: incoming");
@@ -165,8 +210,14 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     Ok(Response::new(Body::from("OK")))
                 }
                 Err(e) => {
-                    error!("main::http_handler::SAVE_EDGE: Error saving local state: {:?}", e);
-                    Ok(Response::builder().status(StatusCode::INTERNAL_SERVER_ERROR).body(Body::empty()).unwrap())
+                    error!(
+                        "main::http_handler::SAVE_EDGE: Error saving local state: {:?}",
+                        e
+                    );
+                    Ok(Response::builder()
+                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                        .body(Body::empty())
+                        .unwrap())
                 }
             }
         }
@@ -180,21 +231,25 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     Ok(Response::new(Body::from("OK")))
                 }
                 Err(e) => {
-                    error!("main::http_handler::SAVE_CLOUD: Error saving global state: {:?}", e);
-                    Ok(Response::builder().status(StatusCode::INTERNAL_SERVER_ERROR).body(Body::empty()).unwrap())
+                    error!(
+                        "main::http_handler::SAVE_CLOUD: Error saving global state: {:?}",
+                        e
+                    );
+                    Ok(Response::builder()
+                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                        .body(Body::empty())
+                        .unwrap())
                 }
             }
         }
-        (&Method::GET, "/health") => {
-            Ok(Response::new(Body::from("OK")))
-        }
+        (&Method::GET, "/health") => Ok(Response::new(Body::from("OK"))),
         // Return the 404 Not Found for other routes.
-        _ => {
-            Ok(Response::builder().status(StatusCode::NOT_FOUND).body(Body::empty()).unwrap())
-        }
+        _ => Ok(Response::builder()
+            .status(StatusCode::NOT_FOUND)
+            .body(Body::empty())
+            .unwrap()),
     }
 }
-
 
 pub fn get_version() -> &'static str {
     env!("CARGO_PKG_VERSION")
@@ -202,8 +257,8 @@ pub fn get_version() -> &'static str {
 async fn init() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let node_graph: NodeGraph;
     let viable_nodes: Vec<SkylarkNode>;
-
-    match get_from_url::<SkylarkNode>(format!("{}/{}", NODE_SERVICE_URL, "local-node-info")).await {
+    let node_service_url = env::var("NODE_SERVICE_URL").unwrap_or(NODE_SERVICE_URL.to_string());
+    match get_from_url::<SkylarkNode>(format!("{}/{}", node_service_url, "local-node-info")).await {
         Err(e) => {
             warn!("skylark::init: failed to get local node info!\n {:?}", e);
             info!("skylark::init: moving on with default");
@@ -217,7 +272,7 @@ async fn init() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             local_node.set_node_type(node.node_type().clone());
         }
     }
-    match get_from_url::<SkylarkNode>(format!("{}/{}", NODE_SERVICE_URL, "cloud-node-info")).await {
+    match get_from_url::<SkylarkNode>(format!("{}/{}", node_service_url, "cloud-node-info")).await {
         Err(e) => {
             warn!("skylark::init: failed to get cloud node info!\n {:?}", e);
             info!("skylark::init: moving on with default");
@@ -231,7 +286,7 @@ async fn init() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             cloud_node.set_node_type(node.node_type().clone());
         }
     }
-    match get_from_url::<SkylarkSLOs>(format!("{}/{}", NODE_SERVICE_URL, "objectives")).await {
+    match get_from_url::<SkylarkSLOs>(format!("{}/{}", node_service_url, "objectives")).await {
         Err(e) => {
             warn!("skylark::init: failed to get objectives!\n {:?}", e);
             info!("skylark::init: moving on with default");
@@ -245,14 +300,18 @@ async fn init() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             o.set_min_bandwidth(objectives.min_bandwidth().clone());
         }
     }
-    match get_from_url::<NodeGraph>(format!("{}/{}", NODE_SERVICE_URL, "node-graph")).await {
+    match get_from_url::<NodeGraph>(format!("{}/{}", node_service_url, "node-graph")).await {
         Err(e) => {
             error!("skylark::init: failed to get node graph!\n {:?}", e);
         }
         Ok(graph) => {
             info!("skylark::init: successfully fetched node graph");
             node_graph = graph;
-            viable_nodes = compute_viable_nodes(&LOCAL_NODE.lock().unwrap(), &node_graph, &OBJECTIVES.lock().unwrap());
+            viable_nodes = compute_viable_nodes(
+                &LOCAL_NODE.lock().unwrap(),
+                &node_graph,
+                &OBJECTIVES.lock().unwrap(),
+            );
             for node in viable_nodes {
                 let mut viable_node = VIABLE_NODE.lock().unwrap();
                 viable_node.set_node_ip(node.node_ip().to_string());
@@ -265,6 +324,5 @@ async fn init() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     }
 
     info!("skylark::init: Finished initializing");
-
     Ok(())
 }

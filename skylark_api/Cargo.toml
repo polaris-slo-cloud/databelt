@@ -3,21 +3,16 @@ name = "skylark_api"
 version = "0.1.0"
 edition = "2021"
 
-[patch.crates-io]
-tokio = { git = "https://github.com/second-state/wasi_tokio.git", branch = "v1.36.x" }
-socket2 = { git = "https://github.com/second-state/socket2.git", branch = "v0.5.x" }
-hyper = { git = "https://github.com/second-state/wasi_hyper.git", branch = "v0.14.x" }
-
 [dependencies]
-reqwest_wasi = { version = "0.11", features = ["json"] }
-hyper = { version = "0.14", features = ["full"] }
-tokio = { version = "1", features = ["full"] }
-pretty_env_logger = "0.4.0"
+reqwest_wasi = { version = "0.11.16", features = ["json"] }
+hyper_wasi = { version = "0.15.2", features = ["full"] }
+tokio_wasi = { version = "1", features = ["full"] }
+pretty_env_logger = "0.5.0"
 serde = { version = "1.0.214", features = ["derive"] }
 serde_json = "1.0.132"
 log = "0.4.22"
 uuid = { version = "1.11.0", features = ["v4", "fast-rng"] }
-redis = { version = "0.25.4", default-features = false, features = [
+redis_wasi = { version = "0.22.3", default-features = false, features = [
     "tokio-comp",
 ] }
 lazy_static = "1.5.0"
