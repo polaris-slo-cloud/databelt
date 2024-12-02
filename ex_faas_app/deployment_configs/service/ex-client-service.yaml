@@ -1,0 +1,33 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: skylark-ex-client
+  namespace: default
+spec:
+  template:
+    metadata:
+      annotations:
+        module.wasm.image/variant: compat-smart
+    spec:
+      runtimeClassName: wasmedge
+      containers:
+        - image: guelmino/skylark-ex-client:latest
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+          env:
+            - name: DNS_SERVER
+              value: "10.152.183.10:53"
+            - name: RUST_BACKTRACE
+              value: "full"
+            - name: RUST_LOG
+              value: "info"
+            - name: PREPROCESS_URL
+              value: "http://skylark-ex-preprocess.default.svc.cluster.local:8080"
+            - name: DETECT_URL
+              value: "http://skylark-ex-detect.default.svc.cluster.local:8080"
+            - name: ALARM_URL
+              value: "http://skylark-ex-alarm.default.svc.cluster.local:8080"
