@@ -1,4 +1,4 @@
-use crate::model::{SkylarkKey, SkylarkState};
+use crate::model::{SkylarkKey, SkylarkMode, SkylarkState};
 use crate::SKYLARK_API_URL;
 
 type Result<T> = std::result::Result<T, reqwest::Error>;
@@ -9,13 +9,14 @@ pub async fn get_skylark_state(key: &SkylarkKey) -> Result<SkylarkState> {
     reqwest::get(url).await?.json::<SkylarkState>().await
 }
 
-pub async fn store_skylark_state(state: &SkylarkState) -> Result<SkylarkState> {
+pub async fn store_skylark_state(state: &SkylarkState, mode: &SkylarkMode) -> Result<SkylarkState> {
     info!(
         "skylark::store_skylark_state: state: {}",
         state.value().clone()
     );
+    let url = format!("{}/save/{}", SKYLARK_API_URL.get().unwrap(), mode.to_string().to_lowercase());
     reqwest::Client::new()
-        .post(SKYLARK_API_URL.get().unwrap())
+        .post(url)
         .json::<SkylarkState>(state)
         .send()
         .await?

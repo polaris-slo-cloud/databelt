@@ -4,7 +4,7 @@
 mod model;
 mod service;
 
-use crate::model::{SkylarkKey, SkylarkState};
+use crate::model::{SkylarkKey, SkylarkMode, SkylarkState};
 use crate::service::{delete_skylark_state, get_skylark_state, store_skylark_state};
 use lazy_static::lazy_static;
 use std::env;
@@ -26,6 +26,7 @@ lazy_static! {
 }
 static SKYLARK_API_URL: OnceLock<String> = OnceLock::new();
 static SKYLARK_KEY: OnceLock<SkylarkKey> = OnceLock::new();
+static SKYLARK_MODE: OnceLock<SkylarkMode> = OnceLock::new();
 pub fn skylark_lib_version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }
@@ -49,12 +50,13 @@ async fn get_predecessor_state(key: SkylarkKey) -> Result<String> {
         }
     }
 }
-pub async fn store_state(final_state: String) -> Result<()> {
+
+pub async fn store_state(final_state: String) -> Result<String> {
     info!("skylark_lib::store_state");
     trace!("skylark_lib::store_state: {}", final_state);
     let skylark_state = SkylarkState::new(SKYLARK_KEY.get().unwrap().clone(), final_state);
     let prev_state = PREV_SKYLARK_STATE.lock().await;
-    match store_skylark_state(&skylark_state).await {
+    match store_skylark_state(&skylark_state, SKYLARK_MODE.get().unwrap()).await {
         Err(e) => {
             error!(
                 "skylark_lib::store_state: failed to store state to skylark api: {:?}",
@@ -72,12 +74,12 @@ pub async fn store_state(final_state: String) -> Result<()> {
                 }
             }
             info!("skylark_lib::store_state: Successfully stored state");
-            Ok(())
+            Ok(skylark_state.key().to_string())
         }
     }
 }
 
-pub async fn init_skylark_and_fetch_state(function_name: String, key: String) -> Result<String> {
+pub async fn init_skylark_and_fetch_state(function_name: String, key: String, mode: &str) -> Result<String> {
     info!("skylark_lib::init_and_get_predecessor_state: Initializing Skylark Lib");
     pretty_env_logger::init_timed();
     SKYLARK_API_URL
@@ -86,6 +88,7 @@ pub async fn init_skylark_and_fetch_state(function_name: String, key: String) ->
                 .unwrap_or("http://skylark-api.default.svc.cluster.local".to_string()),
         )
         .expect("Error while initializing Skylark API url");
+    SKYLARK_MODE.set(SkylarkMode::from(mode.to_string())).expect("Error while initializing Skylark mode");
     info!("skylark_lib::init_and_get_predecessor_state: Initializing new Skylark state");
     let pre_key = SkylarkKey::from(key);
     SKYLARK_KEY.set(SkylarkKey::new(
@@ -95,7 +98,7 @@ pub async fn init_skylark_and_fetch_state(function_name: String, key: String) ->
     get_predecessor_state(pre_key).await
 }
 
-pub fn init_skylark(function_name: String) {
+pub fn init_skylark(function_name: String, mode: &str) {
     info!("skylark_lib::init: Initializing Skylark Lib");
     pretty_env_logger::init_timed();
     SKYLARK_API_URL
@@ -104,7 +107,7 @@ pub fn init_skylark(function_name: String) {
                 .unwrap_or("http://skylark-api.default.svc.cluster.local".to_string()),
         )
         .expect("Error while initializing Skylark API url");
-
+    SKYLARK_MODE.set(SkylarkMode::from(mode.to_string())).expect("Error while initializing Skylark mode");
     info!("skylark_lib::init: Initializing new Skylark state");
     SKYLARK_KEY.set(SkylarkKey::new(
         Uuid::new_v4().to_string(),

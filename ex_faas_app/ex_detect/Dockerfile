@@ -1,10 +1,10 @@
 # syntax=docker/dockerfile:1
-FROM --platform=$BUILDPLATFORM rust:1.70 AS buildbase
+FROM --platform=$BUILDPLATFORM rust:latest AS buildbase
 RUN rustup target add wasm32-wasip1
 WORKDIR /src
 
 FROM --platform=$BUILDPLATFORM buildbase AS buildobjdetector
-COPY skylark ./skylark
+COPY skylark_lib ./skylark_lib
 COPY . /src
 RUN --mount=type=cache,target=/usr/local/cargo/git/db \
     --mount=type=cache,target=/usr/local/cargo/registry/cache \

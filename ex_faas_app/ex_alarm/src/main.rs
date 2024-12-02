@@ -1,59 +1,100 @@
-use axum::{http::StatusCode, response::IntoResponse, routing::get, routing::post, Router};
-use rand::{distributions::Alphanumeric, Rng};
+use hyper::server::conn::Http;
+use hyper::service::service_fn;
+use hyper::{Body, Method, Request, Response, StatusCode};
 use sha2::{Digest, Sha256};
-use skylark_lib::{get_version, store_state, init_and_get_predecessor_state};
+use skylark_lib::{init_skylark_and_fetch_state, skylark_lib_version, store_state};
 use std::env;
+use std::net::SocketAddr;
 use tokio::net::TcpListener;
+use url::Url;
+
 extern crate pretty_env_logger;
 #[macro_use]
 extern crate log;
 
 #[tokio::main(flavor = "current_thread")]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     pretty_env_logger::init_timed();
-    info!("Starting Example Fire Alarm {}", env!("CARGO_PKG_VERSION"));
-    let app = Router::new()
-        .route("/", post(alarm_handler))
-        .route("/health", get(health_probe));
 
-    info!("Skylark library loaded: {}", get_version());
-    let addr = "0.0.0.0:8080";
+    info!("Starting Example Alarm {}", env!("CARGO_PKG_VERSION"));
+    info!("Skylark library loaded: {}", skylark_lib_version());
+    let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
 
+    let listener = TcpListener::bind(addr).await?;
+    info!("Listening on http://{}", addr);
+    loop {
+        let (stream, _) = listener.accept().await?;
 
-    let tcp_listener = TcpListener::bind(addr).await.unwrap();
-    info!("listening on {}", addr);
-    axum::Server::from_tcp(tcp_listener.into_std().unwrap())
-        .unwrap()
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+        tokio::task::spawn(async move {
+            if let Err(err) = Http::new()
+                .serve_connection(stream, service_fn(http_handler))
+                .await
+            {
+                error!("Error serving connection: {:?}", err);
+            }
+        });
+    }
 }
 
-async fn alarm_handler(body: String) -> impl IntoResponse {
-    info!(
-        "alarm_handler: Received POST body with length: {}",
-        body.len()
-    );
-    // Generate random data and compute its hash
-    let data = generate_random_data(500);
-    let mut hasher = Sha256::new();
-    hasher.update(data.as_bytes());
-    let data_hash = format!("{:x}", hasher.finalize());
+async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
+    match (req.method(), req.uri().path()) {
+        (&Method::GET, "/") => {
+            let params = Url::parse(&req.uri().to_string()).unwrap();
+            let pairs = params.query_pairs();
+            let mut key: Option<String> = None;
+            for (k, v) in pairs {
+                if k == "key" {
+                    key = Option::from(v.to_string());
+                }
+            }
+            let state: String;
+            match init_skylark_and_fetch_state(
+                env!("CARGO_PKG_NAME").to_string(),
+                key.unwrap(),
+                "Sat",
+            )
+            .await
+            {
+                Ok(s) => {
+                    state = s;
+                    let mut hasher = Sha256::new();
+                    hasher.update(state.as_bytes());
+                    let data_hash = format!("{:x}", hasher.finalize());
 
-    warn!("ALARM ALARM");
-    // Return a JSON response with the hash
-    (StatusCode::OK, format!("Data stored with key: {}", data_hash.clone()))
-}
-
-fn generate_random_data(size_kb: usize) -> String {
-    let size_bytes = size_kb * 1024;
-    rand::thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(size_bytes)
-        .map(char::from)
-        .collect()
-}
-
-async fn health_probe() -> impl IntoResponse {
-    StatusCode::OK
+                    match store_state(data_hash).await {
+                        Ok(key) => {
+                            info!(
+                                "main::http_handler::store_state: skylark lib result: {:?}",
+                                key
+                            );
+                            Ok(Response::new(Body::from(key)))
+                        }
+                        Err(e) => {
+                            error!("main::http_handler::store_state: Error calling skylark lib store state: {:?}", e);
+                            Ok(Response::builder()
+                                .status(StatusCode::NOT_FOUND)
+                                .body(Body::empty())
+                                .unwrap())
+                        }
+                    }
+                }
+                Err(err) => {
+                    error!(
+                        "main::http_handler::init_skylark_lib: Error fetching predecessor (detector) state: {:?}",
+                        err
+                    );
+                    Ok(Response::builder()
+                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                        .body(Body::empty())
+                        .unwrap())
+                }
+            }
+        }
+        (&Method::GET, "/health") => Ok(Response::new(Body::from("OK"))),
+        // Return the 404 Not Found for other routes.
+        _ => Ok(Response::builder()
+            .status(StatusCode::NOT_FOUND)
+            .body(Body::empty())
+            .unwrap()),
+    }
 }

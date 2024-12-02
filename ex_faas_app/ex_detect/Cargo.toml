@@ -3,21 +3,11 @@ name = "ex_detect"
 version = "0.1.0"
 edition = "2021"
 
-[patch.crates-io]
-tokio = { git = "https://github.com/second-state/wasi_tokio.git", branch = "v1.36.x" }
-socket2 = { git = "https://github.com/second-state/socket2.git", branch = "v0.5.x" }
-hyper = { git = "https://github.com/second-state/wasi_hyper.git", branch = "v0.14.x" }
-
 [dependencies]
-skylark_lib = {path = "./skylark_lib"}
+skylark_lib = { path = "./skylark_lib" }
 pretty_env_logger = "0.5.0"
-rand = "0.8"
 sha2 = "0.9"
-axum = "0.6"
-chrono = { version = "0.4", features = ["serde"] }
-tokio = { version = "1", features = ["full"] }
-redis = { version = "0.25.4", default-features = false, features = [
-    "tokio-comp",
-] }
-hyper = { version = "0.14", features = ["full"] }
+tokio_wasi = { version = "1", features = ["full"] }
+hyper_wasi = { version = "0.15.2", features = ["full"] }
 log = "0.4.22"
+url = "2.5.3"

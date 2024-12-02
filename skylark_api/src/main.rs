@@ -258,7 +258,7 @@ async fn init() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let node_graph: NodeGraph;
     let viable_nodes: Vec<SkylarkNode>;
     let node_service_url = env::var("NODE_SERVICE_URL").unwrap_or(NODE_SERVICE_URL.to_string());
-    match get_from_url::<SkylarkNode>(format!("{}/{}", node_service_url, "local-node-info")).await {
+    match get_from_url::<SkylarkNode>(&format!("{}/{}", node_service_url, "local-node-info").as_str()).await {
         Err(e) => {
             warn!("skylark::init: failed to get local node info!\n {:?}", e);
             info!("skylark::init: moving on with default");
@@ -272,7 +272,7 @@ async fn init() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             local_node.set_node_type(node.node_type().clone());
         }
     }
-    match get_from_url::<SkylarkNode>(format!("{}/{}", node_service_url, "cloud-node-info")).await {
+    match get_from_url::<SkylarkNode>(&format!("{}/{}", node_service_url, "cloud-node-info").as_str()).await {
         Err(e) => {
             warn!("skylark::init: failed to get cloud node info!\n {:?}", e);
             info!("skylark::init: moving on with default");
@@ -286,7 +286,7 @@ async fn init() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             cloud_node.set_node_type(node.node_type().clone());
         }
     }
-    match get_from_url::<SkylarkSLOs>(format!("{}/{}", node_service_url, "objectives")).await {
+    match get_from_url::<SkylarkSLOs>(&format!("{}/{}", node_service_url, "objectives").as_str()).await {
         Err(e) => {
             warn!("skylark::init: failed to get objectives!\n {:?}", e);
             info!("skylark::init: moving on with default");
@@ -300,7 +300,7 @@ async fn init() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             o.set_min_bandwidth(objectives.min_bandwidth().clone());
         }
     }
-    match get_from_url::<NodeGraph>(format!("{}/{}", node_service_url, "node-graph")).await {
+    match get_from_url::<NodeGraph>(&format!("{}/{}", node_service_url, "node-graph").as_str()).await {
         Err(e) => {
             error!("skylark::init: failed to get node graph!\n {:?}", e);
         }

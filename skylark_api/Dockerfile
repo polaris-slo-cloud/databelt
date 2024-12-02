@@ -1,22 +1,17 @@
-# syntax=docker/dockerfile:1
-FROM --platform=$BUILDPLATFORM rust:latest  AS builder
-
+FROM --platform=$BUILDPLATFORM rust:latest AS builder
+RUN apt-get update && \
+    apt-get install -y clang && \
+    apt-get clean
 RUN rustup target add wasm32-wasip1
-
+ENV RUSTFLAGS="--cfg wasmedge --cfg tokio_unstable"
+RUN mkdir /build
+COPY . /build/
+RUN ls -lah /build
 WORKDIR /build
-
-COPY Cargo.lock .
-COPY Cargo.toml .
-RUN mkdir src && touch src/main.rs && cargo fetch
-
-COPY . .
 RUN cargo build --target wasm32-wasip1 --release
+RUN ls -lah
+RUN chmod +x target/wasm32-wasip1/release/skylark_api.wasm
 
 FROM scratch
-
-COPY --from=builder /etc/services /etc/services
-COPY --from=builder /build/target/wasm32-wasip1/release/skylark_api.wasm skylark_api.wasm 
-
-EXPOSE 8080
-
-ENTRYPOINT [ "skylark_api.wasm" ]
+COPY --from=builder /build/target/wasm32-wasip1/release/skylark_api.wasm /
+ENTRYPOINT ["/skylark_api.wasm"]

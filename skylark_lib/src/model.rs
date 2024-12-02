@@ -1,3 +1,4 @@
+use std::fmt::{Display, Formatter};
 // This is a part of Skylark.
 // See README.md and LICENSE for details.
 use serde::{Deserialize, Serialize};
@@ -82,7 +83,7 @@ impl SkylarkState {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum SkylarkMode {
     Cloud,
     Edge,
@@ -90,11 +91,17 @@ pub enum SkylarkMode {
 }
 impl From<String> for SkylarkMode {
     fn from(mode: String) -> Self {
-        match mode.as_ref() {
+        match mode.to_lowercase().as_str() {
             "satellite" => SkylarkMode::Sat,
             "sat" => SkylarkMode::Sat,
             "edge" => SkylarkMode::Edge,
             _ => SkylarkMode::Cloud,
         }
+    }
+}
+
+impl Display for SkylarkMode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
     }
 }

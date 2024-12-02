@@ -21,8 +21,8 @@ async fn http_handler(req: Request<hyper::Body>) -> Result<Response<hyper::Body>
         (&Method::GET, "/") => {
             info!("main::http_handler::preprocess_handler: incoming");
             // PREPROCESS
-            let path = Path::new("image.jpeg");
-            let eo_file = File::open(path).await.expect("Failed to open image.jpeg");
+            let path = Path::new("image.jpg");
+            let eo_file = File::open(path).await.expect("Failed to open image.jpg");
 
             let client = reqwest::Client::new();
             let preprocess_res = client
@@ -39,7 +39,7 @@ async fn http_handler(req: Request<hyper::Body>) -> Result<Response<hyper::Body>
                 }
                 Err(err) => {
                     error!("{:?}", err);
-                    panic!("Failed to preprocess image.jpeg");
+                    panic!("Failed to preprocess image.jpg");
                 }
             }
 
