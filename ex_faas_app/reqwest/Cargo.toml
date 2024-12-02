@@ -1,8 +1,0 @@
-[package]
-name = "reqwestclient"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-reqwest_wasi = { version = "0.11", features = ["json"] }
-tokio_wasi = { version = "1.21", features = ["full"] }

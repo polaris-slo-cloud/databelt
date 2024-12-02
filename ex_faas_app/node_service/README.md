@@ -39,6 +39,7 @@ curl -v http://10.1.46.219:8080/objectives
 curl -v http://10.1.46.219:8080/local-node-info
 curl -v http://10.1.46.219:8080/cloud-node-info
 curl -v http://10.1.46.194:8080/refresh
+curl -v http://skylark-node-service-:8080/refresh 
 ```
 
 Access Redis

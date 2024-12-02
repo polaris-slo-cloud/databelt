@@ -22,11 +22,9 @@ spec:
               path: /health
               port: 8080
           env:
-            - name: DNS_SERVER
-              value: "10.152.183.10:53"
             - name: RUST_BACKTRACE
               value: "full"
             - name: RUST_LOG
               value: "debug"
             - name: NODE_SERVICE_URL
-              value: "http://10.1.46.194:8080"
+              value: "http://10.1.46.215:8080" #http://skylark-node-service-headless:8080
