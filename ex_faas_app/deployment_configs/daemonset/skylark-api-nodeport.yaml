@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: skylark-node-service-headless
+  name: skylark-api-service
   namespace: default
 spec:
-  clusterIP: None
+  type: NodePort
   selector:
-    app: skylark-node-service
+    app: skylark-api
   ports:
     - protocol: TCP
-      port: 8080
+      port: 80
       targetPort: 8080

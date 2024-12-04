@@ -27,4 +27,4 @@ The following environment variables may be set to control Skylark's behavior
 |-------------------|---------------|--------------------------------------------------------------|
 | REDIS_LOCAL_URL   | <REDIS_URI>   | example: redis://redis.default.svc.cluster.local:6379        |   
 | REDIS_CLOUD_URL   | <REDIS_URI>   |                                                              |
-| NODE_PROVIDER_URL | <KNATIVE_URL> | example: http://skylark-node-service.default.svc.cluster.local  |
+| NODE_PROVIDER_URL | <KNATIVE_URL> | example: http://skylark-node-info.default.svc.cluster.local  |

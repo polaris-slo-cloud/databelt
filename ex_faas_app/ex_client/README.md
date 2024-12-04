@@ -23,7 +23,7 @@ kubectl apply -f ~/deployment/service/ex-client-service.yaml
 kubectl get pods -o wide
 kubectl describe pod skylark-ex-client
 kubectl logs skylark-ex-client-00001-deployment-
-curl -X POST -v http://10.152.183.152/ -H "Host: skylark-ex-client.default.svc.cluster.local" -d "skldfjerg"
+curl -v http://10.152.183.238/ -H "Host: skylark-ex-client.default.svc.cluster.local"
 
 ```
 ### Remove

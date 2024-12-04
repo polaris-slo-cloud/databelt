@@ -24,7 +24,9 @@ kubectl apply -f ~/deployment/service/ex-preprocess-service.yaml
 kubectl get pods -o wide
 kubectl describe pod skylark-ex-preprocess
 kubectl logs skylark-ex-preprocess-00001-deployment-
-curl -X POST -v http://10.152.183.152/ -H "Host: skylark-ex-preprocess.default.svc.cluster.local" -d "skldfjerg"
+curl -X POST -v http://10.152.183.238/ -H "Host: skylark-ex-preprocess.default.svc.cluster.local" -d "skldfjerg"
+curl -X POST -v http://skylark-ex-preprocess.default.svc.cluster.local -d "skldfjerg"
+curl -v http://skylark-ex-preprocess.default.svc.cluster.local/health"
 
 ```
 ### Remove

@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: skylark-api
+  namespace: default
+  labels:
+    app: skylark-api
+spec:
+  selector:
+    matchLabels:
+      app: skylark-api
+  template:
+    metadata:
+      annotations:
+        module.wasm.image/variant: compat-smart
+      labels:
+        app: skylark-api
+    spec:
+      nodeSelector:
+        node-type: Sat
+      runtimeClassName: wasmedge
+      containers:
+        - name: skylark-api
+          image: guelmino/skylark-api:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DNS_SERVER
+              value: "10.152.183.238:53"
+            - name: RUST_BACKTRACE
+              value: "full"
+            - name: RUST_LOG
+              value: "trace"
+            - name: LOCAL_NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: NODE_SERVICE_PORT
+              value: "31016"

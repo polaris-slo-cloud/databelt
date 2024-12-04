@@ -9,7 +9,7 @@ This repository includes the following subprojects:
 - [Example alarm](ex_faas_app/ex_alarm/README.md)
 - [Example image preprocessor](ex_faas_app/ex_preprocess/README.md)
 - [Example object detector](ex_faas_app/ex_detect/README.md)
-- [Example alarm](ex_faas_app/node_service/README.md)
+- [Example alarm](ex_faas_app/node_info/README.md)
 
 ### General setup
 * sudo apt update
@@ -72,6 +72,13 @@ docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark
 docker push guelmino/skylark:latest
 docker run --runtime=io.containerd.wasmedge.v1 --platform=wasi/wasm guelmino/skylark:latest
 ```
+### Node ports
+| Service              | Port  | 
+|----------------------|-------|
+| skylark-node-info | 30001 | 
+| skylark-api          | 30002 |
+| redis                | 30003 |
+
 ### WASM Deployment
 If the wasm module acts as a client, the dns server has to be specified in the deployment yaml. Get the dns cluster ip
 ```bash
@@ -118,7 +125,7 @@ microk8s inspect
 
 microk8s add-node
 kubectl get service.serving.knative.dev
-curl -X POST -v -H "Host: skylark-pyclient.default.svc.cluster.local" http://10.152.183.152
+curl -X POST -v -H "Host: skylark-pyclient.default.svc.cluster.local" http://10.152.183.238
 kubectl exec -it redis -- sh
 
 # get dns info of cluster services
@@ -138,6 +145,12 @@ kubectl logs deployment/pingsource-mt-adapter -n knative-eventing
 # testing
 kubectl run curl-service --image=curlimages/curl -i --tty -- sh
 kubectl attach curl-service -c curl-service -i -t
+
+# IP of ingress gateway
+kubectl get service kourier-internal -n knative-serving -o wide
+
+kubectl exec -it skylark-api-tpsjq -- printenv | grep _SERVICE_
+
 ```
 
 ## Experiments
@@ -151,6 +164,7 @@ kubectl attach curl-service -c curl-service -i -t
 4x Raspberry Pi 5 Nodes
 1x Cloud node, 3x Satellite Node
 `kubectl label node pi5u1 node-type=Cloud`
+`kubectl label node pi5u2 node-type=Sat`
 
 | Node  | Node Type (node-type label) | 
 |-------|-----------------------------|

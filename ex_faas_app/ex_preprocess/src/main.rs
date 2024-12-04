@@ -40,12 +40,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
 async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
     match (req.method(), req.uri().path()) {
-        (&Method::POST, "/") => {
-            init_skylark(env!("CARGO_PKG_NAME").to_string(), "Sat");
-
+        (&Method::POST, "/process") => {
             info!("main::http_handler::preprocess_handler: incoming");
+            init_skylark(env!("CARGO_PKG_NAME").to_string(), "Sat");
+            info!("main::http_handler::preprocess_handler: initialized skylark lib");
             let whole_body = hyper::body::to_bytes(req.into_body()).await?;
             let str_body = String::from_utf8(whole_body.to_vec()).unwrap();
+
             info!(
                 "preprocess_handler: Received POST body with length: {}",
                 str_body.len()

@@ -283,7 +283,7 @@ impl Display for SkylarkMode {
 }
 impl From<String> for SkylarkMode {
     fn from(mode: String) -> Self {
-        match mode.as_ref().to_string().to_lowercase().as_str() {
+        match mode.to_lowercase().as_str() {
             "satellite" => SkylarkMode::Sat,
             "sat" => SkylarkMode::Sat,
             "edge" => SkylarkMode::Edge,

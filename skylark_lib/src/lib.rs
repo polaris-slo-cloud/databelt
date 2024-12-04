@@ -20,8 +20,8 @@ type Result<T> = std::result::Result<T, reqwest::Error>;
 
 lazy_static! {
     static ref PREV_SKYLARK_STATE: Mutex<SkylarkState> = Mutex::new(SkylarkState::new(
-        SkylarkKey::from("".to_string()),
-        "".to_string()
+        SkylarkKey::from("unknown:unknown".to_string()),
+        "unknown".to_string()
     ));
 }
 static SKYLARK_API_URL: OnceLock<String> = OnceLock::new();
@@ -81,7 +81,6 @@ pub async fn store_state(final_state: String) -> Result<String> {
 
 pub async fn init_skylark_and_fetch_state(function_name: String, key: String, mode: &str) -> Result<String> {
     info!("skylark_lib::init_and_get_predecessor_state: Initializing Skylark Lib");
-    pretty_env_logger::init_timed();
     SKYLARK_API_URL
         .set(
             env::var("SKYLARK_API_URL")
@@ -100,7 +99,6 @@ pub async fn init_skylark_and_fetch_state(function_name: String, key: String, mo
 
 pub fn init_skylark(function_name: String, mode: &str) {
     info!("skylark_lib::init: Initializing Skylark Lib");
-    pretty_env_logger::init_timed();
     SKYLARK_API_URL
         .set(
             env::var("SKYLARK_API_URL")

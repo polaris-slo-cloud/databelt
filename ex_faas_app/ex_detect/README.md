@@ -27,7 +27,7 @@ kubectl logs skylark-ex-detect-00001-deployment-
 ### API
 ```bash
 # generate hash and store it to local redis
-curl -v http://10.152.183.152/hash -H "Host: skylark-ex-detect.default.svc.cluster.local"
+curl -v http://10.152.183.238/hash -H "Host: skylark-ex-detect.default.svc.cluster.local"
 ```
 ### Remove
 ```bash

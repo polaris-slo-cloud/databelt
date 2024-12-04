@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: skylark-node-service
+  name: skylark-node-info
   namespace: default
   labels:
-    app: skylark-node-service
+    app: skylark-node-info
 spec:
   selector:
     matchLabels:
-      app: skylark-node-service
+      app: skylark-node-info
   template:
     metadata:
       labels:
-        app: skylark-node-service
+        app: skylark-node-info
     spec:
       nodeSelector:
         node-type: Sat
       containers:
-        - name: skylark-node-service
-          image: guelmino/skylark-node-service:latest
+        - name: skylark-node-info
+          image: guelmino/skylark-node-info:latest
           ports:
             - containerPort: 8080
           env:

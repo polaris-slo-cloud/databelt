@@ -17,24 +17,31 @@ docker push guelmino/skylark-api:latest
 
 ### Deploy
 ```bash
+# KSVC
+kubectl apply -f ~/deployment/service/skylark-api.yaml
+kubectl delete -f ~/deployment/service/skylark-api.yaml
+
+# DaemonSet
 kubectl apply -f ~/deployment/daemonset/skylark-api-daemonset.yaml
-kubectl apply -f ~/deployment/daemonset/skylark-api-headless.yaml
+kubectl apply -f ~/deployment/daemonset/skylark-api-nodeport.yaml
+kubectl delete -f ~/deployment/daemonset/skylark-api-daemonset.yaml
+kubectl delete -f ~/deployment/daemonset/skylark-api-nodeport.yaml
+
 ```
 ### Troubleshoot
 ```bash
 kubectl get pods -o wide
 kubectl describe pod skylark-api
 kubectl logs skylark-api-00001-deployment-
-curl -X POST -v http://10.152.183.152/health -H "Host: skylark-api.default.svc.cluster.local" -d "skldfjerg"
-curl -x "DELETE" -v http://10.152.183.152/state?key=KEY -H "Host: skylark-api.default.svc.cluster.local"
-curl -v http://10.152.183.152/state?key=KEY -H "Host: skylark-api.default.svc.cluster.local"
-curl -v http://10.152.183.152/health -H "Host: skylark-api.default.svc.cluster.local"
+curl -X POST -v http://10.152.183.238/health -H "Host: skylark-api.default.svc.cluster.local" -d "skldfjerg"
+curl -x "DELETE" -v http://10.152.183.238/state?key=KEY -H "Host: skylark-api.default.svc.cluster.local"
+curl -v http://10.152.183.238/state?key=KEY -H "Host: skylark-api.default.svc.cluster.local"
+curl -v http://10.152.183.238/health -H "Host: skylark-api.default.svc.cluster.local"
+kubectl exec -it skylark-api-2xg2q -- nslookup skylark-node.default.svc.cluster.local
+curl -v http://10.152.183.238/health -H "Host: skylark-api.default.svc.cluster.local"
 
 ```
-### Remove
-```bash
-kubectl delete ksvc skylark-skylark-api
-```
+
 ### Access Redis
 ```bash
 kubectl exec -it redis-HASH -- redis-cli
@@ -43,12 +50,12 @@ kubectl exec -it redis-HASH -- redis-cli
 
 | Path        | Method | Description                                                                                                                                        | Example                                                                                                          |
 |-------------|--------|----------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
-| /state      | GET    | Get the state from a given `key` param (`SkylarkKey`)                                                                                              | curl -v http://10.152.183.152/state?key=SKYLARK-KEY -H "Host: skylark-api.default.svc.cluster.local"             | 
-| /state      | DELETE | Delete the state from a given `key` param (`SkylarkKey`)                                                                                           | curl -x "DELETE" -v http://10.152.183.152/state?key=SKYLARK-KEY -H "Host: skylark-api.default.svc.cluster.local" | 
+| /state      | GET    | Get the state from a given `key` param (`SkylarkKey`)                                                                                              | curl -v http://10.152.183.238/state?key=SKYLARK-KEY -H "Host: skylark-api.default.svc.cluster.local"             | 
+| /state      | DELETE | Delete the state from a given `key` param (`SkylarkKey`)                                                                                           | curl -x "DELETE" -v http://10.152.183.238/state?key=SKYLARK-KEY -H "Host: skylark-api.default.svc.cluster.local" | 
 | /save/sat   | POST   | Propagate state to viable nodes and replicate to global KV store and save it to the KV Store. State is given in form of JSON body (`SkylarkState`) |                                                                                                                  |
 | /save/edge  | POST   | Save state to local KV Store and replicate to global KV store. State is given in form of JSON body (`SkylarkState`)                                |                                                                                                                  |
 | /save/cloud | POST   | Save state to global KV store. State is given in form of JSON body (`SkylarkState`)                                                                |                                                                                                                  |
-| /health     | GET    | Health endpoint for orchestrator                                                                                                                   | curl -v http://10.152.183.152/health -H "Host: skylark-api.default.svc.cluster.local"                            |
+| /health     | GET    | Health endpoint for orchestrator                                                                                                                   | curl -v http://10.152.183.238/health -H "Host: skylark-api.default.svc.cluster.local"                            |
 
 ### Env Vars
 The following environment variables may be set to control Skylark's behavior
