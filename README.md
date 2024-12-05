@@ -28,22 +28,56 @@ This repository includes the following subprojects:
 * sudo ufw allow 6443/tcp
 * reboot
 
-## Cluster Setup
-### Setup Knative Serving
-Knative Serving CRDs/Core Components, Kurier (Networking)
-* kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.12.1/serving-crds.yaml
-* kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.12.1/serving-core.yaml
-* kubectl apply -f https://github.com/knative/net-kourier/releases/download/knative-v1.12.1/kourier.yaml
-* kubectl patch configmap/config-network --namespace knative-serving --patch '{"data":{"ingress.class":"kourier.ingress.networking.knative.dev"}}'
-* kubectl get pods -n knative-serving
+## Microk8s Setup
+```bash
+# add "cgroup_enable=memory cgroup_memory=1" to:
+sudo nano /boot/firmware/cmdline.txt
+sudo snap install microk8s --classic
+sudo usermod -a -G microk8s $USER
+mkdir -p ~/.kube
+chmod 0700 ~/.kube
+su - $USER
+# Start here after resetting
+microk8s add-node #on main node
+kubectl label node pi5u1 node-type=Cloud && kubectl label node pi5u2 node-type=Sat && kubectl label node pi5u3 node-type=Sat && kubectl label node pi5u4 node-type=Sat
 
-### Setup Knative Eventing
-Knative Eventing CRDs/Core Components, Broker (MT-Channel-Based Broker)
-* kubectl apply -f https://github.com/knative/eventing/releases/download/knative-v1.12.1/eventing-crds.yaml
-* kubectl apply -f https://github.com/knative/eventing/releases/download/knative-v1.12.1/eventing-core.yaml
-* kubectl apply -f https://github.com/knative/eventing/releases/download/knative-v1.12.1/mt-channel-broker.yaml
-* kubectl apply -f https://github.com/knative/eventing/releases/download/knative-v1.12.1/in-memory-channel.yaml
+microk8s enable community
+microk8s enable knative
+microk8s enable kwasm
+kubectl apply -f ~/deployment/wasmedge-runtimeclass.yaml
+kubectl create namespace skylark
+kubectl label namespace skylark knative-serving=enabled
+kubectl config set-context --current --namespace=skylark
 
+kubectl delete ValidatingWebhookConfiguration validation.webhook.serving.knative.dev
+
+# Deploy order from scratch
+# Redis
+kubectl apply -f ~/deployment/daemonset/redis-daemonset.yaml
+kubectl apply -f ~/deployment/daemonset/redis-headless-service.yaml
+# Node Info Service
+kubectl apply -f ~/deployment/daemonset/node-info-daemonset.yaml
+kubectl apply -f ~/deployment/daemonset/node-info-nodeport.yaml
+# SkylarkAPI
+kubectl apply -f ~/deployment/daemonset/skylark-api-daemonset.yaml
+kubectl apply -f ~/deployment/daemonset/skylark-api-nodeport.yaml
+# Example functions
+kubectl apply -f ~/deployment/service/ex-preprocess-service.yaml
+kubectl apply -f ~/deployment/service/ex-detect-service.yaml
+kubectl apply -f ~/deployment/service/ex-alarm-service.yaml
+kubectl apply -f ~/deployment/service/ex-client-service.yaml
+```
+### Reset microk8s
+```bash
+# On each client node
+microk8s leave
+# On main node remove client nodes
+microk8s remove-node pi5u3
+
+sudo microk8s reset
+sudo reboot now
+# Continue Setup steps from the indicated point above
+```
 ### Docker secret to pull images from registry
 ```bash
 kubectl create secret docker-registry regcred \
@@ -55,81 +89,44 @@ kubectl create secret docker-registry regcred \
 kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "regcred"}]}'
 ```
 
-## Development
-Build
-```bash
-cargo build --target wasm32-wasip1 --release
-```
-Optional: optimize using `wasmedge compile`
-```bash
-wasmedge compile target/wasm32-wasip1/release/ex_fn_1.wasm appname.wasm
-```
 
-### Package and push to registry
-In the respective function root folder, run:
-``` bash
-docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark:latest .
-docker push guelmino/skylark:latest
-docker run --runtime=io.containerd.wasmedge.v1 --platform=wasi/wasm guelmino/skylark:latest
-```
 ### Node ports
-| Service              | Port  | 
-|----------------------|-------|
-| skylark-node-info | 30001 | 
-| skylark-api          | 30002 |
-| redis                | 30003 |
+| Service     | Port  | 
+|-------------|-------|
+| node-info   | 31016 | 
+| skylark-api | 30163 |
+| redis       | x     |
 
-### WASM Deployment
-If the wasm module acts as a client, the dns server has to be specified in the deployment yaml. Get the dns cluster ip
-```bash
-kubectl get svc -n kube-system kube-dns
-```
-```yaml
-apiVersion: serving.knative.dev/v1
-kind: Service
-metadata:
-  name: skylark-reqwestclient
-  namespace: default
-spec:
-  template:
-    metadata:
-      annotations:
-        module.wasm.image/variant: compat-smart
-        autoscaling.knative.dev/minScale: "0" # to ensure scaling to zero
-    spec:
-      dnsPolicy: ClusterFirst
-      runtimeClassName: wasmedge
-      containers:
-        - image: guelmino/skylark-reqwestclient:latest
-          command: ["./reqwestclient.wasm"]
-          env:
-            - name: DNS_SERVER
-              value: "10.152.183.10:53"
-```
 
 ### useful kubectl commands
 microk8s kubectl get pods
-``` bash
+
+```bash
+# delete all services
+kubectl delete ksvc -n skylark --all && kubectl delete pods -n skylark --all
+kubectl delete configuration -n skylark --all
+kubectl delete route -n skylark --all
+kubectl delete svc -n skylark --all
 kubectl delete ValidatingWebhookConfiguration validation.webhook.serving.knative.dev
 kubectl get pods -o wide
 kubectl logs NAME
 kubectl describe pod skylark
 kubectl apply -f <name>.yaml
 kubectl get ksvc
-kubectl delete ksvc --all
-kubectl delete pods --all
-kubectl delete svc --all
-kubectl apply -f ex2.yaml
-kubectl get events NAME -n NAMESPACE
-microk8s inspect
+kubectl delete ksvc -n skylark --all
+kubectl delete pods -n skylark --all
+kubectl delete configuration -n skylark --all
+kubectl delete route -n skylark --all
+kubectl delete svc -n skylark --all
 
 microk8s add-node
 kubectl get service.serving.knative.dev
-curl -X POST -v -H "Host: skylark-pyclient.default.svc.cluster.local" http://10.152.183.238
+curl -X POST -v -H "Host: skylark-pyclient.default.svc.cluster.local" http://10.152.183.159
 kubectl exec -it redis -- sh
 
 # get dns info of cluster services
 kubectl get svc -n default
+kubectl get svc -n kube-system kube-dns # 10.152.183.10
 
 # status 
 kubectl get pods -o wide
@@ -148,13 +145,20 @@ kubectl attach curl-service -c curl-service -i -t
 
 # IP of ingress gateway
 kubectl get service kourier-internal -n knative-serving -o wide
-
 kubectl exec -it skylark-api-tpsjq -- printenv | grep _SERVICE_
+```
 
+### New Build
+1. Bump version
+2. run build script
+3. deploy updated yaml
+
+### Access Redis
+```bash
+kubectl exec -it redis-HASH -- redis-cli
 ```
 
 ## Experiments
-
 ### Techstack
 - MicroK8s
 - Knative
@@ -162,13 +166,13 @@ kubectl exec -it skylark-api-tpsjq -- printenv | grep _SERVICE_
 
 ### Cluster
 4x Raspberry Pi 5 Nodes
-1x Cloud node, 3x Satellite Node
+1x Cloud node, 3x Sat Node
 `kubectl label node pi5u1 node-type=Cloud`
 `kubectl label node pi5u2 node-type=Sat`
 
 | Node  | Node Type (node-type label) | 
 |-------|-----------------------------|
 | pi5u1 | Cloud                       | 
-| pi5u2 | Satellite                   |
-| pi5u3 | Satellite                   |
-| pi5u4 | Satellite                   |
+| pi5u2 | Sat                         |
+| pi5u3 | Sat                         |
+| pi5u4 | Sat                         |

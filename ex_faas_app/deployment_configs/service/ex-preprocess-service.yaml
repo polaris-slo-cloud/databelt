@@ -9,9 +9,11 @@ spec:
       annotations:
         module.wasm.image/variant: compat-smart
     spec:
+      nodeSelector:
+        node-type: Sat
       runtimeClassName: wasmedge
       containers:
-        - image: guelmino/skylark-ex-preprocess:latest
+        - image: guelmino/skylark-ex-preprocess:0.2.3
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -25,3 +27,9 @@ spec:
               value: "full"
             - name: RUST_LOG
               value: "debug"
+            - name: LOCAL_NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: SKYLARK_API_PORT
+              value: "30163"

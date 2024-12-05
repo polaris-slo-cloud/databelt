@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: skylark-api
+  name: skylark-api-daemonset
   namespace: default
   labels:
     app: skylark-api
@@ -21,12 +21,12 @@ spec:
       runtimeClassName: wasmedge
       containers:
         - name: skylark-api
-          image: guelmino/skylark-api:latest
+          image: guelmino/skylark-api:0.2.3
           ports:
             - containerPort: 8080
           env:
             - name: DNS_SERVER
-              value: "10.152.183.238:53"
+              value: "10.152.183.10:53"
             - name: RUST_BACKTRACE
               value: "full"
             - name: RUST_LOG
@@ -35,5 +35,5 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
-            - name: NODE_SERVICE_PORT
+            - name: NODE_INFO_PORT
               value: "31016"

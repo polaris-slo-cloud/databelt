@@ -47,6 +47,15 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     key = Option::from(v.to_string());
                 }
             }
+            match key.clone() {
+                Some(key) => {
+                    debug!("http_handler::/: key param: {}", &key);
+                }
+                None => {
+                    error!("http_handler::/: no key provided");
+                }
+            }
+
             let state: String;
             match init_skylark_and_fetch_state(
                 env!("CARGO_PKG_NAME").to_string(),
@@ -73,7 +82,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                             error!("main::http_handler::store_state: Error calling skylark lib store state: {:?}", e);
                             Ok(Response::builder()
                                 .status(StatusCode::NOT_FOUND)
-                                .body(Body::empty())
+                                .body(Body::from("Error calling skylark lib store state"))
                                 .unwrap())
                         }
                     }
@@ -85,7 +94,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     );
                     Ok(Response::builder()
                         .status(StatusCode::INTERNAL_SERVER_ERROR)
-                        .body(Body::empty())
+                        .body(Body::from("Error fetching predecessor state"))
                         .unwrap())
                 }
             }
@@ -94,7 +103,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
         // Return the 404 Not Found for other routes.
         _ => Ok(Response::builder()
             .status(StatusCode::NOT_FOUND)
-            .body(Body::empty())
+            .body(Body::from("Route not found"))
             .unwrap()),
     }
 }

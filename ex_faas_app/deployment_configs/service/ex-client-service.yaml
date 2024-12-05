@@ -9,9 +9,11 @@ spec:
       annotations:
         module.wasm.image/variant: compat-smart
     spec:
+      nodeSelector:
+        node-type: Sat
       runtimeClassName: wasmedge
       containers:
-        - image: guelmino/skylark-ex-client:latest
+        - image: guelmino/skylark-ex-client:0.2.3
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -24,10 +26,10 @@ spec:
             - name: RUST_BACKTRACE
               value: "full"
             - name: RUST_LOG
-              value: "info"
+              value: "debug"
             - name: PREPROCESS_URL
-              value: "http://skylark-ex-preprocess.default.svc.cluster.local:8080"
+              value: "http://skylark-ex-preprocess.default.svc.cluster.local/process"
             - name: DETECT_URL
-              value: "http://skylark-ex-detect.default.svc.cluster.local:8080"
+              value: "http://skylark-ex-detect.default.svc.cluster.local/"
             - name: ALARM_URL
-              value: "http://skylark-ex-alarm.default.svc.cluster.local:8080"
+              value: "http://skylark-ex-alarm.default.svc.cluster.local/"

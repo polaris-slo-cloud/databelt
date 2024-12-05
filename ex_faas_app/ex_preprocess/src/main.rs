@@ -67,7 +67,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     error!("main::http_handler::store_state: Error calling skylark lib store state: {:?}", e);
                     Ok(Response::builder()
                         .status(StatusCode::NOT_FOUND)
-                        .body(Body::empty())
+                        .body(Body::from("Error calling skylark lib store state"))
                         .unwrap())
                 }
             }
@@ -75,7 +75,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
         (&Method::GET, "/health") => Ok(Response::new(Body::from("OK"))),
         _ => Ok(Response::builder()
             .status(StatusCode::NOT_FOUND)
-            .body(Body::empty())
+            .body(Body::from("Route not found"))
             .unwrap()),
     }
 }

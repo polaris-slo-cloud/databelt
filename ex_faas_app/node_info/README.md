@@ -14,20 +14,16 @@ Exposes HTTP API to serve the following information:
 Bandwidth and latencies can be configured in [simulation-settings.json](settings/simulation-settings.json)
 ### Docker Build and Push
 ```bash
-docker buildx build -t guelmino/skylark-node-info:latest --platform linux/arm64 .
-docker push guelmino/skylark-node-info:latest
+docker buildx build --platform linux/arm64 -t guelmino/skylark-node-info:0.2.3 . --no-cache
+docker push guelmino/skylark-node-info:0.2.3
 ```
 ### Deploy
 ```bash
-# KSVC
-kubectl apply -f ~/deployment/service/ex-node-info.yaml
-kubectl delete -f ~/deployment/service/ex-node-info.yaml
-
 # DaemonSet
 kubectl apply -f ~/deployment/daemonset/node-info-daemonset.yaml
 kubectl apply -f ~/deployment/daemonset/node-info-nodeport.yaml
-kubectl delete -f ~/deployment/daemonset/node-info-daemonset.yaml
-kubectl delete -f ~/deployment/daemonset/node-info-nodeport.yaml
+kubectl delete daemonset skylark-node-info-daemonset
+kubectl delete service skylark-node-info-nodeport
 ```
 ### Troubleshoot
 ```bash
@@ -38,17 +34,17 @@ kubectl logs skylark-node-info-
 
 Endpoints
 ```bash
-curl -v http://10.152.183.238/node-graph -H "Host: skylark-node-info.default.svc.cluster.local"
-curl -v http://10.152.183.238/objectives -H "Host: skylark-node-info.default.svc.cluster.local"
+curl -v http://10.152.183.159/node-graph -H "Host: skylark-node-info.default.svc.cluster.local"
+curl -v http://10.152.183.159/objectives -H "Host: skylark-node-info.default.svc.cluster.local"
 
-curl -v http://10.152.183.238/local-node-info -H "Host: skylark-node-info.default.svc.cluster.local"
-curl -v http://10.152.183.238/cloud-node-info -H "Host: skylark-node-info.default.svc.cluster.local"
-curl -v http://10.152.183.238/refresh -H "Host: skylark-node-info.default.svc.cluster.local"
-curl -v http://10.152.183.238/health -H "Host: skylark-node-info.default.svc.cluster.local"
+curl -v http://10.152.183.159/local-node-info -H "Host: skylark-node-info.default.svc.cluster.local"
+curl -v http://10.152.183.159/cloud-node-info -H "Host: skylark-node-info.default.svc.cluster.local"
+curl -v http://10.152.183.159/refresh -H "Host: skylark-node-info.default.svc.cluster.local"
+curl -v http://10.152.183.159/health -H "Host: skylark-node-info.default.svc.cluster.local"
 
-curl -v http://10.152.183.238/objectives -H "Host: skylark-node-info-cluster-ip.default.svc.cluster.local"
+curl -v http://10.152.183.159/objectives -H "Host: skylark-node-info-cluster-ip.default.svc.cluster.local"
 curl -v http://skylark-node.default.svc.cluster.local/node-graph
-curl -v http://10.152.183.238/health -H "Host: skylark-node.default.svc.cluster.local"
+curl -v http://10.152.183.159/health -H "Host: skylark-node.default.svc.cluster.local"
 ```
 
 Access Redis

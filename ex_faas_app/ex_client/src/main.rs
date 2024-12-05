@@ -100,12 +100,13 @@ async fn http_handler(req: Request<hyper::Body>) -> Result<Response<hyper::Body>
         // Return the 404 Not Found for other routes.
         _ => Ok(Response::builder()
             .status(StatusCode::NOT_FOUND)
-            .body(hyper::Body::empty())
+            .body(hyper::Body::from("Route not found"))
             .unwrap()),
     }
 }
 
 fn generate_random_data(size_kb: usize) -> String {
+    debug!("generate_random_data");
     let size_bytes = size_kb * 1024;
     rand::thread_rng()
         .sample_iter(&Alphanumeric)
@@ -138,7 +139,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         .expect("Error while initializing Skylark API url");
 
     info!(
-        "Starting Example Preprocessor {}",
+        "Starting Example Client {}",
         env!("CARGO_PKG_VERSION")
     );
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));

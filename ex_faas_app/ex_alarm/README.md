@@ -10,12 +10,13 @@ wasmedge compile target/wasm32-wasip1/release/ex_alarm.wasm ex_alarm.wasm
 ```
 ### Docker Build and Push
 ```bash
-docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-alarm:latest .
-docker push guelmino/skylark-ex-alarm:latest
+docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-alarm:0.2.3 . --no-cache
+docker push guelmino/skylark-ex-alarm:0.2.3
 ```
 ### Deploy
 ```bash
 kubectl apply -f ~/deployment/service/ex-alarm-service.yaml
+kubectl delete ksvc skylark-ex-alarm && kubectl delete route skylark-ex-alarm && kubectl delete configuration skylark-ex-alarm && kubectl delete svc skylark-ex-alarm
 ```
 ### Troubleshoot
 ```bash
@@ -23,14 +24,11 @@ kubectl get pods -o wide
 kubectl describe pod skylark-ex-alarm
 kubectl logs skylark-ex-alarm-00001-deployment-
 ```
-### Remove
-```bash
-kubectl delete ksvc skylark-ex-alarm
-```
+
 ### API
 ```bash
 # generate hash and store it to local redis
-curl -v http://10.152.183.238/hash -H "Host: skylark-ex-alarm.default.svc.cluster.local"
+curl -v http://10.152.183.159/hash -H "Host: skylark-ex-alarm.default.svc.cluster.local"
 ```
 ### Access Redis
 ```bash

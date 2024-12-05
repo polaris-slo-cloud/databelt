@@ -25,7 +25,7 @@ use tokio::net::TcpListener;
 extern crate pretty_env_logger;
 #[macro_use]
 extern crate log;
-const NODE_SERVICE_PORT: &'static str = "30001";
+const NODE_INFO_PORT: &'static str = "31016";
 lazy_static! {
     static ref VIABLE_NODE: Mutex<SkylarkNode> = Mutex::new(SkylarkNode::default());
     static ref LOCAL_NODE: Mutex<SkylarkNode> = Mutex::new(SkylarkNode::default());
@@ -45,11 +45,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         }
     }
     info!(
-        "Starting Example Preprocessor {}",
+        "Starting Skylark API {}",
         env!("CARGO_PKG_VERSION")
     );
 
-    info!("Skylark API version: {}", get_version());
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
 
     let listener = TcpListener::bind(addr).await?;
@@ -100,7 +99,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                             error!("main::http_handler::GET_STATE: Error fetching global and local state: {:?}", e);
                             Ok(Response::builder()
                                 .status(StatusCode::NOT_FOUND)
-                                .body(Body::empty())
+                                .body(Body::from("Error fetching global and local state"))
                                 .unwrap())
                         }
                     }
@@ -139,7 +138,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             if err {
                 Ok(Response::builder()
                     .status(StatusCode::INTERNAL_SERVER_ERROR)
-                    .body(Body::empty())
+                    .body(Body::from("Error deleting global state"))
                     .unwrap())
             } else {
                 Ok(Response::new(Body::from("Successfully deleted state")))
@@ -150,6 +149,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             let whole_body = hyper::body::to_bytes(req.into_body()).await?;
             let state: SkylarkState = serde_json::from_slice(&whole_body.to_vec()).unwrap();
             let mut err = false;
+            let mut err_msg = "None";
             let mut propagated_node_name: String = "None".to_string();
             let viable_node = VIABLE_NODE.lock().unwrap().clone();
             if viable_node.node_name() != "unknown" {
@@ -167,6 +167,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                             e
                         );
                         err = true;
+                        err_msg = "Error propagating state";
                     }
                 }
                 match store_global_state(&state).await {
@@ -181,16 +182,18 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                             e
                         );
                         err = true;
+                        err_msg = "Error saving global state";
                     }
                 }
             } else {
                 warn!("main::http_handler::SAVE_SAT: No viable node found");
                 err = true;
+                err_msg = "No viable node found";
             }
             if err {
                 Ok(Response::builder()
                     .status(StatusCode::INTERNAL_SERVER_ERROR)
-                    .body(Body::empty())
+                    .body(Body::from(err_msg))
                     .unwrap())
             } else {
                 info!("main::http_handler::SAVE_SAT: successfully propagated state to viable node- and global store");
@@ -216,7 +219,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     );
                     Ok(Response::builder()
                         .status(StatusCode::INTERNAL_SERVER_ERROR)
-                        .body(Body::empty())
+                        .body(Body::from("Error saving local state"))
                         .unwrap())
                 }
             }
@@ -237,7 +240,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     );
                     Ok(Response::builder()
                         .status(StatusCode::INTERNAL_SERVER_ERROR)
-                        .body(Body::empty())
+                        .body(Body::from("Error saving global state"))
                         .unwrap())
                 }
             }
@@ -246,25 +249,18 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
         // Return the 404 Not Found for other routes.
         _ => Ok(Response::builder()
             .status(StatusCode::NOT_FOUND)
-            .body(Body::empty())
+            .body(Body::from("Route not found"))
             .unwrap()),
     }
 }
 
-pub fn get_version() -> &'static str {
-    env!("CARGO_PKG_VERSION")
-}
 async fn init() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let node_graph: NodeGraph;
     let viable_nodes: Vec<SkylarkNode>;
-    info!("Environment variables:\n");
-    for var in env::vars().collect::<Vec<(String, String)>>() {
-        info!("{}={}",var.0, var.1);
-    }
-
     let local_node_host = env::var("LOCAL_NODE_IP").unwrap_or("nonProvided".to_string());
-    info!("skylark::init: Local node host: {}", local_node_host);
-    let node_info_port = env::var("NODE_SERVICE_PORT").unwrap_or(NODE_SERVICE_PORT.to_string());
+    debug!("skylark::init: Local node host: {}", local_node_host);
+    let node_info_port = env::var("NODE_INFO_PORT").unwrap_or(NODE_INFO_PORT.to_string());
+    debug!("skylark::init: Local Node Info Service Port: {}", node_info_port);
     match get_from_url::<SkylarkNode>(&format!("http://{}:{}/{}", local_node_host, node_info_port, "local-node-info").as_str()).await {
         Err(e) => {
             warn!("skylark::init: failed to get local node info!\n {:?}", e);

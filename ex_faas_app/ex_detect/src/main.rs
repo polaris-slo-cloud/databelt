@@ -17,7 +17,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     pretty_env_logger::init_timed();
 
     info!(
-        "Starting Example Preprocessor {}",
+        "Starting Example Image Detector {}",
         env!("CARGO_PKG_VERSION")
     );
     info!("Skylark library loaded: {}", skylark_lib_version());
@@ -43,12 +43,25 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
     match (req.method(), req.uri().path()) {
         // Serve some instructions at /
         (&Method::GET, "/") => {
+            info!("http_handler::/: incoming");
             let params = Url::parse(&req.uri().to_string()).unwrap();
             let pairs = params.query_pairs();
             let mut key: Option<String> = None;
             for (k, v) in pairs {
                 if k == "key" {
                     key = Option::from(v.to_string());
+                }
+            }
+            match key {
+                Some(key) => {
+                    debug!("http_handler::/: key param: {}", key);
+                }
+                None => {
+                    warn!("http_handler::/: no key provided");
+                    Ok(Response::builder()
+                        .status(StatusCode::BAD_REQUEST)
+                        .body(Body::from("No key param provided!"))
+                        .unwrap())
                 }
             }
             let state: String;
@@ -77,7 +90,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                             error!("main::http_handler::store_state: Error calling skylark lib store state: {:?}", e);
                             Ok(Response::builder()
                                 .status(StatusCode::NOT_FOUND)
-                                .body(Body::empty())
+                                .body(Body::from("Error calling skylark lib store state"))
                                 .unwrap())
                         }
                     }
@@ -89,7 +102,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     );
                     Ok(Response::builder()
                         .status(StatusCode::INTERNAL_SERVER_ERROR)
-                        .body(Body::empty())
+                        .body(Body::from("Error fetching predecessor state"))
                         .unwrap())
                 }
             }
@@ -98,7 +111,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
         // Return the 404 Not Found for other routes.
         _ => Ok(Response::builder()
             .status(StatusCode::NOT_FOUND)
-            .body(Body::empty())
+            .body(Body::from("Route not found"))
             .unwrap()),
     }
 }
