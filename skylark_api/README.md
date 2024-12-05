@@ -11,8 +11,8 @@ wasmedge compile target/wasm32-wasip1/release/skylark_api.wasm skylark_api.wasm
 ```
 ### Docker Build and Push
 ```bash
-docker buildx build --platform wasi/wasm --provenance=false -t guelmino/skylark-api:0.2.3 . --no-cache
-docker push guelmino/skylark-api:0.2.3
+docker buildx build --platform wasi/wasm --provenance=false -t guelmino/skylark-api:0.2.4 . --no-cache
+docker push guelmino/skylark-api:0.2.4
 ```
 
 ### Deploy

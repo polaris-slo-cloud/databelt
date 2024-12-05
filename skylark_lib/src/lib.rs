@@ -96,28 +96,35 @@ pub async fn store_state(final_state: String) -> Result<String> {
 }
 fn init_env(mode: &str) {
     info!("skylark_lib::init_skylark_lib::init_env: Initializing environment");
-    match SKYLARK_API_PORT.set(env::var("SKYLARK_API_PORT").unwrap()) {
-        Ok(_) => {
+
+    match env::var("SKYLARK_API_PORT").unwrap() {
+        Ok(port) => {
             debug!("SKYLARK_API_PORT set");
+            SKYLARK_API_PORT.set(port).unwrap();
         }
         Err(_) => {
             error!("Environment variable SKYLARK_API_PORT not provided!");
+            SKYLARK_API_PORT.set("30163".to_string()).unwrap();
         }
     }
-    match LOCAL_NODE_HOST.set(env::var("LOCAL_NODE_HOST").unwrap()) {
-        Ok(_) => {
+    match env::var("LOCAL_NODE_HOST").unwrap() {
+        Ok(host) => {
             debug!("LOCAL_NODE_HOST set");
+            SKYLARK_API_PORT.set(host).unwrap();
         }
         Err(_) => {
             error!("Environment variable LOCAL_NODE_HOST not provided!");
+            SKYLARK_API_PORT.set("10.0.0.34".to_string()).unwrap();
         }
     }
-    match SKYLARK_MODE.set(SkylarkMode::from(mode.to_string())) {
-        Ok(_) => {
+    match SkylarkMode::from(mode.to_string()) {
+        Ok(mode) => {
             debug!("SKYLARK_MODE set");
+            SKYLARK_MODE.set(mode).unwrap();
         }
         Err(_) => {
-            error!("Environment variable SKYLARK_MODE not provided!");
+            warn!("Environment variable SKYLARK_MODE not provided! Defaulting to Satellite...");
+            SKYLARK_MODE.set(SkylarkMode::Sat).unwrap();
         }
     }
 }

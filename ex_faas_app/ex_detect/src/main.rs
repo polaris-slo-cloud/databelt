@@ -43,7 +43,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
     match (req.method(), req.uri().path()) {
         // Serve some instructions at /
         (&Method::GET, "/") => {
-            info!("http_handler::/: incoming");
+            info!("Incoming request with params: {:?}", req.uri().query());
             let params = Url::parse(&req.uri().to_string()).unwrap();
             let pairs = params.query_pairs();
             let mut key: Option<String> = None;
@@ -52,16 +52,12 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     key = Option::from(v.to_string());
                 }
             }
-            match key {
+            match key.clone() {
                 Some(key) => {
                     debug!("http_handler::/: key param: {}", key);
                 }
                 None => {
                     warn!("http_handler::/: no key provided");
-                    Ok(Response::builder()
-                        .status(StatusCode::BAD_REQUEST)
-                        .body(Body::from("No key param provided!"))
-                        .unwrap())
                 }
             }
             let state: String;
@@ -73,11 +69,12 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             .await
             {
                 Ok(s) => {
+                    info!("http_handler::/: state ok");
                     state = s;
                     let mut hasher = Sha256::new();
                     hasher.update(state.as_bytes());
                     let data_hash = format!("{:x}", hasher.finalize());
-
+                    info!("http_handler::/: generated data hash, attempting to store");
                     match store_state(data_hash).await {
                         Ok(key) => {
                             info!(
@@ -109,9 +106,12 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
         }
         (&Method::GET, "/health") => Ok(Response::new(Body::from("OK"))),
         // Return the 404 Not Found for other routes.
-        _ => Ok(Response::builder()
-            .status(StatusCode::NOT_FOUND)
-            .body(Body::from("Route not found"))
-            .unwrap()),
+        _ => {
+            warn!("http_handler: bad request {:?}", req.uri());
+            Ok(Response::builder()
+                .status(StatusCode::NOT_FOUND)
+                .body(Body::from("Route not found"))
+                .unwrap())
+        },
     }
 }

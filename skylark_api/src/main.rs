@@ -257,7 +257,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
 async fn init() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let node_graph: NodeGraph;
     let viable_nodes: Vec<SkylarkNode>;
-    let local_node_host = env::var("LOCAL_NODE_IP").unwrap_or("nonProvided".to_string());
+    let local_node_host = env::var("LOCAL_NODE_HOST").unwrap_or("nonProvided".to_string());
     debug!("skylark::init: Local node host: {}", local_node_host);
     let node_info_port = env::var("NODE_INFO_PORT").unwrap_or(NODE_INFO_PORT.to_string());
     debug!("skylark::init: Local Node Info Service Port: {}", node_info_port);

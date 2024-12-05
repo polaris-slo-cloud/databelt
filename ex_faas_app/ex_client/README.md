@@ -11,8 +11,8 @@ wasmedge compile target/wasm32-wasip1/release/ex_client.wasm ex_client.wasm
 
 ### Docker Build and Push
 ```bash
-docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-client:0.2.3 . --no-cache
-docker push guelmino/skylark-ex-client:0.2.3
+docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-client:0.2.4 . --no-cache
+docker push guelmino/skylark-ex-client:0.2.4
 ```
 ### Deploy
 ```bash
@@ -27,6 +27,7 @@ kubectl get pods -o wide
 kubectl describe pod skylark-ex-client
 kubectl logs skylark-ex-client-00001-deployment-
 curl -v http://10.152.183.159/ -H "Host: skylark-ex-client.default.svc.cluster.local"
+curl -v http://10.152.183.159/health -H "Host: skylark-ex-client.default.svc.cluster.local"
 
 ```
 
