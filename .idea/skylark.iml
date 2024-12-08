@@ -54,6 +54,8 @@
       <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/node_info/.venv/bin" />
       <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/node_info/.venv/lib" />
       <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/node_info/ns.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/neighbors_service/venv" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/node_info/venv" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

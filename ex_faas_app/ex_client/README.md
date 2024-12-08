@@ -11,14 +11,14 @@ wasmedge compile target/wasm32-wasip1/release/ex_client.wasm ex_client.wasm
 
 ### Docker Build and Push
 ```bash
-docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-client:0.2.4 . --no-cache
-docker push guelmino/skylark-ex-client:0.2.4
+docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-client:0.2.200 .
+docker push guelmino/skylark-ex-client:0.2.200
 ```
 ### Deploy
 ```bash
 kubectl apply -f ~/deployment/service/ex-client-service.yaml
 kubectl delete -f ~/deployment/service/ex-client-service.yaml
-kubectl delete ksvc skylark-ex-client && kubectl delete route skylark-ex-client && kubectl delete configuration skylark-ex-client && kubectl delete svc skylark-ex-client
+kubectl delete ksvc skylark-ex-client && kubectl delete route skylark-ex-client  && kubectl delete svc skylark-ex-client && kubectl delete configuration skylark-ex-client
 
 ```
 ### Troubleshoot

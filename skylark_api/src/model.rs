@@ -33,15 +33,14 @@ impl SkylarkKey {
         self.fn_name = fn_name;
     }
 }
-impl From<String> for SkylarkKey {
-    fn from(item: String) -> Self {
+impl TryFrom<String> for SkylarkKey {
+    type Error = ();
+
+    fn try_from(item: String) -> Result<Self, Self::Error> {
         let mut split = item.split(':');
-        let chain_id = split.next().unwrap().to_string();
-        let fn_name = split.next().unwrap().to_string();
-        SkylarkKey {
-            chain_id,
-            fn_name,
-        }
+        let chain_id = split.next().ok_or(())?.to_string();
+        let fn_name = split.next().ok_or(())?.to_string();
+        Ok(SkylarkKey { chain_id, fn_name })
     }
 }
 

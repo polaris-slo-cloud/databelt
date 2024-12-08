@@ -12,8 +12,8 @@ wasmedge compile target/wasm32-wasip1/release/ex_preprocess.wasm ex_preprocess.w
 
 ### Docker Build and Push
 ```bash
-docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-preprocess:0.2.4 . --no-cache
-docker push guelmino/skylark-ex-preprocess:0.2.4
+docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-preprocess:0.2.306 .
+docker push guelmino/skylark-ex-preprocess:0.2.306
 ```
 ### Deploy
 ```bash
@@ -28,8 +28,6 @@ kubectl describe pod skylark-ex-preprocess
 kubectl logs skylark-ex-preprocess-00001-deployment-
 curl -X POST -v http://10.152.183.159/process -H "Host: skylark-ex-preprocess.default.svc.cluster.local" -d "skldfjerg"
 curl -v http://10.152.183.159/health -H "Host: skylark-ex-preprocess.default.svc.cluster.local"
-curl -X POST -v http://skylark-ex-preprocess.default.svc.cluster.local -d "skldfjerg"
-curl -v http://skylark-ex-preprocess.default.svc.cluster.local/health"
 ```
 
 

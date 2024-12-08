@@ -14,11 +14,12 @@ spec:
       labels:
         app: skylark-node-info
     spec:
+      hostNetwork: true
       nodeSelector:
         node-type: Sat
       containers:
         - name: skylark-node-info
-          image: guelmino/skylark-node-info:0.2.4
+          image: guelmino/skylark-node-info:0.2.100
           ports:
             - containerPort: 8080
           env:

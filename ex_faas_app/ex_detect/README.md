@@ -11,8 +11,8 @@ wasmedge compile target/wasm32-wasip1/release/ex_detect.wasm ex_detect.wasm
 ```
 ### Docker Build and Push
 ```bash
-docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-detect:0.2.4 . --no-cache
-docker push guelmino/skylark-ex-detect:0.2.4
+docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-detect:0.2.401 .
+docker push guelmino/skylark-ex-detect:0.2.401
 ```
 ### Deploy
 ```bash
@@ -28,7 +28,7 @@ kubectl logs skylark-ex-detect-00001-deployment-
 ### API
 ```bash
 # generate hash and store it to local redis
-curl -v http://10.152.183.159/?key=sdlkfj -H "Host: skylark-ex-detect.default.svc.cluster.local"
+curl -v http://10.152.183.159/?key=ch1:fn1 -H "Host: skylark-ex-detect.default.svc.cluster.local"
 curl -v http://10.152.183.159/health -H "Host: skylark-ex-detect.default.svc.cluster.local"
 ```
 

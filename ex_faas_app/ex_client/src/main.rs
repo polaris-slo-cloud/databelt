@@ -94,9 +94,9 @@ async fn http_handler(req: Request<hyper::Body>) -> Result<Response<hyper::Body>
                 }
             }
 
-            Ok(Response::new(hyper::Body::from("OK")))
+            Ok(Response::new(hyper::Body::from("OK\n")))
         }
-        (&Method::GET, "/health") => Ok(Response::new(hyper::Body::from("OK"))),
+        (&Method::GET, "/health") => Ok(Response::new(hyper::Body::from("OK\n"))),
         // Return the 404 Not Found for other routes.
         _ => Ok(Response::builder()
             .status(StatusCode::NOT_FOUND)

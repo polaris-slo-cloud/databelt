@@ -2,7 +2,7 @@ use hyper::server::conn::Http;
 use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode};
 use sha2::{Digest, Sha256};
-use skylark_lib::{init_skylark_and_fetch_state, skylark_lib_version, store_state};
+use skylark_lib::{skylark_init, skylark_lib_version, store_state};
 use std::env;
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
@@ -56,52 +56,44 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     error!("http_handler::/: no key provided");
                 }
             }
-
-            let state: String;
-            match init_skylark_and_fetch_state(
-                env!("CARGO_PKG_NAME").to_string(),
-                key.unwrap(),
-                "Sat",
-            )
-            .await
-            {
+            let state: String = match skylark_init(env!("CARGO_PKG_NAME").to_string(), key, skylark_lib::SkylarkMode::Sat).await{
                 Ok(s) => {
                     info!("http_handler::/: state ok");
-                    state = s;
-                    let mut hasher = Sha256::new();
-                    hasher.update(state.as_bytes());
-                    let data_hash = format!("{:x}", hasher.finalize());
-                    info!("http_handler::/: generated data hash, attempting to store");
-                    match store_state(data_hash).await {
-                        Ok(key) => {
-                            info!(
-                                "main::http_handler::store_state: skylark lib result: {:?}",
-                                key
-                            );
-                            Ok(Response::new(Body::from(key)))
-                        }
-                        Err(e) => {
-                            error!("main::http_handler::store_state: Error calling skylark lib store state: {:?}", e);
-                            Ok(Response::builder()
-                                .status(StatusCode::NOT_FOUND)
-                                .body(Body::from("Error calling skylark lib store state"))
-                                .unwrap())
-                        }
-                    }
+                    s
                 }
                 Err(err) => {
                     error!(
-                        "main::http_handler::init_skylark_lib: Error fetching predecessor (detector) state: {:?}",
+                        "main::http_handler::skylark_init_lib: Error fetching predecessor state: {:?}",
                         err
                     );
-                    Ok(Response::builder()
+                    return Ok(Response::builder()
                         .status(StatusCode::INTERNAL_SERVER_ERROR)
                         .body(Body::from("Error fetching predecessor state"))
                         .unwrap())
                 }
+            };
+            let mut hasher = Sha256::new();
+            hasher.update(state.as_bytes());
+            let data_hash = format!("{:x}", hasher.finalize());
+            info!("http_handler::/: generated data hash, attempting to store");
+            match store_state(data_hash).await {
+                Ok(key) => {
+                    info!(
+                        "main::http_handler::store_state: skylark lib result: {:?}",
+                        key
+                    );
+                    Ok(Response::new(Body::from(key)))
+                }
+                Err(e) => {
+                    error!("main::http_handler::store_state: Error calling skylark lib store state: {:?}", e);
+                    Ok(Response::builder()
+                        .status(StatusCode::NOT_FOUND)
+                        .body(Body::from("Error calling skylark lib store state"))
+                        .unwrap())
+                }
             }
         }
-        (&Method::GET, "/health") => Ok(Response::new(Body::from("OK"))),
+        (&Method::GET, "/health") => Ok(Response::new(Body::from("OK\n"))),
         // Return the 404 Not Found for other routes.
         _ => {
             warn!("http_handler: bad request {:?}", req.uri());

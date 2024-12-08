@@ -2,7 +2,7 @@ use hyper::server::conn::Http;
 use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode};
 use sha2::{Digest, Sha256};
-use skylark_lib::{init_skylark, skylark_lib_version, store_state};
+use skylark_lib::{skylark_init, skylark_lib_version, store_state};
 use std::env;
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
@@ -42,7 +42,18 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
     match (req.method(), req.uri().path()) {
         (&Method::POST, "/process") => {
             info!("main::http_handler::preprocess_handler: incoming");
-            init_skylark(env!("CARGO_PKG_NAME").to_string(), "Sat");
+            match skylark_init(env!("CARGO_PKG_NAME").to_string(), None, skylark_lib::SkylarkMode::Sat).await{
+                Ok(r) =>{
+                    info!("main::http_handler::preprocess_handler: Skylark initialized: {:?}", r);
+                }
+                Err(err) => {
+                    error!("main::http_handler::preprocess_handler: Failed to initialize: {:?}", err);
+                    return Ok(Response::builder()
+                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                        .body(Body::from("Failed to initialize Skylark State"))
+                        .unwrap())
+                }
+            }
             info!("main::http_handler::preprocess_handler: initialized skylark lib");
             let whole_body = hyper::body::to_bytes(req.into_body()).await?;
             let str_body = String::from_utf8(whole_body.to_vec()).unwrap();
@@ -72,7 +83,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                 }
             }
         }
-        (&Method::GET, "/health") => Ok(Response::new(Body::from("OK"))),
+        (&Method::GET, "/health") => Ok(Response::new(Body::from("OK\n"))),
         _ => Ok(Response::builder()
             .status(StatusCode::NOT_FOUND)
             .body(Body::from("Route not found"))

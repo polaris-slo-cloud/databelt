@@ -3,6 +3,7 @@ mod mechanisms;
 #[allow(dead_code)]
 mod model;
 mod redis_client;
+mod error;
 
 use crate::http_service::get_from_url;
 use crate::mechanisms::compute_viable_nodes;
@@ -13,19 +14,24 @@ use crate::redis_client::{
 };
 use hyper::server::conn::Http;
 use hyper::service::service_fn;
-use hyper::{Body, Method, Request};
+use hyper::{Body, Method, Request, Uri};
 use hyper::{Response, StatusCode};
 use lazy_static::lazy_static;
-use std::env;
+use std::{env};
 use std::net::SocketAddr;
-use std::string::ToString;
+use std::string::{ToString};
 use std::sync::{Mutex};
 use tokio::net::TcpListener;
+use url::Url;
+use crate::error::NoKeyGiven;
 
 extern crate pretty_env_logger;
 #[macro_use]
 extern crate log;
-const NODE_INFO_PORT: &'static str = "31016";
+// type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+//Result<T, Box<dyn std::error::Error + Send + Sync>>
+
+const NODE_INFO_PORT: &'static str = "8080";
 lazy_static! {
     static ref VIABLE_NODE: Mutex<SkylarkNode> = Mutex::new(SkylarkNode::default());
     static ref LOCAL_NODE: Mutex<SkylarkNode> = Mutex::new(SkylarkNode::default());
@@ -34,7 +40,7 @@ lazy_static! {
 }
 
 #[tokio::main(flavor = "current_thread")]
-async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     pretty_env_logger::init_timed();
     match init().await {
         Ok(_) => {
@@ -67,14 +73,46 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     }
 }
 
+fn parse_key_from_query(uri: &Uri) -> Result<SkylarkKey, Box<dyn std::error::Error>> {
+    debug!("Parsing URI: {}", uri);
+    let request_url = match Url::parse(&format!("http://skylark.at{}",uri.to_string())) {
+        Ok(url) => url,
+        Err(e) => {
+            error!("Error parsing URI: {}", e.to_string());
+            return Err(NoKeyGiven.into());
+        }
+    };
+    let params = request_url.query_pairs();
+    for param in params {
+        debug!("Parsing parameter: {}={}", param.0, param.1);
+        if param.0.eq_ignore_ascii_case("key") {
+            debug!("Parsing key: {}", param.0);
+            match SkylarkKey::try_from(param.1.to_string()) {
+                Ok(key) => return Ok(key),
+                Err(_) => {return Err(NoKeyGiven.into())}
+            }
+        }
+    }
+    Err(NoKeyGiven.into())
+}
+
 async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
     match (req.method(), req.uri().path()) {
         // Serve some instructions at /
         (&Method::GET, "/state") => {
             info!("main::http_handler::GET_STATE: incoming");
-            // split at '=' of 'key=CHAIN_ID:FN_NAME'
-            let key = req.uri().query().unwrap().split_at(3).1;
-            match get_local_state(&SkylarkKey::from(key.to_string())).await {
+            let key = match parse_key_from_query(&req.uri()) {
+                Ok(key) => key,
+                Err(e) => {
+                    info!("main::http_handler::GET_STATE: key is empty");
+                    return Ok(Response::builder()
+                        .status(StatusCode::BAD_REQUEST)
+                        .body(Body::from(e.to_string()))
+                        .unwrap()).into();
+                }
+            };
+
+            match get_local_state(&key).await {
                 Ok(state) => {
                     info!(
                         "main::http_handler::GET_STATE: local redis result: {:?}",
@@ -83,11 +121,11 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     Ok(Response::new(Body::from(state)))
                 }
                 Err(e) => {
-                    error!(
+                    warn!(
                         "main::http_handler::GET_STATE: Error getting local state: {:?}",
                         e
                     );
-                    match get_global_state(&SkylarkKey::from(key.to_string())).await {
+                    match get_global_state(&key).await {
                         Ok(state) => {
                             info!(
                                 "main::http_handler::GET_STATE: global redis result: {:?}",
@@ -108,10 +146,18 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
         }
         (&Method::DELETE, "/state") => {
             info!("main::http_handler::DELETE_STATE: incoming");
-            // split at '=' of 'key=CHAIN_ID:FN_NAME'
-            let key = req.uri().query().unwrap().split_at(3).1;
+            let key = match parse_key_from_query(&req.uri()) {
+                Ok(key) => key,
+                Err(e) => {
+                    info!("main::http_handler::GET_STATE: key is empty");
+                    return Ok(Response::builder()
+                        .status(StatusCode::BAD_REQUEST)
+                        .body(Body::from(e.to_string()))
+                        .unwrap()).into();
+                }
+            };
             let mut err = false;
-            match del_local_state(&SkylarkKey::from(key.to_string())).await {
+            match del_local_state(&key).await {
                 Ok(_) => {
                     info!("main::http_handler::DELETE_STATE: successfully deleted local state");
                 }
@@ -123,7 +169,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     err = true;
                 }
             }
-            match del_global_state(&SkylarkKey::from(key.to_string())).await {
+            match del_global_state(&key).await {
                 Ok(_) => {
                     info!("main::http_handler::DELETE_STATE: successfully deleted global state");
                 }
@@ -147,6 +193,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
         (&Method::POST, "/save/sat") => {
             info!("main::http_handler::SAVE_SAT: incoming");
             let whole_body = hyper::body::to_bytes(req.into_body()).await?;
+            debug!("main::http_handler::SAVE_SAT body: {:?}", &whole_body.to_vec());
             let state: SkylarkState = serde_json::from_slice(&whole_body.to_vec()).unwrap();
             let mut err = false;
             let mut err_msg = "None";
@@ -210,7 +257,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             match store_local_state(&state).await {
                 Ok(res) => {
                     info!("main::http_handler::SAVE_EDGE: Saved edge state: {:?}", res);
-                    Ok(Response::new(Body::from("OK")))
+                    Ok(Response::new(Body::from("OK\n")))
                 }
                 Err(e) => {
                     error!(
@@ -219,7 +266,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     );
                     Ok(Response::builder()
                         .status(StatusCode::INTERNAL_SERVER_ERROR)
-                        .body(Body::from("Error saving local state"))
+                        .body(Body::from(e.to_string()))
                         .unwrap())
                 }
             }
@@ -231,7 +278,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             match store_global_state(&state).await {
                 Ok(res) => {
                     info!("main::http_handler::SAVE_CLOUD: Saved sat state: {:?}", res);
-                    Ok(Response::new(Body::from("OK")))
+                    Ok(Response::new(Body::from("OK\n")))
                 }
                 Err(e) => {
                     error!(
@@ -240,12 +287,28 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     );
                     Ok(Response::builder()
                         .status(StatusCode::INTERNAL_SERVER_ERROR)
-                        .body(Body::from("Error saving global state"))
+                        .body(Body::from(e.to_string()))
                         .unwrap())
                 }
             }
         }
-        (&Method::GET, "/health") => Ok(Response::new(Body::from("OK"))),
+        (&Method::GET, "/refresh") => {
+            info!("main::http_handler::REFRESH: incoming");
+            match init().await {
+                Ok(_) => {
+                    debug!("main::http_handler::REFRESH: successfully refreshed");
+                    Ok(Response::new(Body::from("OK\n")))
+                },
+                Err(e) => {
+                    error!("main::http_handler::REFRESH: refresh failed");
+                    Ok(Response::builder()
+                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                        .body(Body::from(e.to_string()))
+                        .unwrap())
+                }
+            }
+        },
+        (&Method::GET, "/health") => Ok(Response::new(Body::from("OK\n"))),
         // Return the 404 Not Found for other routes.
         _ => Ok(Response::builder()
             .status(StatusCode::NOT_FOUND)
@@ -268,6 +331,7 @@ async fn init() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         }
         Ok(node) => {
             info!("skylark::init: successfully fetched node info");
+            debug!("skylark::init: {:?}", serde_json::to_string(&node).unwrap());
             let mut local_node = LOCAL_NODE.lock().unwrap();
             local_node.set_node_ip(node.node_ip().to_string());
             local_node.set_node_name(node.node_name().to_string());

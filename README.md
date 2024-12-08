@@ -16,6 +16,7 @@ This repository includes the following subprojects:
 * sudo apt install -y openssh-server
 * sudo systemctl start ssh
 * sudo systemctl enable ssh
+* sudo apt install redis-tools -y
 
 * sudo apt-get install \-y curl apt-transport-https ca-certificates software-properties-common htop ufw net-tools snapd
 
@@ -52,16 +53,13 @@ kubectl config set-context --current --namespace=skylark
 kubectl delete ValidatingWebhookConfiguration validation.webhook.serving.knative.dev
 
 # Deploy order from scratch
-# Redis
 kubectl apply -f ~/deployment/daemonset/redis-daemonset.yaml
-kubectl apply -f ~/deployment/daemonset/redis-headless-service.yaml
-# Node Info Service
+kubectl apply -f ~/deployment/daemonset/redis-headless.yaml
+
 kubectl apply -f ~/deployment/daemonset/node-info-daemonset.yaml
-kubectl apply -f ~/deployment/daemonset/node-info-nodeport.yaml
-# SkylarkAPI
+
 kubectl apply -f ~/deployment/daemonset/skylark-api-daemonset.yaml
 kubectl apply -f ~/deployment/daemonset/skylark-api-nodeport.yaml
-# Example functions
 kubectl apply -f ~/deployment/service/ex-preprocess-service.yaml
 kubectl apply -f ~/deployment/service/ex-detect-service.yaml
 kubectl apply -f ~/deployment/service/ex-alarm-service.yaml
@@ -90,20 +88,26 @@ kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "regcred
 ```
 
 
-### Node ports
-| Service     | Port  | 
-|-------------|-------|
-| node-info   | 31016 | 
-| skylark-api | 30163 |
-| redis       | x     |
-
 
 ### useful kubectl commands
 microk8s kubectl get pods
 
 ```bash
-# delete all services
-kubectl delete ksvc -n skylark --all && kubectl delete pods -n skylark --all
+alias kgp='kubectl get pods -o wide'; alias kgn='kubectl get nodes -o wide'; alias kgs='kubectl get svc -o wide'; alias kgk='kubectl get ksvc -o wide'; alias kl='kubectl logs'; alias klf='kubectl logs -f'; alias kd='kubectl describe'; alias kdwh='kubectl delete ValidatingWebhookConfiguration validation.webhook.serving.knative.dev'
+alias kdapi='kubectl delete daemonset skylark-api-daemonset'; alias kdni='kubectl delete daemonset skylark-node-info-daemonset'; alias kdcl='kubectl delete ksvc skylark-ex-client; kubectl delete svc skylark-ex-client; kubectl delete route skylark-ex-client'; alias kdde='kubectl delete ksvc skylark-ex-detect; kubectl delete svc skylark-ex-detect; kubectl delete route skylark-ex-detect'; alias kdpre='kubectl delete ksvc skylark-ex-preprocess; kubectl delete svc skylark-ex-preprocess; kubectl delete route skylark-ex-preprocess'; alias kdal='kubectl delete ksvc skylark-ex-alarm; kubectl delete svc skylark-ex-alarm; kubectl delete route skylark-ex-alarm'; alias kdalles='kubectl delete ksvc skylark-ex-client skylark-ex-detect skylark-ex-alarm skylark-ex-preprocess; kubectl delete svc skylark-ex-client skylark-ex-detect skylark-ex-alarm skylark-ex-preprocess; kubectl delete daemonset skylark-api-daemonset skylark-node-info-daemonset; kubectl delete route skylark-ex-client skylark-ex-detect skylark-ex-alarm skylark-ex-preprocess'
+alias kaapi='kubectl apply -f ~/deployment/daemonset/skylark-api-daemonset.yaml; kubectl apply -f ~/deployment/daemonset/skylark-api-nodeport.yaml'; alias kani='kubectl apply -f ~/deployment/daemonset/node-info-daemonset.yaml'; alias kacl='kubectl apply -f ~/deployment/service/ex-client-service.yaml'; alias kade='kubectl apply -f ~/deployment/service/ex-detect-service.yaml'; alias kapre='kubectl apply -f ~/deployment/service/ex-preprocess-service.yaml'; alias kaal='kubectl apply -f ~/deployment/service/ex-alarm-service.yaml'
+alias rcliu1='redis-cli -h 10.1.84.96 -p 6379'; alias rcliu2='redis-cli -h 10.1.46.251 -p 6379'; alias rcliu3='redis-cli -h 10.1.18.249 -p 6379'; alias rcliu4='redis-cli -h 10.1.52.189 -p 6379' 
+
+#aliases  pods  nodes   svc   ksvc  logs  describe  delete                                    apply
+          kgp   kgn     kgs   kgk   kl    kd        kdapi kdni kdcl kdde kdpre kdal kdalles   kaapi kani kacl kade kapre kaal
+# new version
+kubectl delete ksvc skylark-ex-client skylark-ex-detect skylark-ex-alarm skylark-ex-preprocess
+kubectl delete svc skylark-ex-client skylark-ex-detect skylark-ex-alarm skylark-ex-preprocess
+kubectl delete daemonset skylark-api-daemonset skylark-node-info-daemonset
+kubectl delete route skylark-ex-client skylark-ex-detect skylark-ex-alarm skylark-ex-preprocess
+kubectl get pods && kubectl get ksvc && kubectl get svc
+# kubectl delete configuration skylark-ex-client skylark-ex-detect skylark-ex-alarm skylark-ex-preprocess
+# kubectl delete service skylark-api-nodeport
 kubectl delete configuration -n skylark --all
 kubectl delete route -n skylark --all
 kubectl delete svc -n skylark --all
@@ -149,13 +153,22 @@ kubectl exec -it skylark-api-tpsjq -- printenv | grep _SERVICE_
 ```
 
 ### New Build
-1. Bump version
-2. run build script
-3. deploy updated yaml
+NodeInfo x.x.1xx, ExClient x.x.2xx, ExPreprocess x.x.3xx, ExDetect x.x.4xx, 
+ExAlarm x.x.5xx, SkylarkLib x.x.6xx, SkylarkApi x.x.7xx
+
+1. Clear target dir and lock file
+2. Bump version
+3. run build script
+4. deploy updated yaml
+
+Lib Change?
 
 ### Access Redis
 ```bash
-kubectl exec -it redis-HASH -- redis-cli
+kubectl exec -it redis-njxg4 -- redis-cli #pi5u1
+kubectl exec -it redis-p55qs -- redis-cli #pi5u2
+kubectl exec -it redis-tvxqx -- redis-cli #pi5u3
+kubectl exec -it redis-vg4xz -- redis-cli #pi5u4
 ```
 
 ## Experiments
@@ -176,3 +189,10 @@ kubectl exec -it redis-HASH -- redis-cli
 | pi5u2 | Sat                         |
 | pi5u3 | Sat                         |
 | pi5u4 | Sat                         |
+
+### Node ports
+| Service     | Port  | 
+|-------------|-------|
+| node-info   | 8080 | 
+| skylark-api | 30163 |
+| redis       | 36379 |

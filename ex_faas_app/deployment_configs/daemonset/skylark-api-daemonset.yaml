@@ -21,19 +21,17 @@ spec:
       runtimeClassName: wasmedge
       containers:
         - name: skylark-api
-          image: guelmino/skylark-api:0.2.4
+          image: guelmino/skylark-api:0.2.711
           ports:
             - containerPort: 8080
           env:
-            - name: DNS_SERVER
-              value: "10.152.183.10:53"
             - name: RUST_BACKTRACE
               value: "full"
             - name: RUST_LOG
-              value: "trace"
+              value: "debug"
             - name: LOCAL_NODE_HOST
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
             - name: NODE_INFO_PORT
-              value: "31016"
+              value: "8080"
