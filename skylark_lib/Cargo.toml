@@ -1,6 +1,6 @@
 [package]
 name = "skylark_lib"
-version = "0.3.610"
+version = "0.3.612"
 edition = "2021"
 
 

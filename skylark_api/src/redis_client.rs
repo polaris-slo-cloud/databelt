@@ -35,72 +35,72 @@ pub fn connect_local() -> Result<redis::Connection, redis::RedisError> {
 }
 #[allow(dead_code)]
 pub async fn get_local_state(key: &SkylarkKey) -> RedisResult<String> {
-    let mut con = connect_local()?;
-    info!(
+    debug!(
         "get_local_state: Attempting to receive key: {}",
         key.to_string()
     );
+    let mut con = connect_local()?;
     con.get(key.to_string())
 }
 
 pub async fn store_local_state(state: &SkylarkState) -> RedisResult<()> {
-    let mut con = connect_local()?;
-    info!(
+    debug!(
         "store_local_state: Attempting to store key: {}",
         state.key().to_string()
     );
+    let mut con = connect_local()?;
     con.set(state.key().to_string(), state.value())
 }
 pub async fn store_state_by_url(state: &SkylarkState, url: String) -> RedisResult<()> {
-    let client = Client::open(url.clone())?;
-    let mut con = client.get_multiplexed_async_connection().await?;
-    info!(
+    debug!(
         "store_state_by_url: Attempting to store key {} at redis url {}",
         state.key().to_string(),
         url
     );
+    let client = Client::open(url.clone())?;
+    let mut con = client.get_multiplexed_async_connection().await?;
     con.set(state.key().to_string(), state.value()).await
 }
 pub async fn get_state_by_url(key: &SkylarkKey, url: &str) -> RedisResult<String> {
-    let client = Client::open(url)?;
-    let mut con = client.get_multiplexed_async_connection().await?;
-    info!(
+    debug!(
         "get_state_by_url: Attempting to receive key {} from url {}",
         key.to_string(),
         url
     );
+    let client = Client::open(url)?;
+    let mut con = client.get_multiplexed_async_connection().await?;
     con.get(key.to_string()).await
 }
 pub async fn del_local_state(key: &SkylarkKey) -> RedisResult<()> {
-    let mut con = connect_local()?;
-    info!(
+    debug!(
         "del_local_state: Attempting to delete key: {}",
         key.to_string()
     );
+    let mut con = connect_local()?;
     con.del(key.to_string())
 }
 pub async fn get_global_state(key: &SkylarkKey) -> RedisResult<String> {
-    let mut con = connect_global()?;
-    info!(
+    debug!(
         "get_global_state: Attempting to receive key: {}",
         key.to_string()
     );
+    let mut con = connect_global()?;
     con.get(key.to_string())
 }
 
 pub async fn store_global_state(state: &SkylarkState) -> RedisResult<()> {
-    let mut con = connect_global()?;
-    info!(
+    debug!(
         "store_global_state: Attempting to store key: {}",
         state.key().to_string()
     );
+    let mut con = connect_global()?;
     con.set(state.key().to_string(), state.value())
 }
 pub async fn del_global_state(key: &SkylarkKey) -> RedisResult<()> {
-    let mut con = connect_global()?;
-    info!(
+    debug!(
         "del_global_state: Attempting to delete key: {}",
         key.to_string()
     );
+    let mut con = connect_global()?;
     con.del(key.to_string())
 }

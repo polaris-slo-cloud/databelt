@@ -53,7 +53,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     info!("Starting Skylark API {}", env!("CARGO_PKG_VERSION"));
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 8081));
 
     let listener = TcpListener::bind(addr).await?;
     info!("Listening on http://{}", addr);
@@ -92,7 +92,7 @@ fn parse_from_query(uri: &Uri) -> Result<(SkylarkKey, SkylarkMode), Box<dyn std:
                 Err(_) => return Err(QueryParseError.into()),
             }
         } else if param.0.eq_ignore_ascii_case("mode") {
-            debug!("Parsing mode: {}", param.0);
+            debug!("Parsing mode: {}", param.1);
             parsed_mode = match SkylarkMode::try_from(param.1.to_string()) {
                 Ok(mode) => mode,
                 Err(_) => return Err(QueryParseError.into()),
@@ -109,12 +109,12 @@ fn parse_from_query(uri: &Uri) -> Result<(SkylarkKey, SkylarkMode), Box<dyn std:
 async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
     match (req.method(), req.uri().path()) {
         // Serve some instructions at /
-        (&Method::GET, "/state/") => {
+        (&Method::GET, "/state") => {
             info!("main::http_handler::GET_STATE: incoming");
             let params = match parse_from_query(&req.uri()) {
                 Ok(p) => p,
                 Err(e) => {
-                    info!("main::http_handler::GET_STATE: expected params 'key' and 'value'");
+                    info!("main::http_handler::GET_STATE: expected params 'key' and 'mode'");
                     return Ok(Response::builder()
                         .status(StatusCode::BAD_REQUEST)
                         .body(Body::from(e.to_string()))
@@ -129,7 +129,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             let params = match parse_from_query(&req.uri()) {
                 Ok(p) => p,
                 Err(e) => {
-                    info!("main::http_handler::DELETE_STATE: expected params 'key' and 'value'");
+                    info!("main::http_handler::DELETE_STATE: expected params 'key' and 'mode'");
                     return Ok(Response::builder()
                         .status(StatusCode::BAD_REQUEST)
                         .body(Body::from(e.to_string()))

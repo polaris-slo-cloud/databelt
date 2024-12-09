@@ -11,7 +11,7 @@ spec:
     spec:
       runtimeClassName: wasmedge
       containers:
-        - image: guelmino/skylark-ex-alarm:0.2.502
+        - image: guelmino/skylark-ex-alarm:0.2.504
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -19,8 +19,6 @@ spec:
               path: /health
               port: 8080
           env:
-            - name: DNS_SERVER
-              value: "10.152.183.10:53"
             - name: RUST_BACKTRACE
               value: "full"
             - name: RUST_LOG
@@ -30,4 +28,4 @@ spec:
                 fieldRef:
                   fieldPath: status.hostIP
             - name: SKYLARK_API_PORT
-              value: "30163"
+              value: "8081"

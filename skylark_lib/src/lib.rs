@@ -14,7 +14,7 @@ use std::env;
 use std::sync::OnceLock;
 use tokio::sync::Mutex;
 extern crate pretty_env_logger;
-use crate::error::ParseSkylarkKeyError;
+use crate::error::{ParseSkylarkKeyError, SkylarkStateError};
 use uuid::Uuid;
 
 #[macro_use]
@@ -88,7 +88,7 @@ pub async fn get_state(fn_name: String, key: String, mode: SkylarkMode) -> Resul
                 "get_state: failed to get predecessor state from skylark api: {:?}",
                 e
             );
-            Err(e.into())
+            Err(SkylarkStateError.into())
         }
     }
 }

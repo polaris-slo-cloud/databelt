@@ -84,11 +84,11 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                 }
                 Err(err) => {
                     error!(
-                        "main::http_handler::skylark_init_lib: Error fetching predecessor state: {:?}",
+                        "main::http_handler::get_state: Error fetching predecessor state: {:?}",
                         err
                     );
                     return Ok(Response::builder()
-                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                        .status(StatusCode::NOT_FOUND)
                         .body(Body::from("Error fetching predecessor state"))
                         .unwrap());
                 }
@@ -114,7 +114,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                 Err(e) => {
                     error!("main::http_handler::store_state: Error calling skylark lib store state: {:?}", e);
                     Ok(Response::builder()
-                        .status(StatusCode::NOT_FOUND)
+                        .status(StatusCode::INTERNAL_SERVER_ERROR)
                         .body(Body::from("Error calling skylark lib store state"))
                         .unwrap())
                 }

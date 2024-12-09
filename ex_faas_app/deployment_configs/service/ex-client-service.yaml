@@ -21,8 +21,6 @@ spec:
               path: /health
               port: 8080
           env:
-            - name: DNS_SERVER
-              value: "10.152.183.10:53"
             - name: RUST_BACKTRACE
               value: "full"
             - name: RUST_LOG
@@ -30,6 +28,6 @@ spec:
             - name: PREPROCESS_URL
               value: "http://skylark-ex-preprocess.default.svc.cluster.local/process"
             - name: DETECT_URL
-              value: "http://skylark-ex-detect.default.svc.cluster.local/"
+              value: "http://skylark-ex-detect.default.svc.cluster.local"
             - name: ALARM_URL
-              value: "http://skylark-ex-alarm.default.svc.cluster.local/"
+              value: "http://skylark-ex-alarm.default.svc.cluster.local"

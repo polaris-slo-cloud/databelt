@@ -34,7 +34,7 @@ impl SkylarkKey {
         self.fn_name = fn_name;
     }
     pub fn valid(&self) -> bool {
-        !self.chain_id.is_empty() && !self.fn_name.is_empty()
+        !self.chain_id.is_empty() && !self.fn_name.is_empty() && !self.chain_id.eq("unknown") && !self.chain_id.eq("unknown")
     }
 }
 impl TryFrom<String> for SkylarkKey {

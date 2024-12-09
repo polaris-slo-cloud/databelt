@@ -10,8 +10,8 @@ wasmedge compile target/wasm32-wasip1/release/ex_alarm.wasm ex_alarm.wasm
 ```
 ### Docker Build and Push
 ```bash
-docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-alarm:0.2.502 .
-docker push guelmino/skylark-ex-alarm:0.2.502
+docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-alarm:0.2.504 .
+docker push guelmino/skylark-ex-alarm:0.2.504
 ```
 ### Deploy
 ```bash

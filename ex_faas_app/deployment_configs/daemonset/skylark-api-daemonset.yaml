@@ -16,14 +16,15 @@ spec:
       labels:
         app: skylark-api
     spec:
+      hostNetwork: true
       nodeSelector:
         node-type: Sat
       runtimeClassName: wasmedge
       containers:
         - name: skylark-api
-          image: guelmino/skylark-api:0.2.713
+          image: guelmino/skylark-api:0.2.716
           ports:
-            - containerPort: 8080
+            - containerPort: 8081
           env:
             - name: RUST_BACKTRACE
               value: "full"

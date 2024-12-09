@@ -7,7 +7,7 @@ use reqwest::header::CONTENT_TYPE;
 type Result<T> = std::result::Result<T, reqwest::Error>;
 
 pub async fn get_skylark_state(key: &SkylarkKey, mode: SkylarkMode) -> Result<SkylarkState> {
-    let url = format!("{}?key={}&mode={}", SKYLARK_API_URL.get().unwrap(), key.to_string(), mode.to_string());
+    let url = format!("{}/state?key={}&mode={}", SKYLARK_API_URL.get().unwrap(), key.to_string(), mode.to_string());
     debug!("get_skylark_state: url: {}", url);
     reqwest::get(url).await?.json::<SkylarkState>().await
 }
@@ -37,12 +37,12 @@ pub async fn store_skylark_state(state: &SkylarkState, mode: &SkylarkMode) -> Re
 
 pub async fn delete_skylark_state(key: &SkylarkKey, mode: &SkylarkMode) -> Result<String> {
     let url = format!(
-        "{}/?key={}&mode={}",
+        "{}/state?key={}&mode={}",
         SKYLARK_API_URL.get().unwrap(),
         key.to_string(),
         mode.to_string()
     );
-    info!("get_skylark_state: url: {}", url);
+    info!("delete_skylark_state: url: {}", url);
     reqwest::Client::new()
         .delete(url)
         .send()

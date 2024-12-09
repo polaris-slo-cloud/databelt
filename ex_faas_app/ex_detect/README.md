@@ -11,19 +11,13 @@ wasmedge compile target/wasm32-wasip1/release/ex_detect.wasm ex_detect.wasm
 ```
 ### Docker Build and Push
 ```bash
-docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-detect:0.2.403 .
-docker push guelmino/skylark-ex-detect:0.2.403
+docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-detect:0.2.405 .
+docker push guelmino/skylark-ex-detect:0.2.405
 ```
 ### Deploy
 ```bash
 kubectl apply -f ~/deployment/service/ex-detect-service.yaml
 kubectl delete ksvc skylark-ex-detect && kubectl delete route skylark-ex-detect && kubectl delete configuration skylark-ex-detect && kubectl delete svc skylark-ex-detect
-```
-### Troubleshoot
-```bash
-kubectl get pods
-kubectl describe pod skylark-ex-detect
-kubectl logs skylark-ex-detect-00001-deployment-
 ```
 ### API
 ```bash
