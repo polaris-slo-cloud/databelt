@@ -48,6 +48,21 @@ impl TryFrom<String> for SkylarkKey {
     }
 }
 
+impl Default for SkylarkKey {
+    fn default() -> Self {
+        Self {
+            fn_name: "unknown".to_string(),
+            chain_id: "unknown".to_string(),
+        }
+    }
+}
+
+impl PartialEq for SkylarkKey {
+    fn eq(&self, other: &Self) -> bool {
+        self.chain_id == other.chain_id && self.fn_name == other.fn_name
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SkylarkState {
     key: SkylarkKey,
@@ -81,6 +96,15 @@ impl SkylarkState {
 
     pub fn set_value(&mut self, value: String) {
         self.value = value;
+    }
+}
+
+impl Default for SkylarkState {
+    fn default() -> Self {
+        Self {
+            key: SkylarkKey::default(),
+            value: "unknown".to_string(),
+        }
     }
 }
 
