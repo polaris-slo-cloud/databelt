@@ -12,8 +12,8 @@ wasmedge compile target/wasm32-wasip1/release/ex_preprocess.wasm ex_preprocess.w
 
 ### Docker Build and Push
 ```bash
-docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-preprocess:0.2.306 .
-docker push guelmino/skylark-ex-preprocess:0.2.306
+docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-preprocess:0.2.309 .
+docker push guelmino/skylark-ex-preprocess:0.2.309
 ```
 ### Deploy
 ```bash

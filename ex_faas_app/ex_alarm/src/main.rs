@@ -1,8 +1,8 @@
 use hyper::server::conn::Http;
 use hyper::service::service_fn;
-use hyper::{Body, Method, Request, Response, StatusCode};
+use hyper::{Body, Method, Request, Response, StatusCode, Uri};
 use sha2::{Digest, Sha256};
-use skylark_lib::{skylark_init, skylark_lib_version, store_state};
+use skylark_lib::{get_state, skylark_lib_version, store_state};
 use std::env;
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
@@ -36,27 +36,48 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     }
 }
 
+fn parse_key_from_query(uri: &Uri) -> Result<String, Box<dyn std::error::Error>> {
+    debug!("Parsing URI: {}", uri);
+    let request_url = match Url::parse(&format!("http://skylark.at{}", uri.to_string())) {
+        Ok(url) => url,
+        Err(e) => {
+            error!("Error parsing URI: {}", e.to_string());
+            return Err(e.into());
+        }
+    };
+    let params = request_url.query_pairs();
+    for param in params {
+        debug!("Parsing parameter: {}={}", param.0, param.1);
+        if param.0.eq_ignore_ascii_case("key") {
+            debug!("Parsing key: {}", param.0);
+            return Ok(param.1.to_string());
+        }
+    }
+    error!("Error parsing URI: No key param found");
+    Ok(String::new())
+}
+
 async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
     match (req.method(), req.uri().path()) {
         (&Method::GET, "/") => {
             info!("Incoming request with params: {:?}", req.uri().query());
-            let params = Url::parse(&req.uri().to_string()).unwrap();
-            let pairs = params.query_pairs();
-            let mut key: Option<String> = None;
-            for (k, v) in pairs {
-                if k == "key" {
-                    key = Option::from(v.to_string());
+            let key = match parse_key_from_query(req.uri()){
+                Ok(key) => key,
+                Err(e) => {
+                    error!("Error parsing key: {}", e);
+                    return Ok(Response::builder()
+                        .status(StatusCode::BAD_REQUEST)
+                        .body(Body::from("Error parsing key param"))
+                        .unwrap());
                 }
-            }
-            match key.clone() {
-                Some(key) => {
-                    debug!("http_handler::/: key param: {}", &key);
-                }
-                None => {
-                    error!("http_handler::/: no key provided");
-                }
-            }
-            let state: String = match skylark_init(env!("CARGO_PKG_NAME").to_string(), key, skylark_lib::SkylarkMode::Sat).await{
+            };
+            let state: String = match get_state(
+                env!("CARGO_PKG_NAME").to_string(),
+                key,
+                skylark_lib::SkylarkMode::Sat,
+            )
+                .await
+            {
                 Ok(s) => {
                     info!("http_handler::/: state ok");
                     s
@@ -69,20 +90,26 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     return Ok(Response::builder()
                         .status(StatusCode::INTERNAL_SERVER_ERROR)
                         .body(Body::from("Error fetching predecessor state"))
-                        .unwrap())
+                        .unwrap());
                 }
             };
             let mut hasher = Sha256::new();
             hasher.update(state.as_bytes());
             let data_hash = format!("{:x}", hasher.finalize());
             info!("http_handler::/: generated data hash, attempting to store");
-            match store_state(data_hash).await {
+            match store_state(
+                data_hash,
+                env!("CARGO_PKG_NAME").to_string(),
+                skylark_lib::SkylarkMode::Sat,
+            )
+                .await
+            {
                 Ok(key) => {
                     info!(
                         "main::http_handler::store_state: skylark lib result: {:?}",
                         key
                     );
-                    Ok(Response::new(Body::from(key)))
+                    Ok(Response::new(Body::from("ALARM")))
                 }
                 Err(e) => {
                     error!("main::http_handler::store_state: Error calling skylark lib store state: {:?}", e);
