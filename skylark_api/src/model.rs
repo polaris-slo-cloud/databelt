@@ -10,8 +10,9 @@ pub struct SkylarkKey {
 }
 
 impl SkylarkKey {
-
-    pub fn to_string(&self) -> String {format!("{}:{}", self.chain_id, self.fn_name)}
+    pub fn to_string(&self) -> String {
+        format!("{}:{}", self.chain_id, self.fn_name)
+    }
 
     pub fn new(chain_id: String, fn_name: String) -> Self {
         Self { chain_id, fn_name }
@@ -43,7 +44,14 @@ impl TryFrom<String> for SkylarkKey {
         Ok(SkylarkKey { chain_id, fn_name })
     }
 }
-
+impl Default for SkylarkKey {
+    fn default() -> Self {
+        Self {
+            fn_name: "unknown".to_string(),
+            chain_id: "unknown".to_string(),
+        }
+    }
+}
 #[derive(Serialize, Deserialize)]
 pub struct SkylarkState {
     key: SkylarkKey,
@@ -51,9 +59,12 @@ pub struct SkylarkState {
 }
 
 impl SkylarkState {
-
     pub fn to_string(&self) -> String {
-        format!("SkylarkState\n\tSkylarkKey: {}\n\tValue: {}\n", self.key.to_string(), self.value.to_string())
+        format!(
+            "SkylarkState\n\tSkylarkKey: {}\n\tValue: {}\n",
+            self.key.to_string(),
+            self.value.to_string()
+        )
     }
 
     pub fn new(key: SkylarkKey, value: String) -> Self {
@@ -77,7 +88,7 @@ impl SkylarkState {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct NodeGraph {
     edges: Vec<Edge>,
 }
@@ -121,12 +132,24 @@ impl Default for SkylarkNode {
 }
 impl PartialEq<Self> for SkylarkNode {
     fn eq(&self, other: &Self) -> bool {
-        self.node_name == other.node_name && self.node_ip == other.node_ip && self.redis_host == other.redis_host
+        self.node_name == other.node_name
+            && self.node_ip == other.node_ip
+            && self.redis_host == other.redis_host
     }
 }
 impl SkylarkNode {
-    pub fn new(node_name: String, node_ip: String, redis_host: String, node_type: NodeType) -> Self {
-        Self { node_name, node_ip, redis_host, node_type }
+    pub fn new(
+        node_name: String,
+        node_ip: String,
+        redis_host: String,
+        node_type: NodeType,
+    ) -> Self {
+        Self {
+            node_name,
+            node_ip,
+            redis_host,
+            node_type,
+        }
     }
     pub fn default_cloud() -> Self {
         Self {
@@ -168,7 +191,7 @@ impl SkylarkNode {
         self.node_type = node_type;
     }
 }
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Edge {
     source: SkylarkNode,
     target: SkylarkNode,
@@ -178,7 +201,12 @@ pub struct Edge {
 
 impl Edge {
     pub fn new(source: SkylarkNode, target: SkylarkNode, bandwidth: i16, latency: i16) -> Self {
-        Self { source, target, bandwidth, latency }
+        Self {
+            source,
+            target,
+            bandwidth,
+            latency,
+        }
     }
 
     pub fn source(&self) -> &SkylarkNode {
@@ -223,8 +251,18 @@ pub struct SkylarkSLOs {
 }
 
 impl SkylarkSLOs {
-    pub fn new(bandwidth_metric: String, latency_metric: String, min_bandwidth: i16, max_latency: i16) -> Self {
-        Self { bandwidth_metric, latency_metric, min_bandwidth, max_latency }
+    pub fn new(
+        bandwidth_metric: String,
+        latency_metric: String,
+        min_bandwidth: i16,
+        max_latency: i16,
+    ) -> Self {
+        Self {
+            bandwidth_metric,
+            latency_metric,
+            min_bandwidth,
+            max_latency,
+        }
     }
 
     pub fn bandwidth_metric(&self) -> &str {
@@ -288,5 +326,11 @@ impl From<String> for SkylarkMode {
             "edge" => SkylarkMode::Edge,
             _ => SkylarkMode::Cloud,
         }
+    }
+}
+
+impl PartialEq for SkylarkMode {
+    fn eq(&self, other: &Self) -> bool {
+        self == other
     }
 }

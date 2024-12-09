@@ -13,8 +13,8 @@ wasmedge compile target/wasm32-wasip1/release/skylark_api.wasm skylark_api.wasm
 
 ### Docker Build and Push
 ```bash
-docker buildx build --platform wasi/wasm --provenance=false -t guelmino/skylark-api:0.2.711 .
-docker push guelmino/skylark-api:0.2.711
+docker buildx build --platform wasi/wasm --provenance=false -t guelmino/skylark-api:0.2.713 .
+docker push guelmino/skylark-api:0.2.713
 ```
 
 ### Deploy
@@ -42,9 +42,9 @@ curl -v  http://10.0.0.243:30163/health
 curl -v  http://10.0.0.34:30163/health
 curl -v  http://10.0.0.45:30163/health
 curl -v  http://10.0.0.167:30163/health
-curl -v http://10.0.0.34:30163/save/edge -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","fn_name": "fn1"},"value": "V0.2.711E"}'
-curl -v http://10.0.0.34:30163/save/cloud -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","fn_name": "fn1"},"value": "V0.2.711C"}'
-curl -v http://10.0.0.34:30163/save/sat -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","fn_name": "fn1"},"value": "V0.2.711S"}'
+curl -v http://10.0.0.34:30163/save/edge -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","fn_name": "fn1"},"value": "V0.2.713E"}'
+curl -v http://10.0.0.34:30163/save/cloud -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","fn_name": "fn1"},"value": "V0.2.713C"}'
+curl -v http://10.0.0.34:30163/save/sat -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","fn_name": "fn1"},"value": "V0.2.713S"}'
 curl -v http://10.0.0.34:30163/save/sat -H "Content-Type: application/json" -d '{"key":{"chain_id":"78599338-10aa-41be-961e-227d91b690be","fn_name":"ex_preprocess"},"value":"11b430a1795c0608903b6d6f4ff2565b32c3456c0ddc74ad4ef2fc92205b211a"}'
 curl -v http://10.0.0.34:30163/state?key=ch1:fn1
 curl -X DELETE -v http://10.0.0.34:30163/state?key=ch1:fn1

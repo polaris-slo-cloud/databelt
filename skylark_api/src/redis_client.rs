@@ -1,19 +1,25 @@
 use crate::model::{SkylarkKey, SkylarkState};
-use lazy_static::lazy_static;
-use redis::{AsyncCommands, Client, RedisResult, Commands};
-use std::sync::Mutex;
 use crate::{CLOUD_NODE, LOCAL_NODE};
+use lazy_static::lazy_static;
+use redis::{AsyncCommands, Client, Commands, RedisResult};
+use std::sync::Mutex;
 
 lazy_static! {
     static ref LOCAL_REDIS_CLIENT: Mutex<Client> = {
         let local_node = LOCAL_NODE.lock().unwrap();
-        debug!("Creating a local redis client with host {}", local_node.redis_host());
+        debug!(
+            "Creating a local redis client with host {}",
+            local_node.redis_host()
+        );
         let client = Client::open(local_node.redis_host()).unwrap();
         Mutex::new(client)
     };
     static ref GLOBAL_REDIS_CLIENT: Mutex<Client> = {
         let cloud_node = CLOUD_NODE.lock().unwrap();
-        debug!("Creating a cloud redis client with host {}", cloud_node.redis_host());
+        debug!(
+            "Creating a cloud redis client with host {}",
+            cloud_node.redis_host()
+        );
         let client = Client::open(cloud_node.redis_host()).unwrap();
         Mutex::new(client)
     };
@@ -21,19 +27,13 @@ lazy_static! {
 
 pub fn connect_global() -> Result<redis::Connection, redis::RedisError> {
     debug!("Getting global redis connection");
-    GLOBAL_REDIS_CLIENT
-        .lock()
-        .unwrap()
-        .get_connection()
+    GLOBAL_REDIS_CLIENT.lock().unwrap().get_connection()
 }
 pub fn connect_local() -> Result<redis::Connection, redis::RedisError> {
     debug!("Getting local redis connection");
-    LOCAL_REDIS_CLIENT
-        .lock()
-        .unwrap()
-        .get_connection()
+    LOCAL_REDIS_CLIENT.lock().unwrap().get_connection()
 }
-
+#[allow(dead_code)]
 pub async fn get_local_state(key: &SkylarkKey) -> RedisResult<String> {
     let mut con = connect_local()?;
     info!(
@@ -56,9 +56,20 @@ pub async fn store_state_by_url(state: &SkylarkState, url: String) -> RedisResul
     let mut con = client.get_multiplexed_async_connection().await?;
     info!(
         "store_state_by_url: Attempting to store key {} at redis url {}",
-        state.key().to_string(), url
+        state.key().to_string(),
+        url
     );
     con.set(state.key().to_string(), state.value()).await
+}
+pub async fn get_state_by_url(key: &SkylarkKey, url: &str) -> RedisResult<String> {
+    let client = Client::open(url)?;
+    let mut con = client.get_multiplexed_async_connection().await?;
+    info!(
+        "get_state_by_url: Attempting to receive key {} from url {}",
+        key.to_string(),
+        url
+    );
+    con.get(key.to_string()).await
 }
 pub async fn del_local_state(key: &SkylarkKey) -> RedisResult<()> {
     let mut con = connect_local()?;
