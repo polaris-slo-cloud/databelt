@@ -1,5 +1,5 @@
-# Skylark library
-Provides apis for state retrieval and -propagation mechanisms. 
+# Skylark API
+Exposes http endpoints for state retrieval and -propagation mechanisms. 
 
 ### Build locally
 ```bash
@@ -13,8 +13,8 @@ wasmedge compile target/wasm32-wasip1/release/skylark_api.wasm skylark_api.wasm
 
 ### Docker Build and Push
 ```bash
-docker buildx build --platform wasi/wasm --provenance=false -t guelmino/skylark-api:0.2.716 .
-docker push guelmino/skylark-api:0.2.716
+docker buildx build --platform wasi/wasm --provenance=false -t guelmino/skylark-api:0.2.719 .
+docker push guelmino/skylark-api:0.2.719
 ```
 
 ### Deploy
@@ -26,26 +26,18 @@ kubectl delete daemonset skylark-api-daemonset
 
 ### Troubleshoot
 ```bash
-kubectl get pods -o wide
-kubectl describe pod skylark-api
-kubectl logs skylark-api-00001-deployment-
-curl -X POST -v http://10.152.183.159/health -H "Host: skylark-api.default.svc.cluster.local" -d "skldfjerg"
-curl -x "DELETE" -v http://10.152.183.159/state?key=KEY -H "Host: skylark-api.default.svc.cluster.local"
-curl -v http://10.152.183.159/state?key=KEY -H "Host: skylark-api.default.svc.cluster.local"
-curl -v http://10.152.183.159/health -H "Host: skylark-api.default.svc.cluster.local"
-kubectl exec -it skylark-api-2xg2q -- nslookup skylark-node.default.svc.cluster.local
-curl -v http://10.152.183.159/health -H "Host: skylark-api.default.svc.cluster.local"
+curl -v  http://10.0.0.34:8081/health; curl -v  http://10.0.0.45:8081/health; curl -v  http://10.0.0.167:8081/health
 
-curl -v  http://10.0.0.243:8081/health
-curl -v  http://10.0.0.34:8081/health
-curl -v  http://10.0.0.45:8081/health
-curl -v  http://10.0.0.167:8081/health
-curl -v http://10.0.0.34:8081/save/edge -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","fn_name": "fn1"},"value": "V0.2.716E"}'
-curl -v http://10.0.0.34:8081/save/cloud -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","fn_name": "fn1"},"value": "V0.2.716C"}'
-curl -v http://10.0.0.34:8081/save/sat -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","fn_name": "fn1"},"value": "V0.2.716S"}'
+curl -v http://10.0.0.34:8081/save/edge -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","fn_name": "fn1"},"value": "V0.2.719E"}'
+curl -v http://10.0.0.34:8081/save/cloud -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","fn_name": "fn1"},"value": "V0.2.719C"}'
+curl -v http://10.0.0.34:8081/save/sat -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","fn_name": "fn1"},"value": "V0.2.719S"}'
 curl -v http://10.0.0.34:8081/save/sat -H "Content-Type: application/json" -d '{"key":{"chain_id":"78599338-10aa-41be-961e-227d91b690be","fn_name":"ex_preprocess"},"value":"11b430a1795c0608903b6d6f4ff2565b32c3456c0ddc74ad4ef2fc92205b211a"}'
 curl -v http://10.0.0.34:8081/state?key=ch1:fn1
 curl -X DELETE -v http://10.0.0.34:8081/state?key=ch1:fn1
+
+kubectl get pods -o wide
+kubectl describe pod skylark-api
+kubectl logs skylark-api-00001-deployment-
 ```
 
 ### Endpoints

@@ -1,6 +1,6 @@
 [package]
 name = "ex_alarm"
-version = "0.2.504"
+version = "0.2.506"
 edition = "2021"
 
 [dependencies]

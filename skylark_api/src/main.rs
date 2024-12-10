@@ -28,10 +28,7 @@ use url::Url;
 extern crate pretty_env_logger;
 #[macro_use]
 extern crate log;
-// type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-//Result<T, Box<dyn std::error::Error + Send + Sync>>
 
-const NODE_INFO_PORT: &'static str = "8080";
 lazy_static! {
     static ref VIABLE_NODE: Mutex<SkylarkNode> = Mutex::new(SkylarkNode::default());
     static ref NODE_GRAPH: Mutex<NodeGraph> = Mutex::new(NodeGraph::new(vec![]));
@@ -86,7 +83,7 @@ fn parse_from_query(uri: &Uri) -> Result<(SkylarkKey, SkylarkMode), Box<dyn std:
     for param in params {
         debug!("Parsing parameter: {}={}", param.0, param.1);
         if param.0.eq_ignore_ascii_case("key") {
-            debug!("Parsing key: {}", param.0);
+            debug!("Parsing key: {}", param.1);
             parsed_key = match SkylarkKey::try_from(param.1.to_string()) {
                 Ok(key) => key,
                 Err(_) => return Err(QueryParseError.into()),
@@ -110,11 +107,11 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
     match (req.method(), req.uri().path()) {
         // Serve some instructions at /
         (&Method::GET, "/state") => {
-            info!("main::http_handler::GET_STATE: incoming");
+            info!("GET_STATE: incoming");
             let params = match parse_from_query(&req.uri()) {
                 Ok(p) => p,
                 Err(e) => {
-                    info!("main::http_handler::GET_STATE: expected params 'key' and 'mode'");
+                    info!("GET_STATE: BAD_REQUEST expected params 'key' and 'mode'");
                     return Ok(Response::builder()
                         .status(StatusCode::BAD_REQUEST)
                         .body(Body::from(e.to_string()))
@@ -125,11 +122,11 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             fetch_state_with_strategy(params.0, params.1).await
         }
         (&Method::DELETE, "/state") => {
-            info!("main::http_handler::DELETE_STATE: incoming");
+            info!("DELETE_STATE: incoming");
             let params = match parse_from_query(&req.uri()) {
                 Ok(p) => p,
                 Err(e) => {
-                    info!("main::http_handler::DELETE_STATE: expected params 'key' and 'mode'");
+                    info!("DELETE_STATE: BAD_REQUEST expected params 'key' and 'mode'");
                     return Ok(Response::builder()
                         .status(StatusCode::BAD_REQUEST)
                         .body(Body::from(e.to_string()))
@@ -140,12 +137,8 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             delete_state(params.0, params.1).await
         }
         (&Method::POST, "/save/sat") => {
-            info!("main::http_handler::SAVE_SAT: incoming");
+            info!("SAVE_SAT: incoming");
             let whole_body = hyper::body::to_bytes(req.into_body()).await?;
-            debug!(
-                "main::http_handler::SAVE_SAT body: {:?}",
-                &whole_body.to_vec()
-            );
             let state: SkylarkState = serde_json::from_slice(&whole_body.to_vec()).unwrap();
             let mut err = false;
             let mut err_msg = "None";
@@ -156,46 +149,39 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     Ok(_) => {
                         propagated_node_name = viable_node.node_name().to_string();
                         info!(
-                            "main::http_handler::SAVE_SAT: successfully stored state to node {}",
+                            "SAVE_SAT: successfully stored state to node {}",
                             propagated_node_name
                         )
                     }
                     Err(e) => {
-                        error!(
-                            "main::http_handler::SAVE_SAT: Error propagating state: {:?}",
-                            e
-                        );
+                        error!("SAVE_SAT: Error propagating state: {:?}", e);
                         err = true;
                         err_msg = "Error propagating state";
                     }
                 }
                 match store_global_state(&state).await {
                     Ok(_) => {
-                        info!(
-                            "main::http_handler::SAVE_SAT: successfully stored state to cloud node"
-                        )
+                        info!("SAVE_SAT: successfully stored state to cloud node")
                     }
                     Err(e) => {
-                        error!(
-                            "main::http_handler::SAVE_SAT: Error saving global state: {:?}",
-                            e
-                        );
+                        error!("SAVE_SAT: Error saving global state: {:?}", e);
                         err = true;
                         err_msg = "Error saving global state";
                     }
                 }
             } else {
-                warn!("main::http_handler::SAVE_SAT: No viable node found");
+                warn!("SAVE_SAT: No viable node found");
                 err = true;
                 err_msg = "No viable node found";
             }
             if err {
+                error!("SAVE_SAT: INTERNAL_SERVER_ERROR Error state propagation");
                 Ok(Response::builder()
                     .status(StatusCode::INTERNAL_SERVER_ERROR)
                     .body(Body::from(err_msg))
                     .unwrap())
             } else {
-                info!("main::http_handler::SAVE_SAT: successfully propagated state to viable node- and global store");
+                info!("SAVE_SAT: OK successfully propagated state to viable node and global store");
                 Ok(Response::new(Body::from(format!(
                     "Successfully stored state on node {}",
                     propagated_node_name
@@ -203,19 +189,16 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             }
         }
         (&Method::POST, "/save/edge") => {
-            info!("main::http_handler::SAVE_EDGE: incoming");
+            info!("SAVE_EDGE: incoming");
             let whole_body = hyper::body::to_bytes(req.into_body()).await?;
             let state: SkylarkState = serde_json::from_slice(&whole_body.to_vec()).unwrap();
             match store_local_state(&state).await {
                 Ok(res) => {
-                    info!("main::http_handler::SAVE_EDGE: Saved edge state: {:?}", res);
+                    info!("SAVE_EDGE: OK Saved edge state: {:?}", res);
                     Ok(Response::new(Body::from("OK\n")))
                 }
                 Err(e) => {
-                    error!(
-                        "main::http_handler::SAVE_EDGE: Error saving local state: {:?}",
-                        e
-                    );
+                    error!("SAVE_EDGE: INTERNAL_SERVER_ERROR Error saving local state: {:?}", e);
                     Ok(Response::builder()
                         .status(StatusCode::INTERNAL_SERVER_ERROR)
                         .body(Body::from(e.to_string()))
@@ -224,19 +207,16 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             }
         }
         (&Method::POST, "/save/cloud") => {
-            info!("main::http_handler::SAVE_CLOUD: incoming");
+            info!("SAVE_CLOUD: incoming");
             let whole_body = hyper::body::to_bytes(req.into_body()).await?;
             let state: SkylarkState = serde_json::from_slice(&whole_body.to_vec()).unwrap();
             match store_global_state(&state).await {
                 Ok(res) => {
-                    info!("main::http_handler::SAVE_CLOUD: Saved sat state: {:?}", res);
+                    info!("SAVE_CLOUD: OK Saved sat state: {:?}", res);
                     Ok(Response::new(Body::from("OK\n")))
                 }
                 Err(e) => {
-                    error!(
-                        "main::http_handler::SAVE_CLOUD: Error saving global state: {:?}",
-                        e
-                    );
+                    error!("SAVE_CLOUD: INTERNAL_SERVER_ERROR Error saving global state: {:?}", e);
                     Ok(Response::builder()
                         .status(StatusCode::INTERNAL_SERVER_ERROR)
                         .body(Body::from(e.to_string()))
@@ -245,14 +225,14 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             }
         }
         (&Method::GET, "/refresh") => {
-            info!("main::http_handler::REFRESH: incoming");
+            info!("REFRESH: incoming");
             match init().await {
                 Ok(_) => {
-                    debug!("main::http_handler::REFRESH: successfully refreshed");
+                    debug!("REFRESH: OK successfully refreshed");
                     Ok(Response::new(Body::from("OK\n")))
                 }
                 Err(e) => {
-                    error!("main::http_handler::REFRESH: refresh failed");
+                    error!("REFRESH: INTERNAL_SERVER_ERROR refresh failed");
                     Ok(Response::builder()
                         .status(StatusCode::INTERNAL_SERVER_ERROR)
                         .body(Body::from(e.to_string()))
@@ -270,29 +250,28 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
 }
 
 async fn delete_state(key: SkylarkKey, mode: SkylarkMode) -> Result<Response<Body>, Error> {
+    debug!("DELETE_STATE: delete state with key {} and mode {}", key.to_string(), mode);
     let mut err = false;
     if mode != SkylarkMode::Cloud {
+        debug!("DELETE_STATE: Mode is not Cloud, delete local first");
         match del_local_state(&key).await {
             Ok(_) => {
-                info!("main::http_handler::DELETE_STATE: successfully deleted local state");
+                info!("DELETE_STATE: successfully deleted local state");
             }
             Err(e) => {
-                warn!(
-                    "main::http_handler::DELETE_STATE: Error deleting local state: {:?}",
-                    e
-                );
+                warn!("DELETE_STATE: Error deleting local state: {:?}", e);
                 err = true;
             }
         }
     }
-
+    debug!("DELETE_STATE: Delete Cloud state next");
     match del_global_state(&key).await {
         Ok(_) => {
-            info!("main::http_handler::DELETE_STATE: successfully deleted global state");
+            info!("DELETE_STATE: successfully deleted global state");
         }
         Err(e) => {
-            warn!(
-                "main::http_handler::DELETE_STATE: Error deleting global state: {:?}",
+            error!(
+                "DELETE_STATE: INTERNAL_SERVER_ERROR Error deleting global state: {:?}",
                 e
             );
             return Ok(Response::builder()
@@ -302,11 +281,13 @@ async fn delete_state(key: SkylarkKey, mode: SkylarkMode) -> Result<Response<Bod
         }
     }
     if err {
+        error!("DELETE_STATE: INTERNAL_SERVER_ERROR Error deleting global state");
         Ok(Response::builder()
             .status(StatusCode::INTERNAL_SERVER_ERROR)
             .body(Body::from("Error deleting local state"))
             .unwrap())
     } else {
+        info!("DELETE_STATE: OK successfully deleted state");
         Ok(Response::new(Body::from("Successfully deleted state")))
     }
 }
@@ -325,7 +306,7 @@ async fn fetch_state_with_strategy(
             match get_state_by_url(&key, closest_node.unwrap().redis_host()).await {
                 Ok(state) => {
                     info!(
-                        "fetch_state_with_strategy::Sat: closest node result: {:?}",
+                        "fetch_state_with_strategy::Sat: OK closest node result: {:?}",
                         state.clone()
                     );
                     return Ok(Response::new(Body::from(state)));
@@ -343,14 +324,14 @@ async fn fetch_state_with_strategy(
     match get_global_state(&key).await {
         Ok(state) => {
             info!(
-                "fetch_state_with_strategy: global redis result: {:?}",
+                "fetch_state_with_strategy: OK global redis result: {:?}",
                 state.clone()
             );
             Ok(Response::new(Body::from(state)))
         }
         Err(e) => {
             error!(
-                "fetch_state_with_strategy: Error fetching global and local state: {:?}",
+                "fetch_state_with_strategy: NOT_FOUND Error fetching global and local state: {:?}",
                 e
             );
             Ok(Response::builder()
@@ -363,25 +344,20 @@ async fn fetch_state_with_strategy(
 
 async fn init() -> Result<(), Box<dyn std::error::Error>> {
     let viable_nodes: Vec<SkylarkNode>;
-    let local_node_host = env::var("LOCAL_NODE_HOST").unwrap_or("nonProvided".to_string());
-    debug!("skylark::init: Local node host: {}", local_node_host);
-    let node_info_port = env::var("NODE_INFO_PORT").unwrap_or(NODE_INFO_PORT.to_string());
+    let local_node_host = env::var("LOCAL_NODE_HOST").expect("LOCAL_NODE_HOST not provided");
+    let node_info_port = env::var("NODE_INFO_PORT").expect("NODE_INFO_PORT not provided");
+    let node_info_url = format!("http://{}:{}", local_node_host, node_info_port);
     debug!(
-        "skylark::init: Local Node Info Service Port: {}",
-        node_info_port
+        "skylark::init: Local Node Info Service Url: {}",
+        node_info_url
     );
-    match get_from_url::<SkylarkNode>(
-        &format!(
-            "http://{}:{}/{}",
-            local_node_host, node_info_port, "local-node-info"
-        )
-        .as_str(),
-    )
-    .await
+
+    match get_from_url::<SkylarkNode>(&format!("{}/{}", node_info_url, "local-node-info").as_str())
+        .await
     {
         Err(e) => {
-            warn!("skylark::init: failed to get local node info!\n {:?}", e);
-            info!("skylark::init: moving on with default");
+            error!("skylark::init: failed to get local node info!\n {:?}", e);
+            return Err(e);
         }
         Ok(node) => {
             info!("skylark::init: successfully fetched node info");
@@ -393,18 +369,12 @@ async fn init() -> Result<(), Box<dyn std::error::Error>> {
             local_node.set_node_type(node.node_type().clone());
         }
     }
-    match get_from_url::<SkylarkNode>(
-        &format!(
-            "http://{}:{}/{}",
-            local_node_host, node_info_port, "cloud-node-info"
-        )
-        .as_str(),
-    )
-    .await
+    match get_from_url::<SkylarkNode>(&format!("{}/{}", node_info_url, "cloud-node-info").as_str())
+        .await
     {
         Err(e) => {
-            warn!("skylark::init: failed to get cloud node info!\n {:?}", e);
-            info!("skylark::init: moving on with default");
+            error!("skylark::init: failed to get cloud node info!\n {:?}", e);
+            return Err(e);
         }
         Ok(node) => {
             info!("skylark::init: successfully fetched node info");
@@ -415,18 +385,11 @@ async fn init() -> Result<(), Box<dyn std::error::Error>> {
             cloud_node.set_node_type(node.node_type().clone());
         }
     }
-    match get_from_url::<SkylarkSLOs>(
-        &format!(
-            "http://{}:{}/{}",
-            local_node_host, node_info_port, "objectives"
-        )
-        .as_str(),
-    )
-    .await
+    match get_from_url::<SkylarkSLOs>(&format!("{}/{}", node_info_url, "objectives").as_str()).await
     {
         Err(e) => {
-            warn!("skylark::init: failed to get objectives!\n {:?}", e);
-            info!("skylark::init: moving on with default");
+            error!("skylark::init: failed to get objectives!\n {:?}", e);
+            return Err(e);
         }
         Ok(objectives) => {
             info!("skylark::init: successfully fetched objectives");
@@ -437,17 +400,10 @@ async fn init() -> Result<(), Box<dyn std::error::Error>> {
             o.set_min_bandwidth(objectives.min_bandwidth().clone());
         }
     }
-    match get_from_url::<NodeGraph>(
-        &format!(
-            "http://{}:{}/{}",
-            local_node_host, node_info_port, "node-graph"
-        )
-        .as_str(),
-    )
-    .await
-    {
+    match get_from_url::<NodeGraph>(&format!("{}/{}", node_info_url, "node-graph").as_str()).await {
         Err(e) => {
             error!("skylark::init: failed to get node graph!\n {:?}", e);
+            return Err(e);
         }
         Ok(graph) => {
             info!("skylark::init: successfully fetched node graph");

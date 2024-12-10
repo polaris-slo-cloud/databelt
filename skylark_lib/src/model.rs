@@ -108,7 +108,7 @@ impl Default for SkylarkState {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum SkylarkMode {
     Cloud,
     Edge,

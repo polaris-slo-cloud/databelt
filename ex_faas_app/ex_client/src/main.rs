@@ -3,10 +3,11 @@ use hyper::service::service_fn;
 use hyper::{Method, Request, Response, StatusCode};
 use rand::distributions::Alphanumeric;
 use rand::Rng;
-use sha2::{Digest, Sha256};
-use std::env;
+use reqwest::Url;
 use std::net::SocketAddr;
 use std::sync::OnceLock;
+use std::time::{Duration, Instant};
+use std::{env, usize};
 use tokio::net::TcpListener;
 
 extern crate pretty_env_logger;
@@ -20,81 +21,133 @@ static ALARM_URL: OnceLock<String> = OnceLock::new();
 async fn http_handler(req: Request<hyper::Body>) -> Result<Response<hyper::Body>, hyper::Error> {
     match (req.method(), req.uri().path()) {
         (&Method::GET, "/") => {
-            info!("main::http_handler:: incoming");
-            // PREPROCESS
-            let data = generate_random_data(500);
-            info!("main::http_handler:: generated random data");
-            let mut hasher = Sha256::new();
-            hasher.update(data.as_bytes());
-            let data_hash = format!("{:x}", hasher.finalize());
-            info!("main::http_handler:: generated hash from random data");
+            info!("incoming");
+            let request_url =
+                match Url::parse(&format!("http://skylark.at{}", req.uri().to_string())) {
+                    Ok(url) => url,
+                    Err(e) => {
+                        error!("Error parsing URI: {}", e.to_string());
+                        return Ok(Response::builder()
+                            .status(StatusCode::BAD_REQUEST)
+                            .body(hyper::Body::from("Not able to parse URL"))
+                            .unwrap());
+                    }
+                };
+            let params = request_url.query_pairs();
+            let mut parsed_size: usize = 0;
+            let mut parsed_mode: String = "Sat".to_string();
+            for param in params {
+                debug!("Parsing parameter: {}={}", param.0, param.1);
+                if param.0.eq_ignore_ascii_case("size") {
+                    debug!("Parsing size: {}", param.1);
+                    parsed_size = match param.1.parse::<usize>() {
+                        Ok(size) => size,
+                        Err(e) => {
+                            error!("Error parsing Integer: {}", e.to_string());
+                            return Ok(Response::builder()
+                                .status(StatusCode::BAD_REQUEST)
+                                .body(hyper::Body::from("Not able to parse size param"))
+                                .unwrap());
+                        }
+                    }
+                } else if param.0.eq_ignore_ascii_case("mode") {
+                    debug!("Parsing size: {}", param.1);
+                    parsed_mode = param.1.to_string();
+                }
+            }
+            let data = generate_random_data(parsed_size);
+            debug!("generated random data");
             let client = reqwest::Client::new();
+            let preprocess_url = format!(
+                "{}?mode={}",
+                PREPROCESS_URL.get().unwrap(),
+                parsed_mode.clone()
+            );
+            info!(
+                "BENCHMARK: mode: {} - Finished initializing",
+                parsed_mode.clone()
+            );
+            let start = Instant::now();
+            info!("BENCHMARK: started clock at: {:?}", start);
+            // PREPROCESS
             let preprocess_res = client
-                .post(PREPROCESS_URL.get().unwrap())
-                .body(reqwest::Body::from(data_hash))
+                .post(preprocess_url)
+                .body(reqwest::Body::from(data))
                 .send()
                 .await;
-            info!("main::http_handler:: POSTed data as body to preprocess");
-            let preprocess_key: Option<String>;
+            debug!("POSTed data as body to preprocess");
+            let preprocess_key;
             match preprocess_res {
                 Ok(res) => {
-                    info!("Preprocess Response: {}", res.status());
-                    preprocess_key = Some(res.text().await.unwrap())
-                        .or_else(|| panic!("Failed to parse preprocess result"));
+                    debug!("Preprocess Response: {}", res.status());
+                    preprocess_key = res.text().await.unwrap();
+                    debug!("Preprocess Key: {}", preprocess_key.clone());
                 }
                 Err(err) => {
                     error!("{:?}", err);
-                    panic!("Failed to preprocess image.jpg");
+                    return Ok(Response::builder()
+                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                        .body(hyper::Body::from("Failed at Preprocessor step"))
+                        .unwrap());
                 }
             }
-
+            info!("BENCHMARK: checkpoint PREPROCESS: {:?}", start.elapsed());
             // DETECT
-            let detect_key: Option<String>;
-            let detect_res = client
-                .get(format!(
-                    "{}/?key={}",
-                    DETECT_URL.get().unwrap(),
-                    preprocess_key.unwrap()
-                ))
-                .send()
-                .await;
+            let detect_key;
+            let detect_url = format!(
+                "{}/?key={}&mode={}",
+                DETECT_URL.get().unwrap(),
+                preprocess_key.clone(),
+                parsed_mode.clone()
+            );
+            let detect_res = client.get(detect_url).send().await;
 
             match detect_res {
                 Ok(res) => {
-                    info!("Detector Response: {}", res.status());
-                    detect_key = Some(res.text().await.unwrap())
-                        .or_else(|| panic!("Failed to parse detector result"));
+                    debug!("Detector Response: {}", res.status());
+                    detect_key = res.text().await.unwrap();
+                    debug!("Detector Key: {}", detect_key.clone());
                 }
                 Err(err) => {
                     error!("{:?}", err);
-                    panic!("Failed to do object detection");
+                    return Ok(Response::builder()
+                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                        .body(hyper::Body::from("Failed at Object Detector step"))
+                        .unwrap());
                 }
             }
-
+            info!("BENCHMARK: checkpoint DETECT: {:?}", start.elapsed());
             //ALARM
-            let alarm_res = client
-                .get(format!(
-                    "{}/?key={}",
-                    ALARM_URL.get().unwrap(),
-                    detect_key.unwrap()
-                ))
-                .send()
-                .await;
+            let alarm_url = format!(
+                "{}/?key={}&mode={}",
+                ALARM_URL.get().unwrap(),
+                detect_key.clone(),
+                parsed_mode
+            );
+            let alarm_res = client.get(alarm_url).send().await;
 
             match alarm_res {
                 Ok(res) => {
-                    info!(
+                    debug!(
                         "Alarm Response: {}",
                         Some(res.text().await.unwrap()).unwrap()
                     );
                 }
                 Err(err) => {
                     error!("{:?}", err);
-                    panic!("Failed to do alarm");
+                    return Ok(Response::builder()
+                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                        .body(hyper::Body::from("Failed at Alarm step"))
+                        .unwrap());
                 }
             }
-
-            Ok(Response::new(hyper::Body::from("OK\n")))
+            let duration: Duration = start.elapsed();
+            info!("BENCHMARK: checkpoint DETECT: {:?}", duration.clone());
+            info!("DONE");
+            Ok(Response::new(hyper::Body::from(format!(
+                "Workflow execution time: {}ms\n",
+                duration.as_millis()
+            ))))
         }
         (&Method::GET, "/health") => Ok(Response::new(hyper::Body::from("OK\n"))),
         // Return the 404 Not Found for other routes.
@@ -138,10 +191,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         )
         .expect("Error while initializing Skylark API url");
 
-    info!(
-        "Starting Example Client {}",
-        env!("CARGO_PKG_VERSION")
-    );
+    info!("Starting Example Client {}", env!("CARGO_PKG_VERSION"));
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
 
     let listener = TcpListener::bind(addr).await?;

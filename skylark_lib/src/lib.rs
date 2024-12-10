@@ -80,8 +80,8 @@ pub async fn get_state(fn_name: String, key: String, mode: SkylarkMode) -> Resul
     match get_skylark_state(prev_state.key(), mode).await {
         Ok(cloud_state) => {
             info!("get_state: predecessor state retrieved from API");
-            prev_state.set_value(cloud_state.value().clone());
-            Ok(cloud_state.to_string())
+            prev_state.set_value(cloud_state.clone());
+            Ok(cloud_state)
         }
         Err(e) => {
             error!(
@@ -154,5 +154,6 @@ fn init_lib() -> Result<()> {
         env::var("SKYLARK_API_PORT")?
     ))?;
     LOCAL_REDIS_URL.set(format!("redis://{}:6379", LOCAL_NODE_HOST.get().unwrap()))?;
+    debug!("Static Vars set: \nLOCAL_NODE_HOST: {:?}\nLOCAL_REDIS_URL: {:?}\nSKYLARK_API_URL: {:?}", LOCAL_NODE_HOST.get().unwrap(), LOCAL_REDIS_URL.get().unwrap(), SKYLARK_API_URL.get().unwrap());
     Ok(())
 }

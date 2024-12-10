@@ -48,21 +48,17 @@ SAT_NODES = []
 
 def next_topology():
     STATE["node_graph"].clear()
+    cloud_node = None
     if len(SAT_NODES) > 1:
         sat = SAT_NODES.pop(0)
         SAT_NODES.append(sat)
     else:
         SAT_NODES.clear()
-
-    cloud_node = None
-    edge_nodes = []
-    for node in STATE["nodes"].values():
-        if node["node_type"] == "Sat":
-            SAT_NODES.append(node)
-        elif node["node_type"] == "Cloud":
-            cloud_node = node
-        else:
-            edge_nodes.append(node)
+        for node in STATE["nodes"].values():
+            if node["node_type"] == "Sat":
+                SAT_NODES.append(node)
+            elif node["node_type"] == "Cloud":
+                cloud_node = node
 
     if len(SAT_NODES) > 1:
         min_latency = STATE["sim_settings"]["Sat-Sat"]["min_latency"]
@@ -90,8 +86,6 @@ def next_topology():
                 "bandwidth": random.randint(min_bandwidth, max_bandwidth),
                 "latency": random.randint(min_latency, max_latency)
             })
-    if edge_nodes:
-        app.logger.error("TODO: implement adding edges to topology")
 
     STATE["graph_updated"] = int(time.time())
 

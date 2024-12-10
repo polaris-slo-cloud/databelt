@@ -9,9 +9,11 @@ spec:
       annotations:
         module.wasm.image/variant: compat-smart
     spec:
+      nodeSelector:
+        node-type: Sat
       runtimeClassName: wasmedge
       containers:
-        - image: guelmino/skylark-ex-alarm:0.2.504
+        - image: guelmino/skylark-ex-alarm:0.2.506
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -19,10 +21,12 @@ spec:
               path: /health
               port: 8080
           env:
+            - name: DNS_SERVER
+              value: "10.152.183.10:53"
             - name: RUST_BACKTRACE
               value: "full"
             - name: RUST_LOG
-              value: "info"
+              value: "debug"
             - name: LOCAL_NODE_HOST
               valueFrom:
                 fieldRef:

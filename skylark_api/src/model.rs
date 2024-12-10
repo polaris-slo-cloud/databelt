@@ -307,7 +307,7 @@ impl Default for SkylarkSLOs {
         }
     }
 }
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum SkylarkMode {
     Cloud,
     Edge,
@@ -326,11 +326,5 @@ impl From<String> for SkylarkMode {
             "edge" => SkylarkMode::Edge,
             _ => SkylarkMode::Cloud,
         }
-    }
-}
-
-impl PartialEq for SkylarkMode {
-    fn eq(&self, other: &Self) -> bool {
-        self == other
     }
 }

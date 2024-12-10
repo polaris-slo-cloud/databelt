@@ -13,7 +13,7 @@ spec:
         node-type: Sat
       runtimeClassName: wasmedge
       containers:
-        - image: guelmino/skylark-ex-detect:0.2.405
+        - image: guelmino/skylark-ex-detect:0.2.408
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -21,10 +21,12 @@ spec:
               path: /health
               port: 8080
           env:
+            - name: DNS_SERVER
+              value: "10.152.183.10:53"
             - name: RUST_BACKTRACE
               value: "full"
             - name: RUST_LOG
-              value: "info"
+              value: "debug"
             - name: LOCAL_NODE_HOST
               valueFrom:
                 fieldRef:

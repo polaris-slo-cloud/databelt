@@ -19,7 +19,7 @@ spec:
         node-type: Sat
       containers:
         - name: skylark-node-info
-          image: guelmino/skylark-node-info:0.2.100
+          image: guelmino/skylark-node-info:0.2.101
           ports:
             - containerPort: 8080
           env:
