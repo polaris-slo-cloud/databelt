@@ -39,11 +39,14 @@ pub fn skylark_lib_version() -> &'static str {
 
 pub async fn get_state(fn_name: String, key: String, mode: SkylarkMode) -> Result<String> {
     info!("get_state");
+    debug!("get_state: fn_name {}", fn_name);
+    debug!("get_state: mode {}", mode.to_string());
+    debug!("get_state: key {}", key);
     if IS_INITIALIZED.get().is_none() {
         debug!("get_state: Lib not yet initialized");
         match init_lib() {
             Ok(_) => {
-                debug!("get_state: Lib is now initialized");
+                info!("get_state: Lib successfully initialized");
                 IS_INITIALIZED.get_or_init(|| true);
             }
             Err(e) => {
@@ -68,6 +71,7 @@ pub async fn get_state(fn_name: String, key: String, mode: SkylarkMode) -> Resul
     match get_local_state(prev_state.key()).await {
         Ok(local_state) => {
             info!("get_state: predecessor state retrieved from local KV store");
+            debug!("get_state: local state: {}", local_state);
             prev_state.set_value(local_state.clone());
             return Ok(local_state);
         }
@@ -99,7 +103,7 @@ pub async fn store_state(
     mode: SkylarkMode,
 ) -> Result<String> {
     info!("store_state");
-    debug!("store_state: {}", final_state);
+    debug!("store_state length: {}", final_state.len());
     if IS_INITIALIZED.get().is_none() {
         debug!("store_state: Lib not yet initialized");
         match init_lib() {
@@ -121,6 +125,7 @@ pub async fn store_state(
 
     let skylark_state = SkylarkState::new(current_key.clone(), final_state);
     let prev_state = PREV_SKYLARK_STATE.lock().await;
+    debug!("store_state: calling skylark api");
     match store_skylark_state(&skylark_state, &mode).await {
         Err(e) => {
             error!("store_state: failed to store state to skylark api: {:?}", e);
@@ -135,11 +140,11 @@ pub async fn store_state(
                         warn!("store_state: failed to delete previous state: {:?}", e);
                     }
                     Ok(res) => {
-                        info!("store_state: delete result: {}", res);
+                        debug!("store_state: delete result: {}", res);
                     }
                 }
             }
-            info!("store_state: store state result: {}", res);
+            debug!("store_state: store state result: {}", res);
             Ok(skylark_state.key().to_string())
         }
     }

@@ -29,7 +29,7 @@ async fn http_handler(req: Request<hyper::Body>) -> Result<Response<hyper::Body>
                         error!("Error parsing URI: {}", e.to_string());
                         return Ok(Response::builder()
                             .status(StatusCode::BAD_REQUEST)
-                            .body(hyper::Body::from("Not able to parse URL"))
+                            .body(hyper::Body::from("Not able to parse URL\n"))
                             .unwrap());
                     }
                 };
@@ -46,7 +46,7 @@ async fn http_handler(req: Request<hyper::Body>) -> Result<Response<hyper::Body>
                             error!("Error parsing Integer: {}", e.to_string());
                             return Ok(Response::builder()
                                 .status(StatusCode::BAD_REQUEST)
-                                .body(hyper::Body::from("Not able to parse size param"))
+                                .body(hyper::Body::from("Not able to parse size param\n"))
                                 .unwrap());
                         }
                     }
@@ -70,52 +70,64 @@ async fn http_handler(req: Request<hyper::Body>) -> Result<Response<hyper::Body>
             let start = Instant::now();
             info!("BENCHMARK: started clock at: {:?}", start);
             // PREPROCESS
-            let preprocess_res = client
+            let preprocess_result = client
                 .post(preprocess_url)
                 .body(reqwest::Body::from(data))
                 .send()
                 .await;
             debug!("POSTed data as body to preprocess");
-            let preprocess_key;
-            match preprocess_res {
-                Ok(res) => {
-                    debug!("Preprocess Response: {}", res.status());
-                    preprocess_key = res.text().await.unwrap();
-                    debug!("Preprocess Key: {}", preprocess_key.clone());
+
+            let pre_response = match preprocess_result {
+                Ok(resp) => {
+                    debug!("Preprocess Response Status: {}", resp.status());
+                    resp
                 }
                 Err(err) => {
                     error!("{:?}", err);
                     return Ok(Response::builder()
                         .status(StatusCode::INTERNAL_SERVER_ERROR)
-                        .body(hyper::Body::from("Failed at Preprocessor step"))
+                        .body(hyper::Body::from("Failed at Preprocessor step\n"))
                         .unwrap());
                 }
-            }
+            };
+            let preprocess_node = &pre_response
+                .headers()
+                .get("Node-Name")
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .to_string();
+            let preprocess_key = pre_response.text().await.unwrap();
             info!("BENCHMARK: checkpoint PREPROCESS: {:?}", start.elapsed());
             // DETECT
-            let detect_key;
             let detect_url = format!(
                 "{}/?key={}&mode={}",
                 DETECT_URL.get().unwrap(),
                 preprocess_key.clone(),
                 parsed_mode.clone()
             );
-            let detect_res = client.get(detect_url).send().await;
-
-            match detect_res {
-                Ok(res) => {
-                    debug!("Detector Response: {}", res.status());
-                    detect_key = res.text().await.unwrap();
-                    debug!("Detector Key: {}", detect_key.clone());
+            let detect_result = client.get(detect_url).send().await;
+            let detect_response = match detect_result {
+                Ok(resp) => {
+                    debug!("Detector Response Status: {}", resp.status());
+                    resp
                 }
                 Err(err) => {
                     error!("{:?}", err);
                     return Ok(Response::builder()
                         .status(StatusCode::INTERNAL_SERVER_ERROR)
-                        .body(hyper::Body::from("Failed at Object Detector step"))
+                        .body(hyper::Body::from("Failed at Object Detector step\n"))
                         .unwrap());
                 }
-            }
+            };
+            let detect_node = &detect_response
+                .headers()
+                .get("Node-Name")
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .to_string();
+            let detect_key = detect_response.text().await.unwrap();
             info!("BENCHMARK: checkpoint DETECT: {:?}", start.elapsed());
             //ALARM
             let alarm_url = format!(
@@ -125,35 +137,44 @@ async fn http_handler(req: Request<hyper::Body>) -> Result<Response<hyper::Body>
                 parsed_mode
             );
             let alarm_res = client.get(alarm_url).send().await;
-
-            match alarm_res {
-                Ok(res) => {
-                    debug!(
-                        "Alarm Response: {}",
-                        Some(res.text().await.unwrap()).unwrap()
-                    );
+            let alarm_response = match alarm_res {
+                Ok(resp) => {
+                    debug!("Alarm Response Status: {}", resp.status());
+                    resp
                 }
                 Err(err) => {
                     error!("{:?}", err);
                     return Ok(Response::builder()
                         .status(StatusCode::INTERNAL_SERVER_ERROR)
-                        .body(hyper::Body::from("Failed at Alarm step"))
+                        .body(hyper::Body::from("Failed at Alarm step\n"))
                         .unwrap());
                 }
-            }
+            };
+            let alarm_node = &alarm_response
+                .headers()
+                .get("Node-Name")
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .to_string();
+            let alarm_text = alarm_response.text().await.unwrap();
             let duration: Duration = start.elapsed();
+            debug!("Alarm Response Text: {}", alarm_text);
             info!("BENCHMARK: checkpoint DETECT: {:?}", duration.clone());
             info!("DONE");
             Ok(Response::new(hyper::Body::from(format!(
-                "Workflow execution time: {}ms\n",
-                duration.as_millis()
+                "Workflow execution time: {}ms\nNode path: {} -> {} -> {}\n",
+                duration.as_millis(),
+                preprocess_node,
+                detect_node,
+                alarm_node
             ))))
         }
         (&Method::GET, "/health") => Ok(Response::new(hyper::Body::from("OK\n"))),
         // Return the 404 Not Found for other routes.
         _ => Ok(Response::builder()
             .status(StatusCode::NOT_FOUND)
-            .body(hyper::Body::from("Route not found"))
+            .body(hyper::Body::from("Route not found\n"))
             .unwrap()),
     }
 }
@@ -172,24 +193,14 @@ fn generate_random_data(size_kb: usize) -> String {
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     pretty_env_logger::init_timed();
     PREPROCESS_URL
-        .set(
-            env::var("PREPROCESS_URL").unwrap_or(
-                "http://skylark-ex-preprocess.default.svc.cluster.local:8080".to_string(),
-            ),
-        )
+        .set(env::var("PREPROCESS_URL").unwrap())
         .expect("Error while initializing PREPROCESS_URL");
     DETECT_URL
-        .set(
-            env::var("DETECT_URL")
-                .unwrap_or("http://skylark-ex-detect.default.svc.cluster.local:8080".to_string()),
-        )
-        .expect("Error while initializing Skylark API url");
+        .set(env::var("DETECT_URL").unwrap())
+        .expect("Error while initializing DETECT_URL");
     ALARM_URL
-        .set(
-            env::var("ALARM_URL")
-                .unwrap_or("http://skylark-ex-alarm.default.svc.cluster.local:8080".to_string()),
-        )
-        .expect("Error while initializing Skylark API url");
+        .set(env::var("ALARM_URL").unwrap())
+        .expect("Error while initializing ALARM_URL");
 
     info!("Starting Example Client {}", env!("CARGO_PKG_VERSION"));
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));

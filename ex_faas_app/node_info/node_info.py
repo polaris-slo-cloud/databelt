@@ -49,6 +49,7 @@ SAT_NODES = []
 def next_topology():
     STATE["node_graph"].clear()
     cloud_node = None
+    app.logger.info(f"old topology: {SAT_NODES}")
     if len(SAT_NODES) > 1:
         sat = SAT_NODES.pop(0)
         SAT_NODES.append(sat)
@@ -86,7 +87,7 @@ def next_topology():
                 "bandwidth": random.randint(min_bandwidth, max_bandwidth),
                 "latency": random.randint(min_latency, max_latency)
             })
-
+    app.logger.info(f"NEW SAT topology: {SAT_NODES}")
     STATE["graph_updated"] = int(time.time())
 
 

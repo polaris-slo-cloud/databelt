@@ -22,7 +22,7 @@ spec:
       runtimeClassName: wasmedge
       containers:
         - name: skylark-api
-          image: guelmino/skylark-api:0.2.719
+          image: guelmino/skylark-api:0.2.723
           ports:
             - containerPort: 8081
           env:
@@ -36,3 +36,5 @@ spec:
                   fieldPath: status.hostIP
             - name: NODE_INFO_PORT
               value: "8080"
+            - name: NODE_REFRESH_INTERVAL_SECS
+              value: "15"

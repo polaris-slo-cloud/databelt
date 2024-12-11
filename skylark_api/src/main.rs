@@ -5,9 +5,9 @@ mod mechanisms;
 mod model;
 mod redis_client;
 
-use crate::error::QueryParseError;
+use crate::error::{QueryParseError, SkylarkTopologyError};
 use crate::http_service::get_from_url;
-use crate::mechanisms::{compute_viable_nodes, get_closest_viable_node};
+use crate::mechanisms::{compute_viable_node, get_lowest_latency_node};
 use crate::model::{NodeGraph, SkylarkKey, SkylarkMode, SkylarkNode, SkylarkSLOs, SkylarkState};
 use crate::redis_client::{
     del_global_state, del_local_state, get_global_state, get_state_by_url, store_global_state,
@@ -21,7 +21,8 @@ use lazy_static::lazy_static;
 use std::env;
 use std::net::SocketAddr;
 use std::string::ToString;
-use std::sync::Mutex;
+use std::sync::{Mutex, OnceLock};
+use std::time::Duration;
 use tokio::net::TcpListener;
 use url::Url;
 
@@ -37,6 +38,8 @@ lazy_static! {
     static ref OBJECTIVES: Mutex<SkylarkSLOs> = Mutex::new(SkylarkSLOs::default());
 }
 
+static NODE_INFO_URL: OnceLock<String> = OnceLock::new();
+
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     pretty_env_logger::init_timed();
@@ -51,13 +54,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("Starting Skylark API {}", env!("CARGO_PKG_VERSION"));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 8081));
-
     let listener = TcpListener::bind(addr).await?;
     info!("Listening on http://{}", addr);
+
+    let refresh_rate = env::var("NODE_REFRESH_INTERVAL_SECS").unwrap().parse::<u64>().unwrap();
+    info!("Starting node graph handler with refresh rate of {}sec", refresh_rate);
+    tokio::spawn(async move {
+        loop {
+            if let Err(err) = node_graph_handler().await {
+                error!("Error monitoring node graph: {:?}", err);
+            }
+            tokio::time::sleep(Duration::from_secs(refresh_rate)).await;
+        }
+    });
+    debug!("spawned node graph thread");
     loop {
         let (stream, _) = listener.accept().await?;
 
-        tokio::task::spawn(async move {
+        tokio::spawn(async {
             if let Err(err) = Http::new()
                 .serve_connection(stream, service_fn(http_handler))
                 .await
@@ -66,6 +80,43 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         });
     }
+}
+
+async fn node_graph_handler() -> Result<(), SkylarkTopologyError> {
+    match get_from_url::<NodeGraph>(
+        &format!("{}/{}", NODE_INFO_URL.get().unwrap(), "node-graph").as_str(),
+    )
+    .await
+    {
+        Err(e) => {
+            error!("node_graph_handler: failed to get node graph!\n {:?}", e);
+            return Err(SkylarkTopologyError.into());
+        }
+        Ok(graph) => {
+            let mut node_graph = NODE_GRAPH.lock().unwrap();
+            node_graph.set_edges(graph.edges().clone());
+            debug!("NodeGraph updated");
+            match compute_viable_node(
+                &LOCAL_NODE.lock().unwrap(),
+                &node_graph.clone(),
+                &OBJECTIVES.lock().unwrap(),
+            ) {
+                Some(node) => {
+                    let mut viable_node = VIABLE_NODE.lock().unwrap();
+                    viable_node.set_node_ip(node.node_ip().to_string());
+                    viable_node.set_node_name(node.node_name().to_string());
+                    viable_node.set_redis_host(node.redis_host().to_string());
+                    viable_node.set_node_type(node.node_type().clone());
+                    debug!("Viable Node updated: {}", viable_node.node_name());
+                }
+                None => {
+                    warn!("node_graph_handler: failed to compute viable node");
+                }
+            }
+
+        }
+    }
+    Ok(())
 }
 
 fn parse_from_query(uri: &Uri) -> Result<(SkylarkKey, SkylarkMode), Box<dyn std::error::Error>> {
@@ -148,7 +199,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                 match store_state_by_url(&state, viable_node.redis_host().to_string()).await {
                     Ok(_) => {
                         propagated_node_name = viable_node.node_name().to_string();
-                        info!(
+                        debug!(
                             "SAVE_SAT: successfully stored state to node {}",
                             propagated_node_name
                         )
@@ -161,7 +212,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                 }
                 match store_global_state(&state).await {
                     Ok(_) => {
-                        info!("SAVE_SAT: successfully stored state to cloud node")
+                        debug!("SAVE_SAT: successfully stored state to cloud node")
                     }
                     Err(e) => {
                         error!("SAVE_SAT: Error saving global state: {:?}", e);
@@ -198,7 +249,10 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     Ok(Response::new(Body::from("OK\n")))
                 }
                 Err(e) => {
-                    error!("SAVE_EDGE: INTERNAL_SERVER_ERROR Error saving local state: {:?}", e);
+                    error!(
+                        "SAVE_EDGE: INTERNAL_SERVER_ERROR Error saving local state: {:?}",
+                        e
+                    );
                     Ok(Response::builder()
                         .status(StatusCode::INTERNAL_SERVER_ERROR)
                         .body(Body::from(e.to_string()))
@@ -216,7 +270,10 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     Ok(Response::new(Body::from("OK\n")))
                 }
                 Err(e) => {
-                    error!("SAVE_CLOUD: INTERNAL_SERVER_ERROR Error saving global state: {:?}", e);
+                    error!(
+                        "SAVE_CLOUD: INTERNAL_SERVER_ERROR Error saving global state: {:?}",
+                        e
+                    );
                     Ok(Response::builder()
                         .status(StatusCode::INTERNAL_SERVER_ERROR)
                         .body(Body::from(e.to_string()))
@@ -250,13 +307,18 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
 }
 
 async fn delete_state(key: SkylarkKey, mode: SkylarkMode) -> Result<Response<Body>, Error> {
-    debug!("DELETE_STATE: delete state with key {} and mode {}", key.to_string(), mode);
+    info!("DELETE_STATE: Incoming");
+    debug!(
+        "DELETE_STATE: delete state with key {} and mode {}",
+        key.to_string(),
+        mode
+    );
     let mut err = false;
     if mode != SkylarkMode::Cloud {
         debug!("DELETE_STATE: Mode is not Cloud, delete local first");
         match del_local_state(&key).await {
             Ok(_) => {
-                info!("DELETE_STATE: successfully deleted local state");
+                debug!("DELETE_STATE: successfully deleted local state");
             }
             Err(e) => {
                 warn!("DELETE_STATE: Error deleting local state: {:?}", e);
@@ -267,7 +329,7 @@ async fn delete_state(key: SkylarkKey, mode: SkylarkMode) -> Result<Response<Bod
     debug!("DELETE_STATE: Delete Cloud state next");
     match del_global_state(&key).await {
         Ok(_) => {
-            info!("DELETE_STATE: successfully deleted global state");
+            debug!("DELETE_STATE: successfully deleted global state");
         }
         Err(e) => {
             error!(
@@ -297,10 +359,9 @@ async fn fetch_state_with_strategy(
     mode: SkylarkMode,
 ) -> Result<Response<Body>, Error> {
     if mode == SkylarkMode::Sat {
-        let closest_node = get_closest_viable_node(
+        let closest_node = get_lowest_latency_node(
             &LOCAL_NODE.lock().unwrap(),
-            &NODE_GRAPH.lock().unwrap(),
-            &OBJECTIVES.lock().unwrap(),
+            &NODE_GRAPH.lock().unwrap()
         );
         if closest_node.is_some() {
             match get_state_by_url(&key, closest_node.unwrap().redis_host()).await {
@@ -319,7 +380,7 @@ async fn fetch_state_with_strategy(
                 }
             }
         }
-        info!("fetch_state_with_strategy::Sat: Fallback to cloud");
+        debug!("fetch_state_with_strategy::Sat: Fallback to cloud");
     }
     match get_global_state(&key).await {
         Ok(state) => {
@@ -343,17 +404,20 @@ async fn fetch_state_with_strategy(
 }
 
 async fn init() -> Result<(), Box<dyn std::error::Error>> {
-    let viable_nodes: Vec<SkylarkNode>;
     let local_node_host = env::var("LOCAL_NODE_HOST").expect("LOCAL_NODE_HOST not provided");
     let node_info_port = env::var("NODE_INFO_PORT").expect("NODE_INFO_PORT not provided");
-    let node_info_url = format!("http://{}:{}", local_node_host, node_info_port);
+    NODE_INFO_URL
+        .set(format!("http://{}:{}", local_node_host, node_info_port))
+        .expect("Error while initializing NODE_INFO_URL");
     debug!(
         "skylark::init: Local Node Info Service Url: {}",
-        node_info_url
+        NODE_INFO_URL.get().unwrap()
     );
 
-    match get_from_url::<SkylarkNode>(&format!("{}/{}", node_info_url, "local-node-info").as_str())
-        .await
+    match get_from_url::<SkylarkNode>(
+        &format!("{}/{}", NODE_INFO_URL.get().unwrap(), "local-node-info").as_str(),
+    )
+    .await
     {
         Err(e) => {
             error!("skylark::init: failed to get local node info!\n {:?}", e);
@@ -369,8 +433,10 @@ async fn init() -> Result<(), Box<dyn std::error::Error>> {
             local_node.set_node_type(node.node_type().clone());
         }
     }
-    match get_from_url::<SkylarkNode>(&format!("{}/{}", node_info_url, "cloud-node-info").as_str())
-        .await
+    match get_from_url::<SkylarkNode>(
+        &format!("{}/{}", NODE_INFO_URL.get().unwrap(), "cloud-node-info").as_str(),
+    )
+    .await
     {
         Err(e) => {
             error!("skylark::init: failed to get cloud node info!\n {:?}", e);
@@ -385,7 +451,10 @@ async fn init() -> Result<(), Box<dyn std::error::Error>> {
             cloud_node.set_node_type(node.node_type().clone());
         }
     }
-    match get_from_url::<SkylarkSLOs>(&format!("{}/{}", node_info_url, "objectives").as_str()).await
+    match get_from_url::<SkylarkSLOs>(
+        &format!("{}/{}", NODE_INFO_URL.get().unwrap(), "objectives").as_str(),
+    )
+    .await
     {
         Err(e) => {
             error!("skylark::init: failed to get objectives!\n {:?}", e);
@@ -400,31 +469,6 @@ async fn init() -> Result<(), Box<dyn std::error::Error>> {
             o.set_min_bandwidth(objectives.min_bandwidth().clone());
         }
     }
-    match get_from_url::<NodeGraph>(&format!("{}/{}", node_info_url, "node-graph").as_str()).await {
-        Err(e) => {
-            error!("skylark::init: failed to get node graph!\n {:?}", e);
-            return Err(e);
-        }
-        Ok(graph) => {
-            info!("skylark::init: successfully fetched node graph");
-            let mut node_graph = NODE_GRAPH.lock().unwrap();
-            node_graph.set_edges(graph.edges().clone());
-            viable_nodes = compute_viable_nodes(
-                &LOCAL_NODE.lock().unwrap(),
-                &node_graph.clone(),
-                &OBJECTIVES.lock().unwrap(),
-            );
-            for node in viable_nodes {
-                let mut viable_node = VIABLE_NODE.lock().unwrap();
-                viable_node.set_node_ip(node.node_ip().to_string());
-                viable_node.set_node_name(node.node_name().to_string());
-                viable_node.set_redis_host(node.redis_host().to_string());
-                viable_node.set_node_type(node.node_type().clone());
-                break;
-            }
-        }
-    }
-
     info!("skylark::init: Finished initializing");
     Ok(())
 }

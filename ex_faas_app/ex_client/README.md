@@ -11,8 +11,8 @@ wasmedge compile target/wasm32-wasip1/release/ex_client.wasm ex_client.wasm
 
 ### Docker Build and Push
 ```bash
-docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-client:0.2.202 .
-docker push guelmino/skylark-ex-client:0.2.202
+docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-client:0.2.203 .
+docker push guelmino/skylark-ex-client:0.2.203
 ```
 ### Deploy
 ```bash
@@ -27,7 +27,12 @@ kubectl get pods -o wide
 kubectl describe pod skylark-ex-client
 kubectl logs skylark-ex-client-00001-deployment-
 curl -v http://10.152.183.159/?size=800\&mode=Cloud -H "Host: skylark-ex-client.default.svc.cluster.local"
+alias clc='curl -v http://10.152.183.159/?size=400\&mode=Cloud -H "Host: skylark-ex-client.default.svc.cluster.local"'
+alias cls='curl -v http://10.152.183.159/?size=400\&mode=Sat -H "Host: skylark-ex-client.default.svc.cluster.local"'
 curl -v http://10.152.183.159/health -H "Host: skylark-ex-client.default.svc.cluster.local"
 
+# 20 concurrent 
+clc & clc & clc & clc & clc & clc & clc & clc & clc & clc & clc & clc & clc & clc & clc & clc & clc & clc & clc & clc 
+cls & cls & cls & cls & cls & cls & cls & cls & cls & cls & cls & cls & cls & cls & cls & cls & cls & cls & cls & cls
 ```
 

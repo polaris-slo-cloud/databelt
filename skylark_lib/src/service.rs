@@ -19,7 +19,7 @@ pub async fn get_skylark_state(key: &SkylarkKey, mode: SkylarkMode) -> Result<St
 
 pub async fn get_local_state(key: &SkylarkKey) -> RedisResult<String> {
     let mut client = Client::open(LOCAL_REDIS_URL.get().unwrap().to_string())?;
-    info!(
+    debug!(
         "get_local_state: Attempting to receive key from local KV store: {}",
         key.to_string()
     );
@@ -51,7 +51,7 @@ pub async fn delete_skylark_state(key: &SkylarkKey, mode: &SkylarkMode) -> Resul
         key.to_string(),
         mode.to_string()
     );
-    info!("delete_skylark_state: url: {}", url);
+    debug!("delete_skylark_state: url: {}", url);
     reqwest::Client::new()
         .delete(url)
         .send()

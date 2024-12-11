@@ -1,37 +1,44 @@
-use crate::model::{NodeGraph, SkylarkNode, SkylarkSLOs};
+use crate::model::{Edge, NodeGraph, SkylarkNode, SkylarkSLOs};
 
-pub fn compute_viable_nodes(
+pub fn compute_viable_node(
     current_node: &SkylarkNode,
     node_graph: &NodeGraph,
     objectives: &SkylarkSLOs,
-) -> Vec<SkylarkNode> {
-    let mut viable_nodes: Vec<SkylarkNode> = Vec::new();
+) -> Option<SkylarkNode> {
+    let mut viable_node: Option<SkylarkNode> = None;
+    let mut best_edge: Option<Edge> = None;
+
     for edge in node_graph.edges() {
-        if !current_node.eq(&edge.source()) && !current_node.eq(&edge.target()) {
+        if (!current_node.eq(&edge.source()) && !current_node.eq(&edge.target())) ||
+            edge.latency() > objectives.max_latency() ||
+            edge.bandwidth() < objectives.min_bandwidth()
+        {
             continue;
         }
-        if edge.latency() > objectives.max_latency() {
-            continue;
+        if best_edge.is_some() {
+            if best_edge.clone().unwrap().latency() < edge.latency() {
+                continue;
+            }
         }
-        if edge.bandwidth() < objectives.min_bandwidth() {
-            continue;
-        }
-        viable_nodes.insert(
-            viable_nodes.len(),
+
+        best_edge = Option::from(edge.to_owned());
+        viable_node = Option::from({
             if current_node.eq(&edge.source()) {
                 edge.target().clone()
             } else {
                 edge.source().clone()
-            },
-        );
+            }
+        });
     }
-    viable_nodes
+    if viable_node.is_none() {
+        get_lowest_latency_node(current_node, node_graph);
+    }
+    viable_node
 }
 
-pub fn get_closest_viable_node(
+pub fn get_lowest_latency_node(
     current_node: &SkylarkNode,
     node_graph: &NodeGraph,
-    objectives: &SkylarkSLOs,
 ) -> Option<SkylarkNode> {
     let mut min_latency: i16 = i16::MAX;
     let mut closest_node: Option<SkylarkNode> = None;
@@ -39,16 +46,10 @@ pub fn get_closest_viable_node(
         if !current_node.eq(&edge.source()) && !current_node.eq(&edge.target()) {
             continue;
         }
-        if edge.latency() > objectives.max_latency() {
-            continue;
-        }
-        if edge.bandwidth() < objectives.min_bandwidth() {
-            continue;
-        }
         if edge.latency() < min_latency {
             debug!("Found a closer node");
             min_latency = edge.latency();
-            if current_node.eq(&edge.source()){
+            if current_node.eq(&edge.source()) {
                 closest_node = Some(edge.target().clone());
                 debug!("New closest node: {}", edge.target().node_name());
             } else {

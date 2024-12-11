@@ -42,7 +42,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
     match (req.method(), req.uri().path()) {
         (&Method::POST, "/process") => {
-            info!("preprocess_handler: incoming");
+            info!("Incoming");
             let request_url =
                 match Url::parse(&format!("http://skylark.at{}", req.uri().to_string())) {
                     Ok(url) => url,
@@ -58,7 +58,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             let mut parsed_mode: SkylarkMode = SkylarkMode::Sat;
             for param in params {
                 debug!("Parsing parameter: {}={}", param.0, param.1);
-                if param.0.eq_ignore_ascii_case("size") {
+                if param.0.eq_ignore_ascii_case("mode") {
                     debug!("Parsing mode: {}", param.1);
                     parsed_mode = match SkylarkMode::try_from(param.1.to_string()) {
                         Ok(mode) => mode,
@@ -74,18 +74,23 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             }
             let whole_body = hyper::body::to_bytes(req.into_body()).await?;
             let str_body = String::from_utf8(whole_body.to_vec()).unwrap();
-            info!(
+            debug!(
                 "preprocess_handler: Received POST body with length: {}",
                 str_body.len()
             );
 
             let mut hasher = Sha256::new();
             hasher.update(whole_body);
-            info!("Computed hash: {:x}", hasher.finalize());
+            debug!("Computed hash: {:x}", hasher.finalize());
             match store_state(str_body, env!("CARGO_PKG_NAME").to_string(), parsed_mode).await {
                 Ok(key) => {
-                    info!("store_state: skylark lib result: {:?}", key);
-                    Ok(Response::new(Body::from(key)))
+                    info!("store_state: OK");
+                    debug!("store_state: skylark lib result: {:?}", key);
+                    Ok(Response::builder()
+                        .status(StatusCode::OK)
+                        .header("Node-Name", env::var("NODE_NAME").unwrap())
+                        .body(Body::from(key))
+                        .unwrap())
                 }
                 Err(e) => {
                     error!(
@@ -94,6 +99,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     );
                     Ok(Response::builder()
                         .status(StatusCode::NOT_FOUND)
+                        .header("Node-Name", env::var("NODE_NAME").unwrap())
                         .body(Body::from("Error calling skylark lib store state"))
                         .unwrap())
                 }

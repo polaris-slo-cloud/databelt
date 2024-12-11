@@ -56,7 +56,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             let mut parsed_key: String = "".to_string();
             for param in params {
                 debug!("Parsing parameter: {}={}", param.0, param.1);
-                if param.0.eq_ignore_ascii_case("size") {
+                if param.0.eq_ignore_ascii_case("mode") {
                     debug!("Parsing mode: {}", param.1);
                     parsed_mode = match SkylarkMode::try_from(param.1.to_string()) {
                         Ok(mode) => mode,
@@ -78,17 +78,15 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                 parsed_key,
                 parsed_mode.clone(),
             )
-                .await
+            .await
             {
                 Ok(s) => {
-                    info!("http_handler::/: state ok");
+                    info!("get_state: OK");
+                    debug!("get_state: found state of length {}", s.len());
                     s
                 }
                 Err(err) => {
-                    error!(
-                        "get_state: Error fetching predecessor state: {:?}",
-                        err
-                    );
+                    error!("get_state: Error fetching predecessor state: {:?}", err);
                     return Ok(Response::builder()
                         .status(StatusCode::NOT_FOUND)
                         .body(Body::from("Error fetching predecessor state"))
@@ -98,23 +96,28 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             let mut hasher = Sha256::new();
             hasher.update(state.as_bytes());
             let data_hash = format!("{:x}", hasher.finalize());
-            info!("http_handler::/: generated data hash, attempting to store");
+            debug!("generated data hash, attempting to store");
             match store_state(
                 data_hash,
                 env!("CARGO_PKG_NAME").to_string(),
-                skylark_lib::SkylarkMode::Sat,
+                SkylarkMode::Sat,
             )
-                .await
+            .await
             {
                 Ok(key) => {
-                    info!(
-                        "store_state: skylark lib result: {:?}",
-                        key
-                    );
-                    Ok(Response::new(Body::from("ALARM")))
+                    info!("store_state: OK");
+                    debug!("store_state: skylark lib result: {:?}", key);
+                    Ok(Response::builder()
+                        .status(StatusCode::OK)
+                        .header("Node-Name", env::var("NODE_NAME").unwrap())
+                        .body(Body::from("OK"))
+                        .unwrap())
                 }
                 Err(e) => {
-                    error!("store_state: Error calling skylark lib store state: {:?}", e);
+                    error!(
+                        "store_state: Error calling skylark lib store state: {:?}",
+                        e
+                    );
                     Ok(Response::builder()
                         .status(StatusCode::INTERNAL_SERVER_ERROR)
                         .body(Body::from("Error calling skylark lib store state"))
@@ -130,6 +133,6 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                 .status(StatusCode::NOT_FOUND)
                 .body(Body::from("Route not found"))
                 .unwrap())
-        },
+        }
     }
 }

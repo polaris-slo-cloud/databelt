@@ -13,7 +13,7 @@ spec:
         node-type: Sat
       runtimeClassName: wasmedge
       containers:
-        - image: guelmino/skylark-ex-detect:0.2.408
+        - image: guelmino/skylark-ex-detect:0.2.411
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -31,5 +31,9 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
             - name: SKYLARK_API_PORT
               value: "8081"

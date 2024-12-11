@@ -13,7 +13,7 @@ spec:
         node-type: Sat
       runtimeClassName: wasmedge
       containers:
-        - image: guelmino/skylark-ex-alarm:0.2.506
+        - image: guelmino/skylark-ex-alarm:0.2.509
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -27,6 +27,10 @@ spec:
               value: "full"
             - name: RUST_LOG
               value: "debug"
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
             - name: LOCAL_NODE_HOST
               valueFrom:
                 fieldRef:
