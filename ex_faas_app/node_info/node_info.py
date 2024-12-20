@@ -98,18 +98,24 @@ def set_nodes():
     try:
         STATE["local_node_name"] = os.getenv('NODE_NAME', 'Unknown')
         nodes = v1.list_node().items
+        app.logger.info("got node list")
         for node in nodes:
             node_name = node.metadata.name
+            app.logger.info(f"got node name: {node_name}")
             node_type = node.metadata.labels.get('node-type', 'Unknown')
+            app.logger.info(f"got node type: {node_type}")
             if node_type == "Cloud":
                 STATE["cloud_node_name"] = node_name
+                app.logger.info(f"got cloud node name: {node_name}")
             node_conditions = node.status.conditions
             ready_status = next((cond.status for cond in node_conditions if cond.type == "Ready"), "Unknown")
             if ready_status.__eq__("Unknown"): continue
             redis_host = f'redis://{STATE["redis_pods"].get(node_name)["pod_ip"]}:6379'
+            app.logger.info(f"got redis host: {redis_host}")
             addresses = node.status.addresses
             internal_ip = next((addr.address for addr in addresses if addr.type == "InternalIP"), None)
             if internal_ip:
+                app.logger.info(f"got internal ip: {internal_ip}")
                 STATE["nodes"][node_name] = {
                     "node_name": node_name,
                     "node_ip": internal_ip,

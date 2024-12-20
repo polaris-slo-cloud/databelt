@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: skylark-config
+  namespace: default
+data:
+  SKYLARK_API_PORT: "8081"
+  RUST_LOG: "debug"
+  RUST_BACKTRACE: "full"
+  DNS_SERVER: "10.152.183.10:53"

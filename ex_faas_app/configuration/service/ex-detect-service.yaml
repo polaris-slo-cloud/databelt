@@ -1,7 +1,7 @@
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: skylark-ex-preprocess
+  name: skylark-ex-detect
   namespace: default
 spec:
   template:
@@ -13,20 +13,17 @@ spec:
         node-type: Sat
       runtimeClassName: wasmedge
       containers:
-        - image: guelmino/skylark-ex-preprocess:0.2.316
+        - image: guelmino/skylark-ex-detect:0.2.411
           ports:
             - containerPort: 8080
           readinessProbe:
             httpGet:
               path: /health
               port: 8080
+          envFrom:
+            - configMapRef:
+                name: skylark-config
           env:
-            - name: DNS_SERVER
-              value: "10.152.183.10:53"
-            - name: RUST_BACKTRACE
-              value: "full"
-            - name: RUST_LOG
-              value: "debug"
             - name: LOCAL_NODE_HOST
               valueFrom:
                 fieldRef:
@@ -35,5 +32,3 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
-            - name: SKYLARK_API_PORT
-              value: "8081"

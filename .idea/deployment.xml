@@ -6,7 +6,7 @@
       <paths name="deployment configs -&gt; pi5u1">
         <serverdata>
           <mappings>
-            <mapping deploy="/" local="$PROJECT_DIR$/ex_faas_app/deployment_configs" web="/" />
+            <mapping deploy="/" local="$PROJECT_DIR$/ex_faas_app/configuration" web="/" />
           </mappings>
         </serverdata>
       </paths>

@@ -2,20 +2,29 @@
 <project version="4">
   <component name="SshConfigs">
     <configs>
-      <sshConfig authType="PASSWORD" host="10.0.0.245" id="17b07d76-bcd6-4fcc-90fc-94ef70e9f130" port="22" customName="zpi4p1@245" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
-        <option name="customName" value="zpi4p1@245" />
+      <sshConfig authType="PASSWORD" host="pi4p1" id="17b07d76-bcd6-4fcc-90fc-94ef70e9f130" port="22" customName="pi4p1@245" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
+        <option name="customName" value="pi4p1@245" />
       </sshConfig>
-      <sshConfig authType="PASSWORD" host="10.0.0.243" id="ccd3a214-075b-4bb4-b8ed-cde0019277b3" port="22" customName="pi5u1@243" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
-        <option name="customName" value="pi5u1@243" />
+      <sshConfig authType="PASSWORD" host="pi5u2" id="429044de-d340-49b5-ad5e-ceabde1ea114" port="22" customName="!pi5u2@34" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
+        <option name="customName" value="!pi5u2@34" />
       </sshConfig>
-      <sshConfig authType="PASSWORD" host="10.0.0.34" id="429044de-d340-49b5-ad5e-ceabde1ea114" port="22" customName="pi5u2@34" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
-        <option name="customName" value="pi5u2@34" />
+      <sshConfig authType="PASSWORD" host="pi5u3" id="32f53ec3-3736-41c1-9fd2-362e8aecb461" port="22" customName="!pi5u3@45" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
+        <option name="customName" value="!pi5u3@45" />
       </sshConfig>
-      <sshConfig authType="PASSWORD" host="10.0.0.45" id="32f53ec3-3736-41c1-9fd2-362e8aecb461" port="22" customName="pi5u3@45" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
-        <option name="customName" value="pi5u3@45" />
+      <sshConfig authType="PASSWORD" host="pi5u4" id="e12d8348-8d11-4496-a147-047f4ae25846" port="22" customName="!pi5u4@167" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
+        <option name="customName" value="!pi5u4@167" />
       </sshConfig>
-      <sshConfig authType="PASSWORD" host="10.0.0.167" id="e12d8348-8d11-4496-a147-047f4ae25846" port="22" customName="pi5u4@167" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
-        <option name="customName" value="pi5u4@167" />
+      <sshConfig authType="PASSWORD" host="pi4u5" id="229a1c4e-1972-4f6d-8147-85599410fa9b" port="22" customName="pi4u5@58" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
+        <option name="customName" value="pi4u5@58" />
+      </sshConfig>
+      <sshConfig authType="PASSWORD" host="pi4u6" id="a6ca58ac-d9f4-4ee1-8bb7-7c93cde95a62" port="22" customName="pi4u6@123" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
+        <option name="customName" value="pi4u6@123" />
+      </sshConfig>
+      <sshConfig authType="PASSWORD" host="pi4u7" id="42afebca-d9bc-41ee-afef-0dc8cce06f51" port="22" customName="pi4u7@96" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
+        <option name="customName" value="pi4u7@96" />
+      </sshConfig>
+      <sshConfig authType="PASSWORD" host="pi4u8" id="9fcbf7e7-045a-4807-ba27-2b5c1d8cace9" port="22" customName="pi4u8@210" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
+        <option name="customName" value="pi4u8@210" />
       </sshConfig>
     </configs>
   </component>

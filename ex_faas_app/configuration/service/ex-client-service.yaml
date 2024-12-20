@@ -20,13 +20,10 @@ spec:
             httpGet:
               path: /health
               port: 8080
+          envFrom:
+            - configMapRef:
+                name: skylark-config
           env:
-            - name: DNS_SERVER
-              value: "10.152.183.10:53"
-            - name: RUST_BACKTRACE
-              value: "full"
-            - name: RUST_LOG
-              value: "debug"
             - name: PREPROCESS_URL
               value: "http://skylark-ex-preprocess.default.svc.cluster.local/process"
             - name: DETECT_URL

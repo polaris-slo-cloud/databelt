@@ -1,0 +1,34 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: skylark-ex-preprocess
+  namespace: default
+spec:
+  template:
+    metadata:
+      annotations:
+        module.wasm.image/variant: compat-smart
+    spec:
+      nodeSelector:
+        node-type: Sat
+      runtimeClassName: wasmedge
+      containers:
+        - image: guelmino/skylark-ex-preprocess:0.2.316
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+          envFrom:
+            - configMapRef:
+                name: skylark-config
+          env:
+            - name: LOCAL_NODE_HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
