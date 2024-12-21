@@ -244,33 +244,19 @@ impl Edge {
 
 #[derive(Serialize, Deserialize)]
 pub struct SkylarkSLOs {
-    bandwidth_metric: String,
-    latency_metric: String,
     min_bandwidth: i16,
     max_latency: i16,
 }
 
 impl SkylarkSLOs {
     pub fn new(
-        bandwidth_metric: String,
-        latency_metric: String,
         min_bandwidth: i16,
         max_latency: i16,
     ) -> Self {
         Self {
-            bandwidth_metric,
-            latency_metric,
             min_bandwidth,
             max_latency,
         }
-    }
-
-    pub fn bandwidth_metric(&self) -> &str {
-        &self.bandwidth_metric
-    }
-
-    pub fn latency_metric(&self) -> &str {
-        &self.latency_metric
     }
 
     pub fn min_bandwidth(&self) -> i16 {
@@ -279,14 +265,6 @@ impl SkylarkSLOs {
 
     pub fn max_latency(&self) -> i16 {
         self.max_latency
-    }
-
-    pub fn set_bandwidth_metric(&mut self, bandwidth_metric: String) {
-        self.bandwidth_metric = bandwidth_metric;
-    }
-
-    pub fn set_latency_metric(&mut self, latency_metric: String) {
-        self.latency_metric = latency_metric;
     }
 
     pub fn set_min_bandwidth(&mut self, min_bandwidth: i16) {
@@ -300,8 +278,6 @@ impl SkylarkSLOs {
 impl Default for SkylarkSLOs {
     fn default() -> Self {
         Self {
-            bandwidth_metric: "Mbps".to_string(),
-            latency_metric: "ms".to_string(),
             min_bandwidth: 100,
             max_latency: 80,
         }

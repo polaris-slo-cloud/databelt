@@ -209,6 +209,8 @@ kubectl exec -it redis-vg4xz -- redis-cli #pi5u4
 
 ### Constellation
 ```
+minute % 7 = t
+
  ________________________________________
 |                 t=0                    |
 '-(34)-(45)-(167)-(58)-(123)-(210)-(245)-'

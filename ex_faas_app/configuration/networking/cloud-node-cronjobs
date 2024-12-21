@@ -1,7 +1,14 @@
+# t=0
 0,7,14,21,28,35,42,49,56 * * * * /home/skylark/deployment/networking/pi5u1_pi5u2.sh
+# t=1
 1,8,15,22,29,36,43,50,57 * * * * /home/skylark/deployment/networking/pi5u1_pi5u3.sh
+# t=2
 2,9,16,23,30,37,44,51,58 * * * * /home/skylark/deployment/networking/pi5u1_pi5u4.sh
+# t=3
 3,10,17,24,31,38,45,52,59 * * * * /home/skylark/deployment/networking/pi5u1_pi4u5.sh
+# t=4
 4,11,18,25,32,39,46,53 * * * * /home/skylark/deployment/networking/pi5u1_pi4u6.sh
+# t=5
 5,12,19,26,33,40,47,54 * * * * /home/skylark/deployment/networking/pi5u1_pi4u8.sh
+# t=6
 6,13,20,27,34,41,48,55 * * * * /home/skylark/deployment/networking/pi5u1_pi4p1.sh

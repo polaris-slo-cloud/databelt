@@ -1,9 +1,8 @@
 import json
-import time
-import redis
+from datetime import datetime
+
 from flask import Flask, jsonify, request
 from kubernetes import client, config
-import random
 import os
 
 from logging.config import dictConfig
@@ -33,62 +32,14 @@ except config.ConfigException:
 v1 = client.CoreV1Api()
 
 STATE = {
-    "redis_pods": {},
     "nodes": {},
     "objectives": {},
-    "sim_settings": {},
-    "node_graph": [],
-    "graph_updated": 0.0,
+    "topologies": [],
     "local_node_name": "Unknown",
     "cloud_node_name": "Unknown"
 }
 
 SAT_NODES = []
-
-
-def next_topology():
-    STATE["node_graph"].clear()
-    cloud_node = None
-    app.logger.info(f"old topology: {SAT_NODES}")
-    if len(SAT_NODES) > 1:
-        sat = SAT_NODES.pop(0)
-        SAT_NODES.append(sat)
-    else:
-        SAT_NODES.clear()
-        for node in STATE["nodes"].values():
-            if node["node_type"] == "Sat":
-                SAT_NODES.append(node)
-            elif node["node_type"] == "Cloud":
-                cloud_node = node
-
-    if len(SAT_NODES) > 1:
-        min_latency = STATE["sim_settings"]["Sat-Sat"]["min_latency"]
-        max_latency = STATE["sim_settings"]["Sat-Sat"]["max_latency"]
-        min_bandwidth = STATE["sim_settings"]["Sat-Sat"]["min_bandwidth"]
-        max_bandwidth = STATE["sim_settings"]["Sat-Sat"]["max_bandwidth"]
-        for i in range(len(SAT_NODES) - 1):
-            latency = random.randint(min_latency, max_latency)
-            bandwidth = random.randint(min_bandwidth, max_bandwidth)
-            STATE["node_graph"].append({
-                "source": SAT_NODES[i],
-                "target": SAT_NODES[i + 1],
-                "bandwidth": bandwidth,
-                "latency": latency
-            })
-
-        if cloud_node:
-            min_latency = STATE["sim_settings"]["Cloud-Sat"]["min_latency"]
-            max_latency = STATE["sim_settings"]["Cloud-Sat"]["max_latency"]
-            min_bandwidth = STATE["sim_settings"]["Cloud-Sat"]["min_bandwidth"]
-            max_bandwidth = STATE["sim_settings"]["Cloud-Sat"]["max_bandwidth"]
-            STATE["node_graph"].append({
-                "source": cloud_node,
-                "target": SAT_NODES[1],
-                "bandwidth": random.randint(min_bandwidth, max_bandwidth),
-                "latency": random.randint(min_latency, max_latency)
-            })
-    app.logger.info(f"NEW SAT topology: {SAT_NODES}")
-    STATE["graph_updated"] = int(time.time())
 
 
 def set_nodes():
@@ -110,8 +61,6 @@ def set_nodes():
             node_conditions = node.status.conditions
             ready_status = next((cond.status for cond in node_conditions if cond.type == "Ready"), "Unknown")
             if ready_status.__eq__("Unknown"): continue
-            redis_host = f'redis://{STATE["redis_pods"].get(node_name)["pod_ip"]}:6379'
-            app.logger.info(f"got redis host: {redis_host}")
             addresses = node.status.addresses
             internal_ip = next((addr.address for addr in addresses if addr.type == "InternalIP"), None)
             if internal_ip:
@@ -119,26 +68,10 @@ def set_nodes():
                 STATE["nodes"][node_name] = {
                     "node_name": node_name,
                     "node_ip": internal_ip,
-                    "redis_host": redis_host,
                     "node_type": node_type
                 }
     except Exception as e:
         print(f"Error fetching node information: {e}")
-
-
-def set_redis_pods():
-    """Fetches information about Redis pods in the cluster."""
-    app.logger.info("initializing Redis pod info")
-    STATE["redis_pods"].clear()
-    try:
-        pods = v1.list_pod_for_all_namespaces(label_selector="app=redis").items
-        for pod in pods:
-            STATE["redis_pods"][pod.spec.node_name] = {
-                "pod_name": pod.metadata.name,
-                "pod_ip": pod.status.pod_ip
-            }
-    except Exception as e:
-        print(f"Error fetching Redis pod information: {e}")
 
 
 @app.route("/objectives", methods=["GET"])
@@ -188,14 +121,24 @@ def refresh():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route("/node-graph", methods=["GET"])
-def node_topology():
+@app.route("/current-topology", methods=["GET"])
+def current_topology():
     """Returns a JSON response with node and edge information."""
-    app.logger.info("node_topology: incoming")
+    app.logger.info("current_topology: incoming")
     try:
-        if (time.time() - STATE["graph_updated"]) > 15:
-            next_topology()
-        return jsonify({'edges': STATE.get('node_graph')}), 200
+        t = datetime.now().minute % 7
+        return jsonify({'edges': STATE.get('topologies')[t]}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route("/next-topology", methods=["GET"])
+def next_topology():
+    """Returns a JSON response with node and edge information."""
+    app.logger.info("next_topology: incoming")
+    try:
+        t = ((datetime.now().minute + 1) % 60) % 7
+        return jsonify({'edges': STATE.get('topologies')[t]}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -205,47 +148,6 @@ def health():
     """Returns a JSON response with node and edge information."""
     app.logger.info("health: incoming")
     return "Up and running!\n", 200
-
-
-@app.route("/test-redis", methods=["GET"])
-def test_redis():
-    """tests local and global redis store"""
-    app.logger.info("test_redis: incoming")
-    local_node = STATE["nodes"].get(STATE["local_node_name"])
-    cloud_node = STATE["nodes"].get(STATE["cloud_node_name"])
-    try:
-        local_redis_client = redis.from_url(local_node["redis_host"])
-        app.logger.info("Connected to Local Redis successfully.")
-        test_key = "local_test_key"
-        test_value = "local_test_value"
-        local_redis_client.set(test_key, test_value)
-        app.logger.info(f"Set Local key '{test_key}' with value '{test_value}'.")
-        retrieved_value = local_redis_client.get(test_key)
-        app.logger.info(f"Retrieved Local key '{test_key}' with value '{retrieved_value}'.")
-        local_redis_client.delete(test_key)
-        app.logger.info(f"Deleted Local key '{test_key}'.")
-        local_redis_client.close()
-
-        cloud_redis_client = redis.from_url(cloud_node["redis_host"])
-        app.logger.info("Connected to Cloud Redis successfully.")
-        test_key = "cloud_test_key"
-        test_value = "cloud_test_value"
-        cloud_redis_client.set(test_key, test_value)
-        app.logger.info(f"Set Cloud key '{test_key}' with value '{test_value}'.")
-        retrieved_value = cloud_redis_client.get(test_key)
-        app.logger.info(f"Retrieved Cloud key '{test_key}' with value '{retrieved_value}'.")
-        cloud_redis_client.delete(test_key)
-        app.logger.info(f"Deleted Cloud key '{test_key}'.")
-        cloud_redis_client.close()
-
-        return jsonify({"message": "Redis Test Success", "Nodes": [local_node, cloud_node]}), 200
-
-    except redis.ConnectionError as e:
-        app.logger.error(f"Redis connection error: {e}")
-        return jsonify({"error": str(e)}), 500
-    except Exception as e:
-        app.logger.error(f"An error occurred: {e}")
-        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/objectives', methods=['POST'])
@@ -264,35 +166,17 @@ def set_objectives():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/sim-settings', methods=['POST'])
-def set_sim_settings():
-    if not request.is_json:
-        return jsonify({"error": "Request body must be JSON"}), 400
-    try:
-        request_data = request.get_json()
-        if not isinstance(request_data, dict):
-            return jsonify({"error": "JSON body must be a dictionary"}), 400
-
-        STATE["sim_settings"].clear()
-        STATE["sim_settings"].update(request_data)
-        return jsonify({"message": "Data updated successfully", "sim_settings": STATE["sim_settings"]}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
 def init():
     app.logger.info("Initializing...")
-    set_redis_pods()
     set_nodes()
     app.logger.info("initializing objectives")
+    with open("settings/topologies.json") as f:
+        STATE["topologies"].clear()
+        STATE["topologies"] = json.load(f)
     with open("settings/slo-settings.json") as f:
         STATE["objectives"].clear()
         STATE["objectives"] = json.load(f)
     app.logger.info("initializing simulation settings")
-    with open("settings/simulation-settings.json") as f:
-        STATE["sim_settings"].clear()
-        STATE["sim_settings"] = json.load(f)
-    next_topology()
 
 
 if __name__ == "__main__":

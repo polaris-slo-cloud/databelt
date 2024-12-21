@@ -1,13 +1,13 @@
 mod error;
 mod http_service;
-mod mechanisms;
+mod policy;
 #[allow(dead_code)]
 mod model;
 mod redis_client;
 
 use crate::error::{QueryParseError, SkylarkTopologyError};
 use crate::http_service::get_from_url;
-use crate::mechanisms::{compute_viable_node, get_lowest_latency_node};
+use crate::policy::{compute_viable_node, get_lowest_latency_node};
 use crate::model::{NodeGraph, SkylarkKey, SkylarkMode, SkylarkNode, SkylarkSLOs, SkylarkState};
 use crate::redis_client::{
     del_global_state, del_local_state, get_global_state, get_state_by_url, store_global_state,
@@ -463,8 +463,6 @@ async fn init() -> Result<(), Box<dyn std::error::Error>> {
         Ok(objectives) => {
             info!("skylark::init: successfully fetched objectives");
             let mut o = OBJECTIVES.lock().unwrap();
-            o.set_latency_metric(objectives.latency_metric().to_string());
-            o.set_bandwidth_metric(objectives.bandwidth_metric().to_string());
             o.set_max_latency(objectives.max_latency().clone());
             o.set_min_bandwidth(objectives.min_bandwidth().clone());
         }

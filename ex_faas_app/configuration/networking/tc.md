@@ -5,6 +5,15 @@ tc -s filter show dev wlan0
 sudo tc filter del dev wlan0 parent 1:0
 iperf3 -c 10.0.0.
 ping 10.0.0.
+# Settings:
+# Sat-Sat 1 hop
+#   Bandwith - min: 80mbit, max: 100mbit
+#   Latency - min: 1ms, max: 19ms
+#
+# Sat-Cloud 1 hop:
+#   Bandwith - min: 20mbit, max: 40mbit
+#   Latency - min: 20ms, max: 60ms
+#
 # Satellite
 # 1:1 - 1 Hop, 1:2 - 2 Hops, 1:3 - 3 Hops
 sudo tc qdisc add dev wlan0 root handle 1: htb default 5

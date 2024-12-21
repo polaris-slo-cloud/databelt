@@ -4,6 +4,7 @@ mod error;
 #[allow(dead_code)]
 mod model;
 mod service;
+mod redis_client;
 
 pub use crate::model::{SkylarkKey, SkylarkMode, SkylarkState};
 use crate::service::{
