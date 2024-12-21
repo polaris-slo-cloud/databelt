@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 // This is a part of Skylark.
 // See README.md and LICENSE for details.
@@ -88,6 +89,10 @@ impl SkylarkState {
     }
 }
 
+pub type Graph = HashMap<String, Vec<(String, i16)>>;
+pub type NodePath = Vec<(i16, String)>;
+pub type SkylarkNodeMap = HashMap<String, SkylarkNode>;
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct NodeGraph {
     edges: Vec<Edge>,
@@ -106,18 +111,17 @@ impl NodeGraph {
         self.edges = edges;
     }
 }
-#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum NodeType {
     Cloud,
     Edge,
     Sat,
 }
 
-#[derive(Serialize, Deserialize, Clone, Hash, Eq)]
+#[derive(Serialize, Deserialize, Clone, Hash, Eq, Debug)]
 pub struct SkylarkNode {
     node_name: String,
     node_ip: String,
-    redis_host: String,
     node_type: NodeType,
 }
 impl Default for SkylarkNode {
@@ -125,7 +129,6 @@ impl Default for SkylarkNode {
         Self {
             node_name: "unknown".to_string(),
             node_ip: "127.0.0.1".to_string(),
-            redis_host: "redis://redis.default.svc.cluster.local:6379".to_string(),
             node_type: NodeType::Sat,
         }
     }
@@ -134,20 +137,17 @@ impl PartialEq<Self> for SkylarkNode {
     fn eq(&self, other: &Self) -> bool {
         self.node_name == other.node_name
             && self.node_ip == other.node_ip
-            && self.redis_host == other.redis_host
     }
 }
 impl SkylarkNode {
     pub fn new(
         node_name: String,
         node_ip: String,
-        redis_host: String,
         node_type: NodeType,
     ) -> Self {
         Self {
             node_name,
             node_ip,
-            redis_host,
             node_type,
         }
     }
@@ -155,7 +155,6 @@ impl SkylarkNode {
         Self {
             node_name: "unknown".to_string(),
             node_ip: "127.0.0.1".to_string(),
-            redis_host: "redis://redis.default.svc.cluster.local:6379".to_string(),
             node_type: NodeType::Cloud,
         }
     }
@@ -165,10 +164,6 @@ impl SkylarkNode {
 
     pub fn node_ip(&self) -> &str {
         &self.node_ip
-    }
-
-    pub fn redis_host(&self) -> &str {
-        &self.redis_host
     }
 
     pub fn node_type(&self) -> &NodeType {
@@ -181,10 +176,6 @@ impl SkylarkNode {
 
     pub fn set_node_ip(&mut self, node_ip: String) {
         self.node_ip = node_ip;
-    }
-
-    pub fn set_redis_host(&mut self, redis_host: String) {
-        self.redis_host = redis_host;
     }
 
     pub fn set_node_type(&mut self, node_type: NodeType) {

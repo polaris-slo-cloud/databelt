@@ -3,16 +3,11 @@ mod http_service;
 mod policy;
 #[allow(dead_code)]
 mod model;
-mod redis_client;
 
 use crate::error::{QueryParseError, SkylarkTopologyError};
 use crate::http_service::get_from_url;
 use crate::policy::{compute_viable_node, get_lowest_latency_node};
 use crate::model::{NodeGraph, SkylarkKey, SkylarkMode, SkylarkNode, SkylarkSLOs, SkylarkState};
-use crate::redis_client::{
-    del_global_state, del_local_state, get_global_state, get_state_by_url, store_global_state,
-    store_local_state, store_state_by_url,
-};
 use hyper::server::conn::Http;
 use hyper::service::service_fn;
 use hyper::{Body, Error, Method, Request, Uri};
@@ -105,7 +100,6 @@ async fn node_graph_handler() -> Result<(), SkylarkTopologyError> {
                     let mut viable_node = VIABLE_NODE.lock().unwrap();
                     viable_node.set_node_ip(node.node_ip().to_string());
                     viable_node.set_node_name(node.node_name().to_string());
-                    viable_node.set_redis_host(node.redis_host().to_string());
                     viable_node.set_node_type(node.node_type().clone());
                     debug!("Viable Node updated: {}", viable_node.node_name());
                 }
@@ -429,7 +423,6 @@ async fn init() -> Result<(), Box<dyn std::error::Error>> {
             let mut local_node = LOCAL_NODE.lock().unwrap();
             local_node.set_node_ip(node.node_ip().to_string());
             local_node.set_node_name(node.node_name().to_string());
-            local_node.set_redis_host(node.redis_host().to_string());
             local_node.set_node_type(node.node_type().clone());
         }
     }
@@ -447,7 +440,6 @@ async fn init() -> Result<(), Box<dyn std::error::Error>> {
             let mut cloud_node = CLOUD_NODE.lock().unwrap();
             cloud_node.set_node_ip(node.node_ip().to_string());
             cloud_node.set_node_name(node.node_name().to_string());
-            cloud_node.set_redis_host(node.redis_host().to_string());
             cloud_node.set_node_type(node.node_type().clone());
         }
     }
