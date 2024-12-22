@@ -8,3 +8,4 @@ data:
   RUST_LOG: "debug"
   RUST_BACKTRACE: "full"
   DNS_SERVER: "10.152.183.10:53"
+  GLOBAL_STATE_HOST: "10.0.0.243"

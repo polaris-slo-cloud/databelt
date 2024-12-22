@@ -22,14 +22,3 @@ impl fmt::Display for SkylarkTopologyError {
 }
 
 impl error::Error for SkylarkTopologyError {}
-
-#[derive(Debug, Clone)]
-pub struct SkylarkPolicyError;
-
-impl fmt::Display for SkylarkPolicyError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Error computing policy.")
-    }
-}
-
-impl error::Error for SkylarkPolicyError {}

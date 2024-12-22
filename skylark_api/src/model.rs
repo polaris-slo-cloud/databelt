@@ -233,7 +233,7 @@ impl Edge {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct SkylarkSLOs {
     min_bandwidth: i16,
     max_latency: i16,
@@ -274,24 +274,25 @@ impl Default for SkylarkSLOs {
         }
     }
 }
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub enum SkylarkMode {
-    Cloud,
-    Edge,
-    Sat,
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum SkylarkPolicy {
+    Skylark,
+    Random,
+    Serverless
 }
-impl Display for SkylarkMode {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-impl From<String> for SkylarkMode {
+impl From<String> for SkylarkPolicy {
     fn from(mode: String) -> Self {
         match mode.to_lowercase().as_str() {
-            "satellite" => SkylarkMode::Sat,
-            "sat" => SkylarkMode::Sat,
-            "edge" => SkylarkMode::Edge,
-            _ => SkylarkMode::Cloud,
+            "skylark" => SkylarkPolicy::Skylark,
+            "random" => SkylarkPolicy::Random,
+            "serverless" => SkylarkPolicy::Serverless,
+            _ => SkylarkPolicy::Skylark,
         }
+    }
+}
+
+impl Display for SkylarkPolicy {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
     }
 }

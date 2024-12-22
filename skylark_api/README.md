@@ -13,8 +13,8 @@ wasmedge compile target/wasm32-wasip1/release/skylark_api.wasm skylark_api.wasm
 
 ### Docker Build and Push
 ```bash
-docker buildx build --platform wasi/wasm --provenance=false -t guelmino/skylark-api:0.2.723 .
-docker push guelmino/skylark-api:0.2.723
+docker buildx build --platform wasi/wasm --provenance=false -t guelmino/skylark-api:0.2.726 .
+docker push guelmino/skylark-api:0.2.726
 ```
 
 ### Deploy
@@ -29,9 +29,10 @@ kubectl delete daemonset skylark-api-daemonset
 curl -v  http://10.0.0.34:8081/health; curl -v  http://10.0.0.45:8081/health; curl -v  http://10.0.0.167:8081/health
 curl -v  http://10.0.0.34:8081/refresh; curl -v  http://10.0.0.45:8081/refresh; curl -v  http://10.0.0.167:8081/refresh
 
-curl -v http://10.0.0.34:8081/save/edge -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","fn_name": "fn1"},"value": "V0.2.723E"}'
-curl -v http://10.0.0.34:8081/save/cloud -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","fn_name": "fn1"},"value": "V0.2.723C"}'
-curl -v http://10.0.0.34:8081/save/sat -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","fn_name": "fn1"},"value": "V0.2.723S"}'
+curl -v  http://10.0.0.167:8081/storage-node?size=3000\&time=57\&policy=Skylark\&destination=pi5u1
+curl -v http://10.0.0.34:8081/save/edge -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","fn_name": "fn1"},"value": "V0.2.726E"}'
+curl -v http://10.0.0.34:8081/save/cloud -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","fn_name": "fn1"},"value": "V0.2.726C"}'
+curl -v http://10.0.0.34:8081/save/sat -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","fn_name": "fn1"},"value": "V0.2.726S"}'
 curl -v http://10.0.0.34:8081/save/sat -H "Content-Type: application/json" -d '{"key":{"chain_id":"78599338-10aa-41be-961e-227d91b690be","fn_name":"ex_preprocess"},"value":"11b430a1795c0608903b6d6f4ff2565b32c3456c0ddc74ad4ef2fc92205b211a"}'
 curl -v http://10.0.0.34:8081/state?key=ch1:fn1
 curl -X DELETE -v http://10.0.0.34:8081/state?key=ch1:fn1

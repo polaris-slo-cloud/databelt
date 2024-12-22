@@ -97,6 +97,7 @@ alias kddes='kubectl delete ksvc pi5u2-detect; kubectl delete svc pi5u2-detect; 
 alias kdpres='kubectl delete ksvc pi5u2-preprocess; kubectl delete svc pi5u2-preprocess; kubectl delete route pi5u2-preprocess; kubectl delete ksvc pi5u3-preprocess; kubectl delete svc pi5u3-preprocess; kubectl delete route pi5u3-preprocess; kubectl delete ksvc pi5u4-preprocess; kubectl delete svc pi5u4-preprocess; kubectl delete route pi5u4-preprocess; kubectl delete ksvc pi4u5-preprocess; kubectl delete svc pi4u5-preprocess; kubectl delete route pi4u5-preprocess; kubectl delete ksvc pi4u6-preprocess; kubectl delete svc pi4u6-preprocess; kubectl delete route pi4u6-preprocess; kubectl delete ksvc pi4u8-preprocess; kubectl delete svc pi4u8-preprocess; kubectl delete route pi4u8-preprocess; kubectl delete ksvc pi4p1-preprocess; kubectl delete svc pi4p1-preprocess; kubectl delete route pi4p1-detect;'; 
 alias kdals='kubectl delete ksvc pi5u1-alarm; kubectl delete svc pi5u1-alarm; kubectl delete route pi5u1-alarm';
 alias kades='kubectl apply -f ~/deployment/service/simulation-detect-services.yaml'; alias kaals='kubectl apply -f ~/deployment/service/simulation-alarm-service.yaml'; alias kapres='kubectl apply -f ~/deployment/service/simulation-preprocess-services.yaml';
+
 ```
 
 ```bash

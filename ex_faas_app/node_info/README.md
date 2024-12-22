@@ -1,15 +1,16 @@
 # Neighbor Simulation Service
 Exposes HTTP API to serve the following information:
 
-| Endpoint        | Method | Description                                                                                      |
-|-----------------|--------|--------------------------------------------------------------------------------------------------|
-| node-graph      | GET    | Array of edges between cluster nodes wih bandwidth, latency and Node info                        | 
-| cloud-node-info | GET    | Node info of next cloud node holding global replicated state                                     |
-| local-node-info | GET    | Node info of the local node                                                                      |
-| objectives      | GET    | SLOs in SkylarkSLOs format. Can be configured in [slo-settings.json](settings/slo-settings.json) |
-| refresh         | GET    | reloads SLOs, redis pods and cluste nodes                                                        |
-| test-redis      | GET    | executes set/get/delete commands on local and cloud redis                                        |
-| health          | GET    | health probe, returns 200                                                                        |
+| Endpoint         | Method | Description                                                                                      |
+|------------------|--------|--------------------------------------------------------------------------------------------------|
+| current-topology | GET    | Array of edges between cluster nodes wih bandwidth, latency and Node info                        | 
+| next-topology    | GET    | Array of edges between cluster nodes wih bandwidth, latency and Node info                        | 
+| cloud-node-info  | GET    | Node info of next cloud node holding global replicated state                                     |
+| local-node-info  | GET    | Node info of the local node                                                                      |
+| objectives       | GET    | SLOs in SkylarkSLOs format. Can be configured in [slo-settings.json](settings/slo-settings.json) |
+| refresh          | GET    | reloads SLOs, redis pods and cluste nodes                                                        |
+| test-redis       | GET    | executes set/get/delete commands on local and cloud redis                                        |
+| health           | GET    | health probe, returns 200                                                                        |
 
 - Node info ≙ SkylarkNode
 - objectives ≙ SkylarkSLOs

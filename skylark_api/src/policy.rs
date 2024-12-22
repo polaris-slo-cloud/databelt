@@ -1,91 +1,24 @@
 use crate::model::{
-    Edge, Graph, NodeGraph, NodePath, NodeType, SkylarkNode, SkylarkNodeMap, SkylarkSLOs,
+    Graph, NodeGraph, NodePath, SkylarkNode, SkylarkSLOs,
 };
-use rand::{random, Rng};
-use std::cmp::Reverse;
+use crate::NODE_MAP;
+use rand::{Rng};
 use std::collections::{BinaryHeap, HashMap};
+use std::env;
 
-pub fn compute_viable_node(
-    current_node: &SkylarkNode,
-    node_graph: &NodeGraph,
-    objectives: &SkylarkSLOs,
-) -> Option<SkylarkNode> {
-    let mut viable_node: Option<SkylarkNode> = None;
-    let mut best_edge: Option<Edge> = None;
-
-    for edge in node_graph.edges() {
-        if (!current_node.eq(&edge.source()) && !current_node.eq(&edge.target()))
-            || edge.latency() > objectives.max_latency()
-            || edge.bandwidth() < objectives.min_bandwidth()
-        {
-            continue;
-        }
-        if best_edge.is_some() {
-            if best_edge.clone().unwrap().latency() < edge.latency() {
-                continue;
-            }
-        }
-
-        best_edge = Option::from(edge.to_owned());
-        viable_node = Option::from({
-            if current_node.eq(&edge.source()) {
-                edge.target().clone()
-            } else {
-                edge.source().clone()
-            }
-        });
-    }
-    if viable_node.is_none() {
-        get_lowest_latency_node(current_node, node_graph);
-    }
-    viable_node
-}
-
-pub fn get_lowest_latency_node(
-    current_node: &SkylarkNode,
-    node_graph: &NodeGraph,
-) -> Option<SkylarkNode> {
-    let mut min_latency: i16 = i16::MAX;
-    let mut closest_node: Option<SkylarkNode> = None;
-    for edge in node_graph.edges() {
-        if !current_node.eq(&edge.source()) && !current_node.eq(&edge.target()) {
-            continue;
-        }
-        if edge.latency() < min_latency {
-            debug!("Found a closer node");
-            min_latency = edge.latency();
-            if current_node.eq(&edge.source()) {
-                closest_node = Some(edge.target().clone());
-                debug!("New closest node: {}", edge.target().node_name());
-            } else {
-                closest_node = Some(edge.source().clone());
-                debug!("New closest node: {}", edge.target().node_name());
-            }
-        }
-    }
-    closest_node
-}
-
-fn build_graph_and_node_map(node_graph: &NodeGraph) -> (Graph, SkylarkNodeMap) {
+fn build_graph_and_node_map(node_graph: &NodeGraph) -> Graph {
     let mut graph: Graph = HashMap::new();
-    let mut node_map: SkylarkNodeMap = HashMap::new();
-    for edge in node_graph {
-        if !node_map.contains_key(edge.source.node_name.clone()) {
-            node_map.insert(edge.source.node_name.clone(), edge.source.clone())
-        }
-        if !node_map.contains_key(edge.target.node_name.clone()) {
-            node_map.insert(edge.target.node_name.clone(), edge.target.clone())
-        }
+    for edge in node_graph.edges() {
         graph
-            .entry(edge.source.node_name.clone())
+            .entry(edge.source().node_name().to_string())
             .or_insert_with(Vec::new)
-            .push((edge.target.node_name.clone(), edge.latency));
+            .push((edge.target().node_name().to_string(), edge.latency()));
         graph
-            .entry(edge.target.node_name.clone())
+            .entry(edge.target().node_name().to_string())
             .or_insert_with(Vec::new)
-            .push((edge.source.node_name.clone(), edge.latency));
+            .push((edge.source().node_name().to_string(), edge.latency()));
     }
-    (graph, node_map)
+    graph
 }
 fn dijkstra(graph: &Graph, start: String, destination: String) -> NodePath {
     let mut distances: HashMap<String, i16> = HashMap::new();
@@ -147,16 +80,15 @@ fn dijkstra(graph: &Graph, start: String, destination: String) -> NodePath {
 pub fn apply_skylark_policy(
     start: String,
     destination: String,
+    size: i16,
+    time: i16,
     topology: &NodeGraph,
     slo: SkylarkSLOs,
-    next_task_type: NodeType,
 ) -> Option<SkylarkNode> {
     info!("apply_skylark_heuristic: start");
-    let graph: Graph;
-    let node_map: SkylarkNodeMap;
-    (graph, node_map) = build_graph_and_node_map(topology);
+    let graph = build_graph_and_node_map(topology);
     let reverse_path = dijkstra(&graph, start, destination);
-
+    let avg_bandwidth = env::var("AVG_SAT_BANDWIDTH").unwrap().parse::<i16>().unwrap();
     if reverse_path.is_empty() {
         warn!("apply_skylark_heuristic: emtpy node path given, returning None");
         return None;
@@ -167,20 +99,24 @@ pub fn apply_skylark_policy(
             step.1.clone(),
             step.0
         );
+        let node_map = NODE_MAP.lock().unwrap();
         let step_node = node_map.get(&step.1).unwrap();
-        if !next_task_type.eq(step_node.node_type()) {
+        let mig_time = calc_migration_time(size, avg_bandwidth, step.0);
+        debug!(
+            "apply_skylark_heuristic: migration time to high. time: {}, mig_time: {}, latency: {}",
+            time, mig_time, step.0
+        );
+        if (time + mig_time) > slo.max_latency() {
             continue;
         }
-        if step.0 <= slo.max_latency() {
-            debug!(
-                "apply_skylark_heuristic: elected node: {:?} with latency {}",
-                step.1.clone(),
-                step.0
-            );
-            return Some(step_node.clone());
-        }
+        debug!(
+            "apply_skylark_heuristic: elected node: {:?} with latency {}",
+            step.1.clone(),
+            step.0
+        );
+        return Some(step_node.clone());
     }
-    error!("apply_skylark_heuristic: No node was elected even though path is not empty!");
+    info!("apply_skylark_heuristic: No node was elected even though path is not empty!");
     None
 }
 
@@ -190,9 +126,7 @@ pub fn apply_random_policy(
     topology: &NodeGraph,
 ) -> Option<SkylarkNode> {
     info!("apply_random_policy: start");
-    let graph: Graph;
-    let node_map: SkylarkNodeMap;
-    (graph, node_map) = build_graph_and_node_map(topology);
+    let graph = build_graph_and_node_map(topology);
     let reverse_path = dijkstra(&graph, start, destination);
     if reverse_path.is_empty() {
         warn!("apply_random_policy: emtpy node path given, returning None");
@@ -200,46 +134,15 @@ pub fn apply_random_policy(
     }
 
     let mut rng = rand::thread_rng();
-    let random_number = rng.gen_range(0..=reverse_path.len());
+    let random_number = rng.gen_range(0..=reverse_path.len()-1);
     debug!("apply_random_policy: Random number: {}", random_number);
     let random_step = reverse_path.get(random_number).unwrap();
+    let node_map = NODE_MAP.lock().unwrap();
     let random_node = node_map.get(&random_step.1).unwrap();
     debug!("apply_random_policy: elected node: {:?}", random_node);
-    Some(random_node.cline());
+    Some(random_node.clone())
 }
 
-pub fn apply_serverless_policy(
-    start: String,
-    destination: String,
-    topology: &NodeGraph,
-) -> Option<SkylarkNode> {
-    info!("apply_serverless_policy: start");
-    let graph: Graph;
-    let node_map: SkylarkNodeMap;
-    (graph, node_map) = build_graph_and_node_map(topology);
-    let reverse_path = dijkstra(&graph, start, destination);
-
-    if reverse_path.is_empty() {
-        warn!("apply_serverless_policy: emtpy node path given, returning None");
-        return None;
-    }
-    for step in reverse_path {
-        debug!(
-            "apply_serverless_policy: node: {:?}, latency: {}",
-            step.1.clone(),
-            step.0
-        );
-        let step_node = node_map.get(&step.1).unwrap();
-        if !NodeType::Cloud.eq(step_node.node_type()) {
-            continue;
-        }
-        debug!(
-            "apply_serverless_policy: elected node: {:?} with latency {}",
-            step.1.clone(),
-            step.0
-        );
-        return Some(step_node.clone());
-    }
-    error!("apply_serverless_policy: No node was elected because no Cloud node was found!");
-    None
+fn calc_migration_time(s: i16, b: i16, l: i16) -> i16 {
+    l + (s / b) + l
 }
