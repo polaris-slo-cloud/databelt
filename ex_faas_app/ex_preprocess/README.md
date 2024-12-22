@@ -12,8 +12,8 @@ wasmedge compile target/wasm32-wasip1/release/ex_preprocess.wasm ex_preprocess.w
 
 ### Docker Build and Push
 ```bash
-docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-preprocess:0.2.316 .
-docker push guelmino/skylark-ex-preprocess:0.2.316
+docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-preprocess:0.2.319 .
+docker push guelmino/skylark-ex-preprocess:0.2.319
 ```
 ### Deploy
 ```bash
@@ -23,9 +23,9 @@ kubectl delete ksvc skylark-ex-preprocess && kubectl delete route skylark-ex-pre
 ```
 ### Troubleshoot
 ```bash
-curl -v http://10.152.183.159/process -H "Host: skylark-ex-preprocess.default.svc.cluster.local" -d "skldfjerg"
-curl -v http://10.152.183.159/health -H "Host: skylark-ex-preprocess.default.svc.cluster.local"
-curl -v http://10.152.183.159/health -H "Host: pi5u3-preprocess.default.svc.cluster.local"
+# params: policy, destination
+curl -v http://pi5u4-preprocess.default.svc.cluster.local/process?policy=Skylark\&destination=pi5u1 -d "skldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjerg"
+curl -v http://pi5u4-preprocess.default.svc.cluster.local/health
 ```
 
 
