@@ -11,8 +11,8 @@ wasmedge compile target/wasm32-wasip1/release/ex_detect.wasm ex_detect.wasm
 ```
 ### Docker Build and Push
 ```bash
-docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-detect:0.2.414 .
-docker push guelmino/skylark-ex-detect:0.2.414
+docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-detect:0.2.415 .
+docker push guelmino/skylark-ex-detect:0.2.415
 ```
 ### Deploy
 ```bash
@@ -23,7 +23,7 @@ kubectl delete ksvc skylark-ex-detect && kubectl delete route skylark-ex-detect 
 ```bash
 # params: key, policy, destination
 curl http://pi5u4-detect.default.svc.cluster.local/?key=debugchain\:pi5u4-preprocess\&policy=Skylark\&destination=pi5u1
-curl http://pi5u4-detect.default.svc.cluster.local/?key=1efc7566-d208-4441-87ec-c6cfac5ac6db\:pi5u4-preprocess\&policy=Skylark\&destination=pi5u1
+curl http://pi5u4-detect.default.svc.cluster.local/?key=24b32795-69a5-4ac1-9762-e0f644abd0bf\:pi5u4-preprocess\&policy=Skylark\&destination=pi5u1
 curl http://pi4u8-detect.default.svc.cluster.local/health
 
 ```

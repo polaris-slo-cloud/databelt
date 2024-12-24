@@ -109,6 +109,43 @@ impl Default for SkylarkState {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct SkylarkBundledState {
+    key: SkylarkKey,
+    fields: Vec<(String, String)>,
+}
+
+impl SkylarkBundledState {
+    pub fn new(key: SkylarkKey, fields: Vec<(String, String)>) -> Self {
+        Self { key, fields }
+    }
+
+    pub fn key(&self) -> &SkylarkKey {
+        &self.key
+    }
+
+    pub fn fields(&self) -> &Vec<(String, String)> {
+        &self.fields
+    }
+
+    pub fn set_key(&mut self, key: SkylarkKey) {
+        self.key = key;
+    }
+
+    pub fn set_fields(&mut self, fields: Vec<(String, String)>) {
+        self.fields = fields;
+    }
+}
+
+impl Default for SkylarkBundledState {
+    fn default() -> Self {
+        Self {
+            key: SkylarkKey::default(),
+            fields: Vec::new(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum SkylarkPolicy {
     Skylark,
     Random,

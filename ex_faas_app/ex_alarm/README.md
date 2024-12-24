@@ -10,8 +10,8 @@ wasmedge compile target/wasm32-wasip1/release/ex_alarm.wasm ex_alarm.wasm
 ```
 ### Docker Build and Push
 ```bash
-docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-alarm:0.2.511 .
-docker push guelmino/skylark-ex-alarm:0.2.511
+docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-alarm:0.2.512 .
+docker push guelmino/skylark-ex-alarm:0.2.512
 ```
 ### Deploy
 ```bash
@@ -29,6 +29,7 @@ kubectl logs skylark-ex-alarm-00001-deployment-
 ```bash
 # params: key, policy, destination
 curl http://pi5u1-alarm.default.svc.cluster.local/?key=debugchain\:debugchain:pi5u2-detect\&policy=Skylark\&destination=pi5u1
+curl http://pi5u1-alarm.default.svc.cluster.local/?key=24b32795-69a5-4ac1-9762-e0f644abd0bf\:pi5u4-detect\&policy=Skylark\&destination=pi5u1
 curl http://pi5u1-detect.default.svc.cluster.local/health
 ```
 ### Access Redis

@@ -2,7 +2,7 @@ use hyper::server::conn::Http;
 use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode, Uri};
 use sha2::{Digest, Sha256};
-use skylark_lib::{get_state, skylark_lib_version, start_timing, store_state, SkylarkPolicy};
+use skylark_lib::{get_single_state, skylark_lib_version, start_timing, store_single_state, SkylarkPolicy, SkylarkStorageType};
 use std::env;
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
@@ -86,7 +86,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                 }
             };
 
-            let state: String = match get_state(&key, &policy).await {
+            let state: String = match get_single_state(&key, &policy, &SkylarkStorageType::Single).await {
                 Ok(s) => {
                     info!("get_state: OK");
                     debug!("get_state: found state of length {}", s.len());
@@ -104,7 +104,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             hasher.update(state.as_bytes());
             let data_hash = format!("{:x}", hasher.finalize());
             debug!("generated data hash, attempting to store");
-            match store_state(data_hash, &dest_node, &policy).await {
+            match store_single_state(data_hash, &dest_node, &policy, &SkylarkStorageType::Single).await {
                 Ok(key) => {
                     info!("store_state: OK");
                     debug!("store_state: skylark lib result: {:?}", key);

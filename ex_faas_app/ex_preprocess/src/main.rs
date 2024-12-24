@@ -2,7 +2,7 @@ use hyper::server::conn::Http;
 use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode, Uri};
 use sha2::{Digest, Sha256};
-use skylark_lib::{skylark_lib_version, start_timing, store_state, SkylarkPolicy};
+use skylark_lib::{skylark_lib_version, start_timing, store_single_state, SkylarkPolicy, SkylarkStorageType};
 use std::{env};
 use std::fs::File;
 use std::io::Read;
@@ -106,7 +106,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             hasher.update(&img_buffer);
             let rnd_str = generate_random_data(img_buffer.len());
             debug!("preprocess_handler: Computed hash: {:x}", hasher.finalize());
-            match store_state(rnd_str, &dest_node, &policy).await {
+            match store_single_state(rnd_str, &dest_node, &policy, &SkylarkStorageType::Single).await {
                 Ok(key) => {
                     info!("preprocess_handler::store_state: OK");
                     debug!("preprocess_handler::store_state: skylark lib result: {:?}", key);
