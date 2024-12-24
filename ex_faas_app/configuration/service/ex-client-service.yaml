@@ -24,12 +24,6 @@ spec:
             - configMapRef:
                 name: skylark-config
           env:
-            - name: PREPROCESS_URL
-              value: "http://skylark-ex-preprocess.default.svc.cluster.local/process"
-            - name: DETECT_URL
-              value: "http://skylark-ex-detect.default.svc.cluster.local"
-            - name: ALARM_URL
-              value: "http://skylark-ex-alarm.default.svc.cluster.local"
             - name: NODE_NAME
               valueFrom:
                 fieldRef:

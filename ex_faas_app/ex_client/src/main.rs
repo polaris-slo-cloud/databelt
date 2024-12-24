@@ -1,11 +1,11 @@
 use hyper::server::conn::Http;
 use hyper::service::service_fn;
-use hyper::{Method, Request, Response, StatusCode};
+use hyper::{Method, Request, Response, StatusCode, Uri};
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 use reqwest::Url;
+use std::collections::VecDeque;
 use std::net::SocketAddr;
-use std::sync::OnceLock;
 use std::time::{Duration, Instant};
 use std::{env, usize};
 use tokio::net::TcpListener;
@@ -14,59 +14,81 @@ extern crate pretty_env_logger;
 #[macro_use]
 extern crate log;
 
-static PREPROCESS_URL: OnceLock<String> = OnceLock::new();
-static DETECT_URL: OnceLock<String> = OnceLock::new();
-static ALARM_URL: OnceLock<String> = OnceLock::new();
-
+fn parse_workflow_metadata(
+    uri: &Uri,
+) -> Result<(usize, String, String, VecDeque<String>), Box<dyn std::error::Error>> {
+    debug!("Parsing URI: {}", uri);
+    let mut parsed_policy = "Skylark".to_string();
+    let mut parsed_destination_node: String = "pi5u1".to_string();
+    let mut parsed_node_path: VecDeque<String> = VecDeque::new();
+    let mut parsed_size_mb: usize = 1;
+    let request_url = match Url::parse(&format!("http://ex.at{}", uri.to_string())) {
+        Ok(url) => url,
+        Err(e) => {
+            error!("Error parsing URI: {}", e.to_string());
+            return Err(e.into());
+        }
+    };
+    let params = request_url.query_pairs();
+    for param in params {
+        debug!("Parsing parameter: {}={}", param.0, param.1);
+        if param.0.eq_ignore_ascii_case("size_mb") {
+            debug!("Parsing size_mb: {}", param.1);
+            parsed_size_mb = match param.1.parse::<usize>() {
+                Ok(num) => num,
+                Err(e) => {
+                    return Err(e.into());
+                }
+            };
+        } else if param.0.eq_ignore_ascii_case("destination") {
+            debug!("Parsing destination: {}", param.1);
+            parsed_destination_node = param.1.to_string();
+        } else if param.0.eq_ignore_ascii_case("node_path") {
+            debug!("Parsing node_path: {}", param.1);
+            for step in param.1.split(",") {
+                parsed_node_path.push_back(step.to_string());
+            }
+        } else if param.0.eq_ignore_ascii_case("policy") {
+            debug!("Parsing policy: {}", param.1);
+            parsed_policy = param.1.to_string();
+        }
+    }
+    Ok((
+        parsed_size_mb,
+        parsed_policy,
+        parsed_destination_node,
+        parsed_node_path,
+    ))
+}
 async fn http_handler(req: Request<hyper::Body>) -> Result<Response<hyper::Body>, hyper::Error> {
     match (req.method(), req.uri().path()) {
         (&Method::GET, "/") => {
             info!("incoming");
-            let request_url =
-                match Url::parse(&format!("http://skylark.at{}", req.uri().to_string())) {
-                    Ok(url) => url,
-                    Err(e) => {
-                        error!("Error parsing URI: {}", e.to_string());
-                        return Ok(Response::builder()
-                            .status(StatusCode::BAD_REQUEST)
-                            .body(hyper::Body::from("Not able to parse URL\n"))
-                            .unwrap());
-                    }
-                };
-            let params = request_url.query_pairs();
-            let mut parsed_size: usize = 0;
-            let mut parsed_mode: String = "Sat".to_string();
-            for param in params {
-                debug!("Parsing parameter: {}={}", param.0, param.1);
-                if param.0.eq_ignore_ascii_case("size") {
-                    debug!("Parsing size: {}", param.1);
-                    parsed_size = match param.1.parse::<usize>() {
-                        Ok(size) => size,
-                        Err(e) => {
-                            error!("Error parsing Integer: {}", e.to_string());
-                            return Ok(Response::builder()
-                                .status(StatusCode::BAD_REQUEST)
-                                .body(hyper::Body::from("Not able to parse size param\n"))
-                                .unwrap());
-                        }
-                    }
-                } else if param.0.eq_ignore_ascii_case("mode") {
-                    debug!("Parsing size: {}", param.1);
-                    parsed_mode = param.1.to_string();
+            let policy: String;
+            let dest_node: String;
+            let size_mb: usize;
+            let mut node_path: VecDeque<String>;
+            (size_mb, policy, dest_node, node_path) = match parse_workflow_metadata(req.uri()) {
+                Ok(res) => res,
+                Err(e) => {
+                    error!("Error parsing URI: {}", e.to_string());
+                    return Ok(Response::builder()
+                        .status(StatusCode::BAD_REQUEST)
+                        .body(hyper::Body::from("Not able to parse params"))
+                        .unwrap());
                 }
-            }
-            let data = generate_random_data(parsed_size);
+            };
+
+            let data = generate_random_data(size_mb);
             debug!("generated random data");
             let client = reqwest::Client::new();
             let preprocess_url = format!(
-                "{}?mode={}",
-                PREPROCESS_URL.get().unwrap(),
-                parsed_mode.clone()
+                "http://{}-preprocess.default.svc.cluster.local/process?policy={}&destination={}",
+                node_path.pop_front().unwrap(),
+                policy,
+                dest_node
             );
-            info!(
-                "BENCHMARK: mode: {} - Finished initializing",
-                parsed_mode.clone()
-            );
+            info!("BENCHMARK: policy: {} - Finished initializing", &policy);
             let start = Instant::now();
             info!("BENCHMARK: started clock at: {:?}", start);
             // PREPROCESS
@@ -101,10 +123,11 @@ async fn http_handler(req: Request<hyper::Body>) -> Result<Response<hyper::Body>
             info!("BENCHMARK: checkpoint PREPROCESS: {:?}", start.elapsed());
             // DETECT
             let detect_url = format!(
-                "{}/?key={}&mode={}",
-                DETECT_URL.get().unwrap(),
-                preprocess_key.clone(),
-                parsed_mode.clone()
+                "http://{}-detect.default.svc.cluster.local/?key={}&policy={}&destination={}",
+                node_path.pop_front().unwrap(),
+                preprocess_key,
+                policy,
+                dest_node
             );
             let detect_result = client.get(detect_url).send().await;
             let detect_response = match detect_result {
@@ -131,10 +154,11 @@ async fn http_handler(req: Request<hyper::Body>) -> Result<Response<hyper::Body>
             info!("BENCHMARK: checkpoint DETECT: {:?}", start.elapsed());
             //ALARM
             let alarm_url = format!(
-                "{}/?key={}&mode={}",
-                ALARM_URL.get().unwrap(),
-                detect_key.clone(),
-                parsed_mode
+                "http://{}-alarm.default.svc.cluster.local/?key={}&policy={}&destination={}",
+                node_path.pop_front().unwrap(),
+                detect_key,
+                policy,
+                dest_node
             );
             let alarm_res = client.get(alarm_url).send().await;
             let alarm_response = match alarm_res {
@@ -160,7 +184,7 @@ async fn http_handler(req: Request<hyper::Body>) -> Result<Response<hyper::Body>
             let alarm_text = alarm_response.text().await.unwrap();
             let duration: Duration = start.elapsed();
             debug!("Alarm Response Text: {}", alarm_text);
-            info!("BENCHMARK: checkpoint DETECT: {:?}", duration.clone());
+            info!("BENCHMARK: checkpoint ALARM: {:?}", duration.clone());
             info!("DONE");
             Ok(Response::new(hyper::Body::from(format!(
                 "Workflow execution time: {}ms\nNode path: {} -> {} -> {}\n",
@@ -179,9 +203,9 @@ async fn http_handler(req: Request<hyper::Body>) -> Result<Response<hyper::Body>
     }
 }
 
-fn generate_random_data(size_kb: usize) -> String {
+fn generate_random_data(size_mb: usize) -> String {
     debug!("generate_random_data");
-    let size_bytes = size_kb * 1024;
+    let size_bytes = size_mb * 1048576;
     rand::thread_rng()
         .sample_iter(&Alphanumeric)
         .take(size_bytes)
@@ -192,15 +216,6 @@ fn generate_random_data(size_kb: usize) -> String {
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     pretty_env_logger::init_timed();
-    PREPROCESS_URL
-        .set(env::var("PREPROCESS_URL").unwrap())
-        .expect("Error while initializing PREPROCESS_URL");
-    DETECT_URL
-        .set(env::var("DETECT_URL").unwrap())
-        .expect("Error while initializing DETECT_URL");
-    ALARM_URL
-        .set(env::var("ALARM_URL").unwrap())
-        .expect("Error while initializing ALARM_URL");
 
     info!("Starting Example Client {}", env!("CARGO_PKG_VERSION"));
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));

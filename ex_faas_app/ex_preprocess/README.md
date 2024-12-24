@@ -25,6 +25,7 @@ kubectl delete ksvc skylark-ex-preprocess && kubectl delete route skylark-ex-pre
 ```bash
 # params: policy, destination
 curl -v http://pi5u4-preprocess.default.svc.cluster.local/process?policy=Skylark\&destination=pi5u1 -d "skldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjerg"
+curl -v http://10.152.183.86/process?policy=Skylark\&destination=pi5u1 -H "Host: pi5u4-preprocess.default.svc.cluster.local" -d "skldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjergskldfjerg"
 curl -v http://pi5u4-preprocess.default.svc.cluster.local/health
 ```
 

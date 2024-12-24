@@ -23,13 +23,10 @@ kubectl delete ksvc skylark-ex-client && kubectl delete route skylark-ex-client 
 ```
 ### Troubleshoot
 ```bash
-kubectl get pods -o wide
-kubectl describe pod skylark-ex-client
-kubectl logs skylark-ex-client-00001-deployment-
-curl -v http://10.152.183.159/?size=800\&mode=Cloud -H "Host: skylark-ex-client.default.svc.cluster.local"
-alias clc='curl -v http://10.152.183.159/?size=400\&mode=Cloud -H "Host: skylark-ex-client.default.svc.cluster.local"'
+curl -v http://pi5u4-preprocess.default.svc.cluster.local/process?policy=Skylark\&destination=pi5u1\&node_path=pi5u2,pu5u4,pi5u1\&size_mb=1
+
+alias clc='curl -v http://pi5u2-client.default.svc.cluster.local/process?policy=Skylark\&destination=pi5u1\&node_path=pi5u2,pu5u4,pi5u1\&size_mb=1 -H "Host: skylark-ex-client.default.svc.cluster.local"'
 alias cls='curl -v http://10.152.183.159/?size=400\&mode=Sat -H "Host: skylark-ex-client.default.svc.cluster.local"'
-curl -v http://10.152.183.159/health -H "Host: skylark-ex-client.default.svc.cluster.local"
 
 # 20 concurrent 
 clc & clc & clc & clc & clc & clc & clc & clc & clc & clc & clc & clc & clc & clc & clc & clc & clc & clc & clc & clc 
