@@ -3,8 +3,12 @@ use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode, Uri};
 use sha2::{Digest, Sha256};
 use skylark_lib::{skylark_lib_version, start_timing, store_state, SkylarkPolicy};
-use std::env;
+use std::{env};
+use std::fs::File;
+use std::io::Read;
 use std::net::SocketAddr;
+use rand::distributions::Alphanumeric;
+use rand::Rng;
 use tokio::net::TcpListener;
 use url::Url;
 
@@ -41,10 +45,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
 fn parse_workflow_metadata(
     uri: &Uri,
-) -> Result<(SkylarkPolicy, String), Box<dyn std::error::Error>> {
+) -> Result<(SkylarkPolicy, String, String), Box<dyn std::error::Error>> {
     debug!("Parsing URI: {}", uri);
     let mut parsed_policy = SkylarkPolicy::Skylark;
     let mut parsed_destination_node: String = "pi5u1".to_string();
+    let mut parsed_image_name: String = "eo-2K.jpeg".to_string();
     let request_url = match Url::parse(&format!("http://ex.at{}", uri.to_string())) {
         Ok(url) => url,
         Err(e) => {
@@ -61,19 +66,23 @@ fn parse_workflow_metadata(
         } else if param.0.eq_ignore_ascii_case("destination") {
             debug!("Parsing destination: {}", param.1);
             parsed_destination_node = param.1.to_string();
+        } else if param.0.eq_ignore_ascii_case("img") {
+            debug!("Parsing img: {}", param.1);
+            parsed_image_name = param.1.to_string();
         }
     }
-    Ok((parsed_policy, parsed_destination_node))
+    Ok((parsed_policy, parsed_destination_node, parsed_image_name))
 }
 
 async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
     match (req.method(), req.uri().path()) {
-        (&Method::POST, "/process") => {
+        (&Method::GET, "/") => {
             info!("Incoming");
             start_timing().await;
             let policy: SkylarkPolicy;
             let dest_node: String;
-            (policy, dest_node) = match parse_workflow_metadata(req.uri()) {
+            let img_name: String;
+            (policy, dest_node, img_name) = match parse_workflow_metadata(req.uri()) {
                 Ok(res) => res,
                 Err(e) => {
                     error!("Error parsing URI: {}", e.to_string());
@@ -83,20 +92,24 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                         .unwrap());
                 }
             };
-            let whole_body = hyper::body::to_bytes(req.into_body()).await?;
-            let str_body = String::from_utf8(whole_body.to_vec()).unwrap();
+            debug!("preprocess_handler: Opening file");
+            let mut file = File::open(img_name).expect("Failed to open image file.");
+            let mut img_buffer = Vec::new();
+            debug!("preprocess_handler: Reading image");
+            file.read_to_end(&mut img_buffer).expect("Failed to read image file.");
             debug!(
-                "preprocess_handler: Received POST body with length: {}",
-                str_body.len()
+                "preprocess_handler: Image was read and has length: {}",
+                img_buffer.len()
             );
 
             let mut hasher = Sha256::new();
-            hasher.update(whole_body);
-            debug!("Computed hash: {:x}", hasher.finalize());
-            match store_state(str_body, &dest_node, &policy).await {
+            hasher.update(&img_buffer);
+            let rnd_str = generate_random_data(img_buffer.len());
+            debug!("preprocess_handler: Computed hash: {:x}", hasher.finalize());
+            match store_state(rnd_str, &dest_node, &policy).await {
                 Ok(key) => {
-                    info!("store_state: OK");
-                    debug!("store_state: skylark lib result: {:?}", key);
+                    info!("preprocess_handler::store_state: OK");
+                    debug!("preprocess_handler::store_state: skylark lib result: {:?}", key);
                     Ok(Response::builder()
                         .status(StatusCode::OK)
                         .header("Node-Name", env::var("NODE_NAME").unwrap())
@@ -105,7 +118,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                 }
                 Err(e) => {
                     error!(
-                        "store_state: Error calling skylark lib store state: {:?}",
+                        "preprocess_handler::store_state: NOT_FOUND Error calling skylark lib store state: {:?}",
                         e
                     );
                     Ok(Response::builder()
@@ -122,4 +135,13 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             .body(Body::from("Route not found"))
             .unwrap()),
     }
+}
+
+fn generate_random_data(size: usize) -> String {
+    debug!("generate_random_data");
+    rand::thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(size)
+        .map(char::from)
+        .collect()
 }

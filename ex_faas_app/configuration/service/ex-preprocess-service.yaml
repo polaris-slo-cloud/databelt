@@ -13,7 +13,7 @@ spec:
         node-type: Sat
       runtimeClassName: wasmedge
       containers:
-        - image: guelmino/skylark-ex-preprocess:0.2.318
+        - image: guelmino/skylark-ex-preprocess:0.2.322
           ports:
             - containerPort: 8080
           readinessProbe:

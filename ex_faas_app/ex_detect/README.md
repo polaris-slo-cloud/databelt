@@ -23,6 +23,7 @@ kubectl delete ksvc skylark-ex-detect && kubectl delete route skylark-ex-detect 
 ```bash
 # params: key, policy, destination
 curl http://pi5u4-detect.default.svc.cluster.local/?key=debugchain\:pi5u4-preprocess\&policy=Skylark\&destination=pi5u1
+curl http://pi5u4-detect.default.svc.cluster.local/?key=1efc7566-d208-4441-87ec-c6cfac5ac6db\:pi5u4-preprocess\&policy=Skylark\&destination=pi5u1
 curl http://pi4u8-detect.default.svc.cluster.local/health
 
 ```

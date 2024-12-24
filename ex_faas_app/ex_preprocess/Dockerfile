@@ -14,3 +14,4 @@ RUN --mount=type=cache,target=/usr/local/cargo/git/db \
 FROM scratch AS preprocess
 ENTRYPOINT [ "ex_preprocess.wasm" ]
 COPY --link --from=buildpreprocess /src/target/wasm32-wasip1/release/ex_preprocess.wasm  ex_preprocess.wasm
+COPY src/img/. .
