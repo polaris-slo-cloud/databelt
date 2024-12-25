@@ -25,6 +25,9 @@
       <sourceFolder url="file://$MODULE_DIR$/skylark_api/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/skylark_lib/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_client/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_bundled/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_single/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/write_data/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/example_faas_app/example_fn_1/target" />
       <excludeFolder url="file://$MODULE_DIR$/testfn/target" />
       <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_fn_1/target" />
@@ -56,6 +59,9 @@
       <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/node_info/ns.venv" />
       <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/neighbors_service/venv" />
       <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/node_info/venv" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_bundled/target" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_single/target" />
+      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/write_data/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

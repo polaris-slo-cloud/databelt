@@ -31,7 +31,6 @@ lazy_static! {
     static ref NODE_MAP: Mutex<SkylarkNodeMap> = Mutex::new(HashMap::new());
     static ref NEIGHBORS: Mutex<Vec<String>> = Mutex::new(vec![]);
     static ref LOCAL_NODE: Mutex<SkylarkNode> = Mutex::new(SkylarkNode::default());
-    static ref GLOBAL_STATE_NODE: Mutex<SkylarkNode> = Mutex::new(SkylarkNode::default_cloud());
     static ref OBJECTIVES: Mutex<SkylarkSLOs> = Mutex::new(SkylarkSLOs::default());
 }
 
@@ -260,16 +259,27 @@ async fn elect_storage_node(
                 }
             }
         }
-        _ => {
-            let global_state_host = GLOBAL_STATE_NODE.lock().unwrap().node_ip().to_string();
+        SkylarkPolicy::Serverless => {
             info!(
-                "elect_storage_node::ServerlessPolicy: OK returning global state node host {}",
-                global_state_host
+                "elect_storage_node::ServerlessPolicy: OK returning destination node host {}",
+                destination_node
             );
-            Ok(Response::builder()
-                .status(StatusCode::OK)
-                .body(Body::from(global_state_host))
-                .unwrap())
+            let node_map = NODE_MAP.lock().unwrap();
+            match node_map.get(&destination_node) {
+                Some(node) => {
+                    let ip = node.node_ip().to_string();
+                    Ok(Response::builder()
+                        .status(StatusCode::OK)
+                        .body(Body::from(ip))
+                        .unwrap())
+                },
+                None => {
+                    Ok(Response::builder()
+                        .status(StatusCode::NOT_FOUND)
+                        .body(Body::from("ServerlessPolicy: IP of destination node not found"))
+                        .unwrap())
+                }
+            }
         }
     }
 }
@@ -286,18 +296,6 @@ async fn init(node_info_url: &String) -> Result<(), Box<dyn std::error::Error>> 
             info!("skylark::init: successfully fetched node info");
             debug!("skylark::init: {:?}", serde_json::to_string(&node).unwrap());
             LOCAL_NODE.lock().unwrap().clone_from(&node);
-        }
-    }
-    match get_from_url::<SkylarkNode>(&format!("{}/{}", node_info_url, "cloud-node-info").as_str())
-        .await
-    {
-        Err(e) => {
-            error!("skylark::init: failed to get cloud node info!\n {:?}", e);
-            return Err(e);
-        }
-        Ok(node) => {
-            info!("skylark::init: successfully fetched node info");
-            GLOBAL_STATE_NODE.lock().unwrap().clone_from(&node);
         }
     }
     match get_from_url::<SkylarkSLOs>(&format!("{}/{}", node_info_url, "objectives").as_str())

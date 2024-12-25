@@ -19,7 +19,7 @@ pub async fn set_single_state_by_host(
         SkylarkStorageType::Bundled => {
             con.hset(
                 state.key().chain_id(),
-                state.key().fn_name(),
+                state.key().task_id(),
                 state.value().to_string(),
             )
             .await
@@ -30,14 +30,12 @@ pub async fn set_single_state_by_host(
 
 pub async fn set_bundled_state_by_host(
     state: &SkylarkBundledState,
-    host: &str,
-    storage_type: &SkylarkStorageType,
+    host: &str
 ) -> RedisResult<()> {
     debug!(
-        "set_bundled_state_by_host: Attempting to store key {} at redis host {} and storage type {:?}",
+        "set_bundled_state_by_host: Attempting to store key {} at redis host {}",
         state.key().chain_id(),
-        host,
-        storage_type
+        host
     );
     let client = Client::open(format!("redis://{}:6379/", host))?;
     let mut con = client.get_multiplexed_async_connection().await?;
@@ -58,7 +56,7 @@ pub async fn get_single_state_by_host(
     let client = Client::open(format!("redis://{}:6379/", host))?;
     let mut con = client.get_multiplexed_async_connection().await?;
     match storage_type {
-        SkylarkStorageType::Bundled => con.hget(key.chain_id(), key.fn_name()).await,
+        SkylarkStorageType::Bundled => con.hget(key.chain_id(), key.task_id()).await,
         SkylarkStorageType::Single => con.get(key.to_string()).await
     }
 }

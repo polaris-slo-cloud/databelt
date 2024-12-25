@@ -10,6 +10,19 @@
           </mappings>
         </serverdata>
       </paths>
+      <paths name="skylark -&gt; ex_bundled">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/" local="$PROJECT_DIR$/skylark_lib" web="localhost" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/skylark_lib/README.md" />
+            <excludedPath local="true" path="$PROJECT_DIR$/skylark_lib/.cargo" />
+            <excludedPath local="true" path="$PROJECT_DIR$/skylark_lib/target" />
+            <excludedPath local="true" path="$PROJECT_DIR$/skylark_lib/Cargo.lock" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
       <paths name="skylark -&gt; ex_firealarm">
         <serverdata>
           <mappings>
@@ -37,6 +50,32 @@
         </serverdata>
       </paths>
       <paths name="skylark -&gt; ex_obj_detector">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/" local="$PROJECT_DIR$/skylark_lib" web="localhost" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/skylark_lib/README.md" />
+            <excludedPath local="true" path="$PROJECT_DIR$/skylark_lib/.cargo" />
+            <excludedPath local="true" path="$PROJECT_DIR$/skylark_lib/target" />
+            <excludedPath local="true" path="$PROJECT_DIR$/skylark_lib/Cargo.lock" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+      <paths name="skylark -&gt; ex_single">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/" local="$PROJECT_DIR$/skylark_lib" web="localhost" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/skylark_lib/README.md" />
+            <excludedPath local="true" path="$PROJECT_DIR$/skylark_lib/.cargo" />
+            <excludedPath local="true" path="$PROJECT_DIR$/skylark_lib/target" />
+            <excludedPath local="true" path="$PROJECT_DIR$/skylark_lib/Cargo.lock" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+      <paths name="skylark -&gt; write_data">
         <serverdata>
           <mappings>
             <mapping deploy="/" local="$PROJECT_DIR$/skylark_lib" web="localhost" />

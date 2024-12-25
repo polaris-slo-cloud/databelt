@@ -7,32 +7,32 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Clone)]
 pub struct SkylarkKey {
     chain_id: String,
-    fn_name: String,
+    task_id: String,
 }
 
 impl SkylarkKey {
     pub fn to_string(&self) -> String {
-        format!("{}:{}", self.chain_id, self.fn_name)
+        format!("{}:{}", self.chain_id, self.task_id)
     }
 
-    pub fn new(chain_id: String, fn_name: String) -> Self {
-        Self { chain_id, fn_name }
+    pub fn new(chain_id: String, task_id: String) -> Self {
+        Self { chain_id, task_id }
     }
 
     pub fn chain_id(&self) -> &str {
         &self.chain_id
     }
 
-    pub fn fn_name(&self) -> &str {
-        &self.fn_name
+    pub fn task_id(&self) -> &str {
+        &self.task_id
     }
 
     pub fn set_chain_id(&mut self, chain_id: String) {
         self.chain_id = chain_id;
     }
 
-    pub fn set_fn_name(&mut self, fn_name: String) {
-        self.fn_name = fn_name;
+    pub fn set_task_id(&mut self, task_id: String) {
+        self.task_id = task_id;
     }
 }
 impl TryFrom<String> for SkylarkKey {
@@ -41,14 +41,14 @@ impl TryFrom<String> for SkylarkKey {
     fn try_from(item: String) -> Result<Self, Self::Error> {
         let mut split = item.split(':');
         let chain_id = split.next().ok_or(())?.to_string();
-        let fn_name = split.next().ok_or(())?.to_string();
-        Ok(SkylarkKey { chain_id, fn_name })
+        let task_id = split.next().ok_or(())?.to_string();
+        Ok(SkylarkKey { chain_id, task_id })
     }
 }
 impl Default for SkylarkKey {
     fn default() -> Self {
         Self {
-            fn_name: "unknown".to_string(),
+            task_id: "unknown".to_string(),
             chain_id: "unknown".to_string(),
         }
     }

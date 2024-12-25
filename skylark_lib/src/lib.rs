@@ -75,7 +75,7 @@ pub async fn get_single_state(
     };
     let mut current_key = SKYLARK_KEY.lock().await;
     current_key.set_chain_id(prev_key.chain_id().to_string());
-    current_key.set_fn_name(env::var("K_SERVICE")?);
+    current_key.set_task_id(Uuid::new_v4().to_string());
     info!("get_single_state: fetch state based on policy: {}", policy);
     if !SkylarkPolicy::Serverless.eq(policy) {
         // Skylark or Random Policy
@@ -146,7 +146,7 @@ pub async fn get_bundled_state(
     };
     let mut current_key = SKYLARK_KEY.lock().await;
     current_key.set_chain_id(prev_key.chain_id().to_string());
-    current_key.set_fn_name(env::var("K_SERVICE")?);
+    current_key.set_task_id(Uuid::new_v4().to_string());
     info!("get_bundled_state: fetch state based on policy: {}", policy);
     if !SkylarkPolicy::Serverless.eq(policy) {
         // Skylark or Random Policy
@@ -208,10 +208,11 @@ pub async fn store_single_state(
 ) -> Result<String> {
     // Fetch target host to store state based on `policy` for `destination` host.
     info!("store_single_state: incoming");
-    debug!("store_state length: {}", final_state.len());
+    debug!("store_single_state length: {}", final_state.len());
     let mut current_key = SKYLARK_KEY.lock().await;
-    if current_key.to_owned() == SkylarkKey::default() {
-        current_key.set_fn_name(env::var("K_SERVICE")?);
+    debug!("store_single_state: current key loaded");
+    if current_key.clone().eq(&SkylarkKey::default()) {
+        current_key.set_task_id(Uuid::new_v4().to_string());
         current_key.set_chain_id(Uuid::new_v4().to_string());
     }
     debug!("store_single_state: calling skylark api");
@@ -270,14 +271,14 @@ pub async fn store_bundled_state(
     final_state: Vec<(String, String)>,
     destination_host: &String,
     policy: &SkylarkPolicy,
-    storage_type: &SkylarkStorageType,
 ) -> Result<String> {
     // Fetch target host to store state based on `policy` for `destination` host.
     info!("store_bundled_state: incoming");
-    debug!("store_state length: {}", final_state.len());
+    debug!("store_bundled_state: length: {}", final_state.len());
     let mut current_key = SKYLARK_KEY.lock().await;
+    debug!("store_bundled_state: current key loaded");
     if current_key.to_owned() == SkylarkKey::default() {
-        current_key.set_fn_name(env::var("K_SERVICE")?);
+        current_key.set_task_id(Uuid::new_v4().to_string());
         current_key.set_chain_id(Uuid::new_v4().to_string());
     }
     debug!("store_bundled_state: calling skylark api");
@@ -302,7 +303,7 @@ pub async fn store_bundled_state(
         };
 
     // Store state to elected and global store
-    match set_bundled_state_by_host(&skylark_state, &elected_host, storage_type).await {
+    match set_bundled_state_by_host(&skylark_state, &elected_host).await {
         Ok(_) => {
             debug!("store_bundled_state: successfully stored state");
         }
@@ -314,8 +315,7 @@ pub async fn store_bundled_state(
     if !elected_host.eq(&env::var("GLOBAL_STATE_HOST")?) {
         match set_bundled_state_by_host(
             &skylark_state,
-            &env::var("GLOBAL_STATE_HOST")?,
-            storage_type,
+            &env::var("GLOBAL_STATE_HOST")?
         )
         .await
         {

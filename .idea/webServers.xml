@@ -56,6 +56,15 @@
       <webServer id="37381c4b-6cf2-49c5-ab72-9e5bfc8df7cb" name="skylark_lib -&gt; all_ex_fn" url="">
         <fileTransfer mountedRoot="$PROJECT_DIR$/ex_faas_app" accessType="MOUNT" port="0" />
       </webServer>
+      <webServer id="724ba23a-f928-4508-bfc4-750b730747c1" name="skylark -&gt; write_data" url="http://localhost">
+        <fileTransfer mountedRoot="$PROJECT_DIR$/ex_faas_app/write_data/skylark_lib" accessType="MOUNT" port="0" />
+      </webServer>
+      <webServer id="16c62b7b-ad39-4dca-abec-2356de072335" name="skylark -&gt; ex_single" url="http://localhost">
+        <fileTransfer mountedRoot="$PROJECT_DIR$/ex_faas_app/ex_single/skylark_lib" accessType="MOUNT" port="0" />
+      </webServer>
+      <webServer id="313ea736-2ed9-4b7c-a1da-c40f0966bfd4" name="skylark -&gt; ex_bundled" url="http://localhost">
+        <fileTransfer mountedRoot="$PROJECT_DIR$/ex_faas_app/ex_bundled/skylark_lib" accessType="MOUNT" port="0" />
+      </webServer>
     </option>
   </component>
 </project>
