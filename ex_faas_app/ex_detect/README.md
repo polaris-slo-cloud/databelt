@@ -11,8 +11,8 @@ wasmedge compile target/wasm32-wasip1/release/ex_detect.wasm ex_detect.wasm
 ```
 ### Docker Build and Push
 ```bash
-docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-detect:0.2.415 .
-docker push guelmino/skylark-ex-detect:0.2.415
+docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-detect:0.2.416 .
+docker push guelmino/skylark-ex-detect:0.2.416
 ```
 ### Deploy
 ```bash

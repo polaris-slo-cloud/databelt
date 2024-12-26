@@ -65,6 +65,13 @@
       <webServer id="313ea736-2ed9-4b7c-a1da-c40f0966bfd4" name="skylark -&gt; ex_bundled" url="http://localhost">
         <fileTransfer mountedRoot="$PROJECT_DIR$/ex_faas_app/ex_bundled/skylark_lib" accessType="MOUNT" port="0" />
       </webServer>
+      <webServer id="43a01d9f-d5a3-420c-be46-09e3fb5cce2f" name="Experiments -&gt; pi5u1">
+        <fileTransfer rootFolder="/home/skylark/experiments" accessType="SFTP" host="pi5u1" port="22" sshConfigId="98b19f15-1579-48e8-863b-fc78f7ac8e54" sshConfig="!MASTER pi5u1@243">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
     </option>
   </component>
 </project>

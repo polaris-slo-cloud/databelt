@@ -14,4 +14,5 @@ RUN chmod +x target/wasm32-wasip1/release/skylark_api.wasm
 
 FROM scratch
 COPY --from=builder /build/target/wasm32-wasip1/release/skylark_api.wasm /
+COPY src/benchmark .
 ENTRYPOINT ["/skylark_api.wasm"]

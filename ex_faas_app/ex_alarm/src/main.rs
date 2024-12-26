@@ -5,6 +5,7 @@ use sha2::{Digest, Sha256};
 use skylark_lib::{get_single_state, skylark_lib_version, start_timing, store_single_state, SkylarkPolicy, SkylarkStorageType};
 use std::env;
 use std::net::SocketAddr;
+use std::time::Instant;
 use tokio::net::TcpListener;
 use url::Url;
 
@@ -72,6 +73,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
         (&Method::GET, "/") => {
             info!("Incoming");
             start_timing().await;
+            let timer_tf = Instant::now();
             let policy: SkylarkPolicy;
             let dest_node: String;
             let key: String;
@@ -85,7 +87,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                         .unwrap());
                 }
             };
-
+            let timer_tdr = Instant::now();
             let state: String = match get_single_state(&key, &policy, &SkylarkStorageType::Single).await {
                 Ok(s) => {
                     info!("get_state: OK");
@@ -100,17 +102,27 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                         .unwrap());
                 }
             };
+            let tdr = timer_tdr.elapsed().as_millis() as i32;
+            let timer_ex = Instant::now();
             let mut hasher = Sha256::new();
             hasher.update(state.as_bytes());
             let data_hash = format!("{:x}", hasher.finalize());
             debug!("generated data hash, attempting to store");
+            let tex = timer_ex.elapsed().as_millis() as i32;
+            let timer_tdm = Instant::now();
             match store_single_state(data_hash, &dest_node, &policy, &SkylarkStorageType::Single).await {
                 Ok(key) => {
-                    info!("store_state: OK");
                     debug!("store_state: skylark lib result: {:?}", key);
+                    let tf = timer_tf.elapsed().as_millis() as i32;
+                    let tdm = timer_tdm.elapsed().as_millis() as i32;
+                    info!("\n\tRESULT\n\tT(f)\t\t{:?}\n\tT(ex)\t\t{:?}\n\tT(dm)\t\t{:?}\n\tT(dr)\t\t{:?}\n\tD(f)\t\t{:?}", tf, tex, tdm, tdr, state.len());
                     Ok(Response::builder()
                         .status(StatusCode::OK)
-                        .header("Node-Name", env::var("NODE_NAME").unwrap())
+                        .header("T_f", tf)
+                        .header("T_ex", tex)
+                        .header("T_dm", tdm)
+                        .header("T_dr", tdr)
+                        .header("D_f", state.len())
                         .body(Body::from(key))
                         .unwrap())
                 }

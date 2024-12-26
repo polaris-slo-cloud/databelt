@@ -7,6 +7,7 @@ use std::{env};
 use std::fs::File;
 use std::io::Read;
 use std::net::SocketAddr;
+use std::time::Instant;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 use tokio::net::TcpListener;
@@ -79,6 +80,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
         (&Method::GET, "/") => {
             info!("Incoming");
             start_timing().await;
+            let timer_tf = Instant::now();
             let policy: SkylarkPolicy;
             let dest_node: String;
             let img_name: String;
@@ -106,13 +108,20 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             hasher.update(&img_buffer);
             let rnd_str = generate_random_data(img_buffer.len());
             debug!("preprocess_handler: Computed hash: {:x}", hasher.finalize());
+            let tex = timer_tf.elapsed().as_millis() as i32;
+            let timer_tdm = Instant::now();
             match store_single_state(rnd_str, &dest_node, &policy, &SkylarkStorageType::Single).await {
                 Ok(key) => {
-                    info!("preprocess_handler::store_state: OK");
                     debug!("preprocess_handler::store_state: skylark lib result: {:?}", key);
+                    let tf = timer_tf.elapsed().as_millis() as i32;
+                    let tdm = timer_tdm.elapsed().as_millis() as i32;
+                    info!("\n\tRESULT\n\tT(f)\t\t{:?}\n\tT(ex)\t\t{:?}\n\tT(dm)\t\t{:?}\n\tD(f)\t\t{:?}", tf, tex, tdm, img_buffer.len());
                     Ok(Response::builder()
                         .status(StatusCode::OK)
-                        .header("Node-Name", env::var("NODE_NAME").unwrap())
+                        .header("T_f", tf)
+                        .header("T_ex", tex)
+                        .header("T_dm", tdm)
+                        .header("D_f", img_buffer.len())
                         .body(Body::from(key))
                         .unwrap())
                 }

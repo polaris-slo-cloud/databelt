@@ -1,12 +1,11 @@
 use crate::model::{
-    Graph, NodeGraph, NodePath, SkylarkNode, SkylarkSLOs,
+    Graph, NodeGraph, NodePath, SkylarkSLOs,
 };
-use crate::NODE_MAP;
 use rand::{Rng};
 use std::collections::{BinaryHeap, HashMap};
 use std::env;
 
-fn build_graph_and_node_map(node_graph: &NodeGraph) -> Graph {
+pub fn build_graph(node_graph: &NodeGraph) -> Graph {
     let mut graph: Graph = HashMap::new();
     for edge in node_graph.edges() {
         graph
@@ -20,7 +19,7 @@ fn build_graph_and_node_map(node_graph: &NodeGraph) -> Graph {
     }
     graph
 }
-fn dijkstra(graph: &Graph, start: String, destination: String) -> NodePath {
+fn dijkstra(graph: &Graph, start: &String, destination: &String) -> NodePath {
     let mut distances: HashMap<String, i16> = HashMap::new();
     let mut heap = BinaryHeap::new();
 
@@ -36,7 +35,7 @@ fn dijkstra(graph: &Graph, start: String, destination: String) -> NodePath {
             node, cost
         );
 
-        if node == destination {
+        if node.eq(destination) {
             debug!("dijkstra: Reached destination: {}", destination);
             break;
         }
@@ -64,29 +63,28 @@ fn dijkstra(graph: &Graph, start: String, destination: String) -> NodePath {
     debug!("dijkstra: Reconstructing shortest path");
     let mut path = Vec::new();
     let mut current_node = destination;
-    while let Some(predecessor) = predecessors.get(&current_node) {
-        let cost = *distances.get(&current_node).unwrap();
+    while let Some(predecessor) = predecessors.get(current_node) {
+        let cost = *distances.get(current_node).unwrap();
         debug!(
             "dijkstra: Path step: Node: {}, Cost: {}",
             current_node, cost
         );
         path.push((cost, current_node.clone()));
-        current_node = predecessor.clone();
+        current_node = predecessor;
     }
-    path.push((0, start));
+    path.push((0, start.clone()));
     debug!("dijkstra: Final reverse path: {:?}", path);
     path
 }
 pub fn apply_skylark_policy(
-    start: String,
-    destination: String,
+    start: &String,
+    destination: &String,
     size: i16,
     time: i16,
-    topology: &NodeGraph,
-    slo: SkylarkSLOs,
-) -> Option<SkylarkNode> {
+    graph: &Graph,
+    slo: &SkylarkSLOs,
+) -> Option<String> {
     info!("apply_skylark_heuristic: start");
-    let graph = build_graph_and_node_map(topology);
     let reverse_path = dijkstra(&graph, start, destination);
     let avg_bandwidth = env::var("AVG_SAT_BANDWIDTH").unwrap().parse::<i16>().unwrap();
     if reverse_path.is_empty() {
@@ -99,8 +97,6 @@ pub fn apply_skylark_policy(
             step.1.clone(),
             step.0
         );
-        let node_map = NODE_MAP.lock().unwrap();
-        let step_node = node_map.get(&step.1).unwrap();
         let mig_time = calc_migration_time(size, avg_bandwidth, step.0);
         debug!(
             "apply_skylark_heuristic: migration time to high. time: {}, mig_time: {}, latency: {}",
@@ -114,19 +110,18 @@ pub fn apply_skylark_policy(
             step.1.clone(),
             step.0
         );
-        return Some(step_node.clone());
+        return Some(step.1.clone());
     }
     info!("apply_skylark_heuristic: No node was elected even though path is not empty!");
     None
 }
 
 pub fn apply_random_policy(
-    start: String,
-    destination: String,
-    topology: &NodeGraph,
-) -> Option<SkylarkNode> {
+    start: &String,
+    destination: &String,
+    graph: &Graph,
+) -> Option<String> {
     info!("apply_random_policy: start");
-    let graph = build_graph_and_node_map(topology);
     let reverse_path = dijkstra(&graph, start, destination);
     if reverse_path.is_empty() {
         warn!("apply_random_policy: emtpy node path given, returning None");
@@ -137,10 +132,8 @@ pub fn apply_random_policy(
     let random_number = rng.gen_range(0..=reverse_path.len()-1);
     debug!("apply_random_policy: Random number: {}", random_number);
     let random_step = reverse_path.get(random_number).unwrap();
-    let node_map = NODE_MAP.lock().unwrap();
-    let random_node = node_map.get(&random_step.1).unwrap();
-    debug!("apply_random_policy: elected node: {:?}", random_node);
-    Some(random_node.clone())
+    debug!("apply_random_policy: elected node: {:?}", random_step.1);
+    Some(random_step.1.clone())
 }
 
 fn calc_migration_time(s: i16, b: i16, l: i16) -> i16 {
