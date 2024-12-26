@@ -20,7 +20,7 @@ spec:
       runtimeClassName: wasmedge
       containers:
         - name: skylark-api
-          image: guelmino/skylark-api:0.2.731
+          image: guelmino/skylark-api:0.2.732
           ports:
             - containerPort: 8081
           env:

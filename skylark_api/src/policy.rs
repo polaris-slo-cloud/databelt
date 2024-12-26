@@ -84,9 +84,18 @@ pub fn apply_skylark_policy(
     graph: &Graph,
     slo: &SkylarkSLOs,
 ) -> Option<String> {
-    info!("apply_skylark_heuristic: start");
+    debug!("apply_skylark_heuristic: start");
+    if time > slo.max_latency() {
+        warn!("Already violating SLO!, ABORTING");
+        return None;
+    }
     let reverse_path = dijkstra(&graph, start, destination);
     let avg_bandwidth = env::var("AVG_SAT_BANDWIDTH").unwrap().parse::<i16>().unwrap();
+    info!("Computed path, it has {:?} nodes", reverse_path.len());
+    info!("T(ex): {:?}", time);
+    info!("D(f): {:?}", size);
+    info!("Tmax(f): {:?}", slo.max_latency());
+    info!("B(sat): {:?}", avg_bandwidth);
     if reverse_path.is_empty() {
         warn!("apply_skylark_heuristic: emtpy node path given, returning None");
         return None;
@@ -98,21 +107,25 @@ pub fn apply_skylark_policy(
             step.0
         );
         let mig_time = calc_migration_time(size, avg_bandwidth, step.0);
+        info!("Tmig({}): {:?}", step.1, mig_time);
         debug!(
-            "apply_skylark_heuristic: migration time to high. time: {}, mig_time: {}, latency: {}",
+            "apply_skylark_heuristic: time: {}, mig_time: {}, latency: {}",
             time, mig_time, step.0
         );
         if (time + mig_time) > slo.max_latency() {
             continue;
         }
+
         debug!(
             "apply_skylark_heuristic: elected node: {:?} with latency {}",
             step.1.clone(),
             step.0
         );
+        info!("Propagated: True");
         return Some(step.1.clone());
     }
-    info!("apply_skylark_heuristic: No node was elected even though path is not empty!");
+    debug!("apply_skylark_heuristic: No node was elected even though path is not empty!");
+    info!("Propagated: False");
     None
 }
 

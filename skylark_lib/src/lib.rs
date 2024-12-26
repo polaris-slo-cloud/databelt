@@ -63,7 +63,6 @@ pub async fn get_single_state(
     // Fetch state for given `key` based on policy
     // Serverless: 1. global
     // Random & Skylark try fetch in this order: 1. local 2. neighbors 3. global
-    info!("get_single_state");
     debug!("get_single_state: key {}", key);
     check_neighbors().await;
     let prev_key = match SkylarkKey::try_from(key.clone()) {
@@ -76,19 +75,21 @@ pub async fn get_single_state(
     let mut current_key = SKYLARK_KEY.lock().await;
     current_key.set_chain_id(prev_key.chain_id().to_string());
     current_key.set_task_id(Uuid::new_v4().to_string());
-    info!("get_single_state: fetch state based on policy: {}", policy);
+    debug!("get_single_state: fetch state based on policy: {}", policy);
     if !SkylarkPolicy::Serverless.eq(policy) {
         // Skylark or Random Policy
         // Try fetching state from local store
         match get_single_state_by_host(&prev_key, &env::var("LOCAL_NODE_HOST")?, storage_type).await
         {
             Ok(local_state) => {
-                info!("get_single_state: predecessor state retrieved from local KV store");
+                info!("LOCAL_STATE: True");
+                info!("HOPS: 0");
                 debug!("get_single_state: local state size: {}", local_state.len());
                 return Ok(local_state);
             }
             Err(e) => {
-                info!("get_single_state: state not found in local store: {}", e);
+                debug!("get_single_state: state not found in local store: {}", e);
+                info!("LOCAL_STATE: False");
             }
         }
         if NEIGHBOR_HOSTS.get().unwrap().len() == 0 {
@@ -99,22 +100,24 @@ pub async fn get_single_state(
             debug!("get_single_state: trying neighbor: {}", neighbor_host);
             match get_single_state_by_host(&prev_key, neighbor_host, storage_type).await {
                 Ok(neighbor_state) => {
-                    info!("get_single_state: predecessor state retrieved from neighbor KV store");
+                    debug!("get_single_state: predecessor state retrieved from neighbor KV store");
+                    info!("HOPS: 1");
                     debug!("get_single_state: state size: {}", neighbor_state.len());
                     return Ok(neighbor_state);
                 }
                 Err(e) => {
-                    info!("get_single_state: state not found in neighbor store: {}", e);
+                    debug!("get_single_state: state not found in neighbor store: {}", e);
                 }
             }
         }
-        info!("get_single_state: state not found in either neighbor");
+        debug!("get_single_state: state not found in either neighbor");
     }
 
     // Finally fetch from Global store
     match get_single_state_by_host(&prev_key, &env::var("GLOBAL_STATE_HOST")?, storage_type).await {
         Ok(global_state) => {
-            info!("get_single_state: predecessor state retrieved from global KV store");
+            info!("HOPS: -> {}", &env::var("GLOBAL_STATE_HOST")?);
+            debug!("get_single_state: predecessor state retrieved from global KV store");
             debug!(
                 "get_single_state: global state size: {}",
                 global_state.len()
@@ -134,7 +137,7 @@ pub async fn get_bundled_state(
     // Fetch bundled state for given `key` based on policy
     // Serverless: 1. global
     // Random & Skylark try fetch in this order: 1. local 2. neighbors 3. global
-    info!("get_bundled_state");
+    debug!("get_bundled_state");
     debug!("get_bundled_state: key {}", key);
     check_neighbors().await;
     let prev_key = match SkylarkKey::try_from(key.clone()) {
@@ -147,18 +150,18 @@ pub async fn get_bundled_state(
     let mut current_key = SKYLARK_KEY.lock().await;
     current_key.set_chain_id(prev_key.chain_id().to_string());
     current_key.set_task_id(Uuid::new_v4().to_string());
-    info!("get_bundled_state: fetch state based on policy: {}", policy);
+    debug!("get_bundled_state: fetch state based on policy: {}", policy);
     if !SkylarkPolicy::Serverless.eq(policy) {
         // Skylark or Random Policy
         // Try fetching state from local store
         match get_bundled_state_by_host(&prev_key, &env::var("LOCAL_NODE_HOST")?).await {
             Ok(local_state) => {
-                info!("get_bundled_state: predecessor state retrieved from local KV store");
+                debug!("get_bundled_state: predecessor state retrieved from local KV store");
                 debug!("get_bundled_state: local state size: {}", local_state.len());
                 return Ok(local_state);
             }
             Err(e) => {
-                info!("get_bundled_state: state not found in local store: {}", e);
+                debug!("get_bundled_state: state not found in local store: {}", e);
             }
         }
         if NEIGHBOR_HOSTS.get().unwrap().len() == 0 {
@@ -169,25 +172,25 @@ pub async fn get_bundled_state(
             debug!("get_bundled_state: trying neighbor: {}", neighbor_host);
             match get_bundled_state_by_host(&prev_key, neighbor_host).await {
                 Ok(neighbor_state) => {
-                    info!("get_bundled_state: predecessor state retrieved from neighbor KV store");
+                    debug!("get_bundled_state: predecessor state retrieved from neighbor KV store");
                     debug!("get_bundled_state: state size: {}", neighbor_state.len());
                     return Ok(neighbor_state);
                 }
                 Err(e) => {
-                    info!(
+                    debug!(
                         "get_bundled_state: state not found in neighbor store: {}",
                         e
                     );
                 }
             }
         }
-        info!("get_bundled_state: state not found in either neighbor");
+        debug!("get_bundled_state: state not found in either neighbor");
     }
 
     // Finally fetch from Global store
     match get_bundled_state_by_host(&prev_key, &env::var("GLOBAL_STATE_HOST")?).await {
         Ok(global_state) => {
-            info!("get_bundled_state: predecessor state retrieved from global KV store");
+            debug!("get_bundled_state: predecessor state retrieved from global KV store");
             debug!(
                 "get_bundled_state: global state size: {}",
                 global_state.len()
@@ -207,7 +210,7 @@ pub async fn store_single_state(
     storage_type: &SkylarkStorageType,
 ) -> Result<String> {
     // Fetch target host to store state based on `policy` for `destination` host.
-    info!("store_single_state: incoming");
+    debug!("store_single_state: incoming");
     debug!("store_single_state length: {}", final_state.len());
     let mut current_key = SKYLARK_KEY.lock().await;
     debug!("store_single_state: current key loaded");
@@ -263,7 +266,7 @@ pub async fn store_single_state(
             }
         }
     }
-    info!("store_single_state: successfully stored new state");
+    debug!("store_single_state: successfully stored new state");
     Ok(current_key.to_string())
 }
 
@@ -273,7 +276,7 @@ pub async fn store_bundled_state(
     policy: &SkylarkPolicy,
 ) -> Result<String> {
     // Fetch target host to store state based on `policy` for `destination` host.
-    info!("store_bundled_state: incoming");
+    debug!("store_bundled_state: incoming");
     debug!("store_bundled_state: length: {}", final_state.len());
     let mut current_key = SKYLARK_KEY.lock().await;
     debug!("store_bundled_state: current key loaded");
@@ -328,13 +331,13 @@ pub async fn store_bundled_state(
             }
         }
     }
-    info!("store_bundled_state: successfully stored new state");
+    debug!("store_bundled_state: successfully stored new state");
     Ok(current_key.to_string())
 }
 
 pub async fn delete_state(key: String, storage_type: &SkylarkStorageType) -> Result<()> {
     // Deletes state from previous host and global state host.
-    info!("delete_state: Incoming");
+    debug!("delete_state: Incoming");
     let skylark_key = SkylarkKey::try_from(key.clone()).unwrap();
     match del_state_by_host(&skylark_key, &env::var("LOCAL_NODE_HOST")?, storage_type).await {
         Ok(_) => {
@@ -365,12 +368,12 @@ pub async fn delete_state(key: String, storage_type: &SkylarkStorageType) -> Res
             }
         }
     }
-    info!("delete_state: state not found in either neighbor");
+    debug!("delete_state: state not found in either neighbor");
 
     // Delete global state
     match del_state_by_host(&skylark_key, &env::var("GLOBAL_STATE_HOST")?, storage_type).await {
         Ok(_) => {
-            info!("delete_state: OK deleted state from previous and global state host");
+            debug!("delete_state: OK deleted state from previous and global state host");
             Ok(())
         }
         Err(e) => {

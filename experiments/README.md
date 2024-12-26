@@ -56,6 +56,6 @@ Measures the policy execution time with increasing req/s (5,10,20,40)
 Measures the end-2-end workflow runtime with varying Policies, SLOs and state sizes.
 Uses the proposed EO use case.
 
-| Tf(max)[ms] | State size [MB] | Policy  | Tw[ms] | SLO Viol. [%] | Migr. Data [MB] | Loc. State Av. [%] | 
-|-------------|-----------------|---------|--------|---------------|-----------------|--------------------|
-| 100         | 1               | Skylark |        |               |                 |                    |
+| Tf(max)[ms] | State size [MB] | Policy  | Tw[ms] | SLO Viol. [%] | Migr. Data [MB] | Loc. State Av. [%] | Avg. hop distance | 
+|-------------|-----------------|---------|--------|---------------|-----------------|--------------------|-------------------|
+| 100         | 1               | Skylark |        |               |                 |                    |                   |

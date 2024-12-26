@@ -177,11 +177,11 @@ fn parse_from_query(
 async fn http_handler(req: Request<Body>) -> Result<Response<Body>, Error> {
     match (req.method(), req.uri().path()) {
         (&Method::GET, "/storage-node") => {
-            info!("GET_STATE: incoming");
+            info!("ELECT_NODE: incoming");
             let params = match parse_from_query(&req.uri()) {
                 Ok(p) => p,
                 Err(e) => {
-                    info!("GET_STATE: BAD_REQUEST expected params 'size' and 'time', 'policy' and 'destination'");
+                    info!("ELECT_NODE: BAD_REQUEST expected params 'size' and 'time', 'policy' and 'destination'");
                     return Ok(Response::builder()
                         .status(StatusCode::BAD_REQUEST)
                         .body(Body::from(e.to_string()))
@@ -240,7 +240,7 @@ async fn elect_storage_node(
         SkylarkPolicy::Skylark => {
             match apply_skylark_policy(&start_node, &destination_node, size, time, &graph, &slo) {
                 Some(node_name) => {
-                    info!("elect_storage_node::SkylarkPolicy: OK elected node for state propagation {}", &node_name);
+                    debug!("elect_storage_node::SkylarkPolicy: OK elected node for state propagation {}", &node_name);
                     let node = node_map.get(&node_name).unwrap();
                     Ok(Response::builder()
                         .status(StatusCode::OK)
@@ -249,7 +249,7 @@ async fn elect_storage_node(
                         .unwrap())
                 }
                 None => {
-                    info!(
+                    debug!(
                         "elect_storage_node::SkylarkPolicy: OK No Node elected for given input, returning local node"
                     );
                     Ok(Response::builder()
@@ -262,7 +262,7 @@ async fn elect_storage_node(
         SkylarkPolicy::Random => {
             match apply_random_policy(&start_node, &destination_node, &graph) {
                 Some(node_name) => {
-                    info!("elect_storage_node::RandomPolicy: OK elected node for state propagation {}", &node_name);
+                    debug!("elect_storage_node::RandomPolicy: OK elected node for state propagation {}", &node_name);
                     let node = node_map.get(&node_name).unwrap();
                     Ok(Response::builder()
                         .status(StatusCode::OK)
@@ -282,7 +282,7 @@ async fn elect_storage_node(
             }
         }
         SkylarkPolicy::Serverless => {
-            info!(
+            debug!(
                 "elect_storage_node::ServerlessPolicy: OK returning destination node host {}",
                 destination_node
             );

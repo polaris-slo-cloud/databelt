@@ -11,8 +11,8 @@ wasmedge compile target/wasm32-wasip1/release/ex_bundled.wasm ex_bundled.wasm
 
 ### Docker Build and Push
 ```bash
-docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-bundled:0.2.901 .
-docker push guelmino/skylark-ex-bundled:0.2.901
+docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-bundled:0.2.902 .
+docker push guelmino/skylark-ex-bundled:0.2.902
 ```
 ### Deploy
 ```bash

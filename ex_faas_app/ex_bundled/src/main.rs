@@ -5,6 +5,7 @@ use sha2::{Digest, Sha256};
 use skylark_lib::{get_bundled_state, skylark_lib_version, start_timing, store_bundled_state, SkylarkPolicy};
 use std::env;
 use std::net::SocketAddr;
+use std::time::Instant;
 use tokio::net::TcpListener;
 use url::Url;
 
@@ -81,6 +82,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
         (&Method::GET, "/get-and-set") => {
             info!("get-and-set: Incoming");
             start_timing().await;
+            let timer_tf = Instant::now();
             let policy: SkylarkPolicy;
             let dest_node: String;
             let key: String;
@@ -95,7 +97,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                         .unwrap());
                 }
             };
-
+            let timer_tdr = Instant::now();
             let states: Vec<(String, String)> = match get_bundled_state(&key, &policy).await {
                 Ok(s) => {
                     info!("get-and-set::get_bundled_state: OK");
@@ -110,21 +112,32 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                         .unwrap());
                 }
             };
+            let tdr = timer_tdr.elapsed().as_millis() as i32;
+            let timer_ex = Instant::now();
+            let mut df = 0;
             for state in &states {
                 let mut hasher = Sha256::new();
                 debug!("get-and-set: hashing state for function {} with length {:?}", &state.0, state.1.len());
+                df += state.1.len();
                 hasher.update(state.1.as_bytes());
                 let data_hash = format!("{:x}", hasher.finalize());
                 debug!("get-and-set: generated data hash {}", data_hash);
             }
-
+            let tex = timer_ex.elapsed().as_millis() as i32;
+            let timer_tdm = Instant::now();
             match store_bundled_state(states, &dest_node, &policy).await {
                 Ok(key) => {
-                    info!("get-and-set::store_bundled_state: OK");
                     debug!("get-and-set::store_bundled_state: skylark lib result: {:?}", key);
+                    let tf = timer_tf.elapsed().as_millis() as i32;
+                    let tdm = timer_tdm.elapsed().as_millis() as i32;
+                    info!("\n\tRESULT\n\tT(f)\t\t{:?}\n\tT(ex)\t\t{:?}\n\tT(dm)\t\t{:?}\n\tT(dr)\t\t{:?}\n\tD(f)\t\t{:?}", tf, tex, tdm, tdr, df);
                     Ok(Response::builder()
                         .status(StatusCode::OK)
-                        .header("Node-Name", env::var("NODE_NAME").unwrap())
+                        .header("T_f", tf)
+                        .header("T_ex", tex)
+                        .header("T_dm", tdm)
+                        .header("T_dr", tdr)
+                        .header("D_f", df)
                         .body(Body::from(key))
                         .unwrap())
                 }
