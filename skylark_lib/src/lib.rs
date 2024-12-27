@@ -61,7 +61,7 @@ pub async fn get_single_state(
     storage_type: &SkylarkStorageType,
 ) -> Result<String> {
     // Fetch state for given `key` based on policy
-    // Serverless: 1. global
+    // Stateless: 1. global
     // Random & Skylark try fetch in this order: 1. local 2. neighbors 3. global
     debug!("get_single_state: key {}", key);
     check_neighbors().await;
@@ -76,14 +76,16 @@ pub async fn get_single_state(
     current_key.set_chain_id(prev_key.chain_id().to_string());
     current_key.set_task_id(Uuid::new_v4().to_string());
     debug!("get_single_state: fetch state based on policy: {}", policy);
-    if !SkylarkPolicy::Serverless.eq(policy) {
+    if !SkylarkPolicy::Stateless.eq(policy) {
         // Skylark or Random Policy
         // Try fetching state from local store
+        let tdl = Instant::now();
         match get_single_state_by_host(&prev_key, &env::var("LOCAL_NODE_HOST")?, storage_type).await
         {
             Ok(local_state) => {
                 info!("LOCAL_STATE: True");
                 info!("HOPS: 0");
+                info!("T(dl): {:?}ms", tdl.elapsed().as_millis());
                 debug!("get_single_state: local state size: {}", local_state.len());
                 return Ok(local_state);
             }
@@ -98,10 +100,12 @@ pub async fn get_single_state(
         // Try fetching state from neighbors
         for neighbor_host in NEIGHBOR_HOSTS.get().unwrap() {
             debug!("get_single_state: trying neighbor: {}", neighbor_host);
+            let tdn = Instant::now();
             match get_single_state_by_host(&prev_key, neighbor_host, storage_type).await {
                 Ok(neighbor_state) => {
                     debug!("get_single_state: predecessor state retrieved from neighbor KV store");
                     info!("HOPS: 1");
+                    info!("T(dn): {:?}ms", tdn.elapsed().as_millis());
                     debug!("get_single_state: state size: {}", neighbor_state.len());
                     return Ok(neighbor_state);
                 }
@@ -112,11 +116,12 @@ pub async fn get_single_state(
         }
         debug!("get_single_state: state not found in either neighbor");
     }
-
+    let tdg = Instant::now();
     // Finally fetch from Global store
     match get_single_state_by_host(&prev_key, &env::var("GLOBAL_STATE_HOST")?, storage_type).await {
         Ok(global_state) => {
             info!("HOPS: -> {}", &env::var("GLOBAL_STATE_HOST")?);
+            info!("T(dg): {:?}ms", tdg.elapsed().as_millis());
             debug!("get_single_state: predecessor state retrieved from global KV store");
             debug!(
                 "get_single_state: global state size: {}",
@@ -135,7 +140,7 @@ pub async fn get_bundled_state(
     policy: &SkylarkPolicy,
 ) -> Result<Vec<(String, String)>> {
     // Fetch bundled state for given `key` based on policy
-    // Serverless: 1. global
+    // Stateless: 1. global
     // Random & Skylark try fetch in this order: 1. local 2. neighbors 3. global
     debug!("get_bundled_state");
     debug!("get_bundled_state: key {}", key);
@@ -151,11 +156,13 @@ pub async fn get_bundled_state(
     current_key.set_chain_id(prev_key.chain_id().to_string());
     current_key.set_task_id(Uuid::new_v4().to_string());
     debug!("get_bundled_state: fetch state based on policy: {}", policy);
-    if !SkylarkPolicy::Serverless.eq(policy) {
+    if !SkylarkPolicy::Stateless.eq(policy) {
         // Skylark or Random Policy
         // Try fetching state from local store
+        let tdl = Instant::now();
         match get_bundled_state_by_host(&prev_key, &env::var("LOCAL_NODE_HOST")?).await {
             Ok(local_state) => {
+                info!("T(dg): {:?}ms", tdl.elapsed().as_millis());
                 debug!("get_bundled_state: predecessor state retrieved from local KV store");
                 debug!("get_bundled_state: local state size: {}", local_state.len());
                 return Ok(local_state);
@@ -168,10 +175,12 @@ pub async fn get_bundled_state(
             warn!("Not aware of any neighbors!");
         }
         // Try fetching state from neighbors
+        let tdn = Instant::now();
         for neighbor_host in NEIGHBOR_HOSTS.get().unwrap() {
             debug!("get_bundled_state: trying neighbor: {}", neighbor_host);
             match get_bundled_state_by_host(&prev_key, neighbor_host).await {
                 Ok(neighbor_state) => {
+                    info!("T(dg): {:?}ms", tdn.elapsed().as_millis());
                     debug!("get_bundled_state: predecessor state retrieved from neighbor KV store");
                     debug!("get_bundled_state: state size: {}", neighbor_state.len());
                     return Ok(neighbor_state);
@@ -188,8 +197,10 @@ pub async fn get_bundled_state(
     }
 
     // Finally fetch from Global store
+    let tdg = Instant::now();
     match get_bundled_state_by_host(&prev_key, &env::var("GLOBAL_STATE_HOST")?).await {
         Ok(global_state) => {
+            info!("T(dg): {:?}ms", tdg.elapsed().as_millis());
             debug!("get_bundled_state: predecessor state retrieved from global KV store");
             debug!(
                 "get_bundled_state: global state size: {}",
@@ -219,17 +230,17 @@ pub async fn store_single_state(
         current_key.set_chain_id(Uuid::new_v4().to_string());
     }
     debug!("store_single_state: calling skylark api");
-    let data_size: i16 = final_state.len() as i16;
+    let data_size = final_state.len();
     let skylark_state = SkylarkState::new(current_key.clone(), final_state);
     debug!("store_single_state: data_size: {:?}", data_size);
-    let fn_exec_time = TIMER.lock().await.elapsed().as_millis() as i16;
+    let fn_exec_time = TIMER.lock().await.elapsed().as_millis();
     debug!("store_single_state: fn_exec_time: {:?}", fn_exec_time);
 
     // Elect storage host
     let elected_host =
         match get_storage_node(data_size, fn_exec_time, policy, destination_host).await {
             Ok(host) => {
-                debug!("store_single_state: elected host: {}", host);
+                info!("store_single_state: elected host: {}", host);
                 host
             }
             Err(e) => {
@@ -240,8 +251,10 @@ pub async fn store_single_state(
         };
 
     // Store state to elected and global store
+    let tde = Instant::now();
     match set_single_state_by_host(&skylark_state, &elected_host, storage_type).await {
         Ok(_) => {
+            info!("T(de): {:?}ms", tde.elapsed().as_millis());
             debug!("store_single_state: successfully stored state");
         }
         Err(e) => {
@@ -249,6 +262,7 @@ pub async fn store_single_state(
         }
     }
     // Check if elected host was already global state host
+    let tdg = Instant::now();
     if !elected_host.eq(&env::var("GLOBAL_STATE_HOST")?) {
         match set_single_state_by_host(
             &skylark_state,
@@ -258,6 +272,7 @@ pub async fn store_single_state(
         .await
         {
             Ok(_) => {
+                info!("T(dg): {:?}ms", tdg.elapsed().as_millis());
                 debug!("store_single_state: successfully stored global state");
             }
             Err(e) => {
@@ -285,10 +300,10 @@ pub async fn store_bundled_state(
         current_key.set_chain_id(Uuid::new_v4().to_string());
     }
     debug!("store_bundled_state: calling skylark api");
-    let data_size: i16 = final_state.len() as i16;
+    let data_size = final_state.len();
     let skylark_state = SkylarkBundledState::new(current_key.clone(), final_state);
     debug!("store_bundled_state: data_size: {:?}", data_size);
-    let fn_exec_time = TIMER.lock().await.elapsed().as_millis() as i16;
+    let fn_exec_time = TIMER.lock().await.elapsed().as_millis();
     debug!("store_bundled_state: fn_exec_time: {:?}", fn_exec_time);
 
     // Elect storage host
@@ -306,8 +321,10 @@ pub async fn store_bundled_state(
         };
 
     // Store state to elected and global store
+    let tde = Instant::now();
     match set_bundled_state_by_host(&skylark_state, &elected_host).await {
         Ok(_) => {
+            info!("T(de): {:?}ms", tde.elapsed().as_millis());
             debug!("store_bundled_state: successfully stored state");
         }
         Err(e) => {
@@ -316,6 +333,7 @@ pub async fn store_bundled_state(
     }
     // Check if elected host was already global state host
     if !elected_host.eq(&env::var("GLOBAL_STATE_HOST")?) {
+        let tdg = Instant::now();
         match set_bundled_state_by_host(
             &skylark_state,
             &env::var("GLOBAL_STATE_HOST")?
@@ -323,6 +341,7 @@ pub async fn store_bundled_state(
         .await
         {
             Ok(_) => {
+                info!("T(dg): {:?}ms", tdg.elapsed().as_millis());
                 debug!("store_bundled_state: successfully stored global state");
             }
             Err(e) => {

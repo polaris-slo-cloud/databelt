@@ -149,14 +149,14 @@ impl Default for SkylarkBundledState {
 pub enum SkylarkPolicy {
     Skylark,
     Random,
-    Serverless
+    Stateless
 }
 impl From<String> for SkylarkPolicy {
     fn from(mode: String) -> Self {
         match mode.to_lowercase().as_str() {
             "skylark" => SkylarkPolicy::Skylark,
             "random" => SkylarkPolicy::Random,
-            "serverless" => SkylarkPolicy::Serverless,
+            "stateless" => SkylarkPolicy::Stateless,
             _ => SkylarkPolicy::Skylark,
         }
     }

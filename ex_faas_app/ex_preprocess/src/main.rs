@@ -1,15 +1,16 @@
 use hyper::server::conn::Http;
 use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode, Uri};
-use sha2::{Digest, Sha256};
-use skylark_lib::{skylark_lib_version, start_timing, store_single_state, SkylarkPolicy, SkylarkStorageType};
-use std::{env};
+use rand::distributions::Alphanumeric;
+use rand::Rng;
+use skylark_lib::{
+    skylark_lib_version, start_timing, store_single_state, SkylarkPolicy, SkylarkStorageType,
+};
+use std::env;
 use std::fs::File;
 use std::io::Read;
 use std::net::SocketAddr;
 use std::time::Instant;
-use rand::distributions::Alphanumeric;
-use rand::Rng;
 use tokio::net::TcpListener;
 use url::Url;
 
@@ -46,11 +47,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
 fn parse_workflow_metadata(
     uri: &Uri,
-) -> Result<(SkylarkPolicy, String, String), Box<dyn std::error::Error>> {
+) -> Result<(SkylarkPolicy, String, String, i64), Box<dyn std::error::Error>> {
     debug!("Parsing URI: {}", uri);
     let mut parsed_policy = SkylarkPolicy::Skylark;
     let mut parsed_destination_node: String = "pi5u1".to_string();
     let mut parsed_image_name: String = "eo-2K.jpeg".to_string();
+    let mut parsed_tex: i64 = 40;
     let request_url = match Url::parse(&format!("http://ex.at{}", uri.to_string())) {
         Ok(url) => url,
         Err(e) => {
@@ -70,9 +72,12 @@ fn parse_workflow_metadata(
         } else if param.0.eq_ignore_ascii_case("img") {
             debug!("Parsing img: {}", param.1);
             parsed_image_name = param.1.to_string();
+        } else if param.0.eq_ignore_ascii_case("tex") {
+            debug!("Parsing tex: {}", param.1);
+            parsed_tex = param.1.to_string().parse::<i64>().unwrap();
         }
     }
-    Ok((parsed_policy, parsed_destination_node, parsed_image_name))
+    Ok((parsed_policy, parsed_destination_node, parsed_image_name, parsed_tex))
 }
 
 async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
@@ -84,7 +89,8 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             let policy: SkylarkPolicy;
             let dest_node: String;
             let img_name: String;
-            (policy, dest_node, img_name) = match parse_workflow_metadata(req.uri()) {
+            let tex : i64;
+            (policy, dest_node, img_name, tex) = match parse_workflow_metadata(req.uri()) {
                 Ok(res) => res,
                 Err(e) => {
                     error!("Error parsing URI: {}", e.to_string());
@@ -98,30 +104,31 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             let mut file = File::open(img_name).expect("Failed to open image file.");
             let mut img_buffer = Vec::new();
             debug!("preprocess_handler: Reading image");
-            file.read_to_end(&mut img_buffer).expect("Failed to read image file.");
+            file.read_to_end(&mut img_buffer)
+                .expect("Failed to read image file.");
             debug!(
                 "preprocess_handler: Image was read and has length: {}",
                 img_buffer.len()
             );
 
-            let mut hasher = Sha256::new();
-            hasher.update(&img_buffer);
+            // let mut hasher = Sha256::new();
+            // hasher.update(&img_buffer);
             let rnd_str = generate_random_data(img_buffer.len());
-            debug!("preprocess_handler: Computed hash: {:x}", hasher.finalize());
-            let tex = timer_tf.elapsed().as_millis() as i32;
+            // debug!("preprocess_handler: Computed hash: {:x}", hasher.finalize());
             let timer_tdm = Instant::now();
-            match store_single_state(rnd_str, &dest_node, &policy, &SkylarkStorageType::Single).await {
+            match store_single_state(rnd_str, &dest_node, &policy, &SkylarkStorageType::Single)
+                .await
+            {
                 Ok(key) => {
-                    debug!("preprocess_handler::store_state: skylark lib result: {:?}", key);
-                    let tf = timer_tf.elapsed().as_millis() as i32;
-                    let tdm = timer_tdm.elapsed().as_millis() as i32;
+                    debug!(
+                        "preprocess_handler::store_state: skylark lib result: {:?}",
+                        key
+                    );
+                    let tf = timer_tf.elapsed().as_millis();
+                    let tdm = timer_tdm.elapsed().as_millis();
                     info!("\n\tRESULT\n\tT(f)\t\t{:?}\n\tT(ex)\t\t{:?}\n\tT(dm)\t\t{:?}\n\tD(f)\t\t{:?}", tf, tex, tdm, img_buffer.len());
                     Ok(Response::builder()
                         .status(StatusCode::OK)
-                        .header("T_f", tf)
-                        .header("T_ex", tex)
-                        .header("T_dm", tdm)
-                        .header("D_f", img_buffer.len())
                         .body(Body::from(key))
                         .unwrap())
                 }

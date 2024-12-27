@@ -132,6 +132,19 @@ def current_topology():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route("/static-topology", methods=["GET"])
+def static_topology():
+    """Returns a JSON response with node and edge information."""
+    app.logger.info("static_topology: incoming")
+    try:
+        t = request.args.get('t')
+        if t is None:
+            t = 6
+        return jsonify({'edges': STATE.get('topologies')[int(t)]}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route("/next-topology", methods=["GET"])
 def next_topology():
     """Returns a JSON response with node and edge information."""

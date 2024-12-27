@@ -4,8 +4,8 @@ use std::env;
 type Result<T> = std::result::Result<T, reqwest::Error>;
 
 pub async fn get_storage_node(
-    size: i16,
-    time: i16,
+    size: usize,
+    time: u128,
     policy: &SkylarkPolicy,
     destination: &String,
 ) -> Result<String> {

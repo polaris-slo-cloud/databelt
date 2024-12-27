@@ -17,8 +17,8 @@ Exposes HTTP API to serve the following information:
 Bandwidth and latencies can be configured in [simulation-settings.json](settings/simulation-settings.json)
 ### Docker Build and Push
 ```bash
-docker buildx build --platform linux/arm64 -t guelmino/skylark-node-info:0.2.104 .
-docker push guelmino/skylark-node-info:0.2.104
+docker buildx build --platform linux/arm64 -t guelmino/skylark-node-info:0.2.108 .
+docker push guelmino/skylark-node-info:0.2.108
 ```
 ### Deploy
 ```bash
@@ -35,14 +35,14 @@ kubectl logs skylark-node-info-
 
 Endpoints
 ```bash
-curl http://10.0.0.34:8080/objectives -d '{"min_bandwidth": 60,"max_latency": 5000}' -H "Content-Type: application/json"
-curl http://10.0.0.45:8080/objectives -d '{"min_bandwidth": 60,"max_latency": 5000}' -H "Content-Type: application/json"
-curl http://10.0.0.167:8080/objectives -d '{"min_bandwidth": 60,"max_latency": 5000}' -H "Content-Type: application/json"
-curl http://10.0.0.58:8080/objectives -d '{"min_bandwidth": 60,"max_latency": 5000}' -H "Content-Type: application/json"
-curl http://10.0.0.243:8080/objectives -d '{"min_bandwidth": 60,"max_latency": 5000}' -H "Content-Type: application/json"
-curl http://10.0.0.245:8080/objectives -d '{"min_bandwidth": 60,"max_latency": 5000}' -H "Content-Type: application/json"
-curl http://10.0.0.210:8080/objectives -d '{"min_bandwidth": 60,"max_latency": 5000}' -H "Content-Type: application/json"
-curl http://10.0.0.122:8080/objectives -d '{"min_bandwidth": 60,"max_latency": 5000}' -H "Content-Type: application/json"
+curl http://10.0.0.34:8080/objectives -d '{"min_bandwidth": 60,"max_latency": 10000}' -H "Content-Type: application/json"
+curl http://10.0.0.45:8080/objectives -d '{"min_bandwidth": 60,"max_latency": 10000}' -H "Content-Type: application/json"
+curl http://10.0.0.167:8080/objectives -d '{"min_bandwidth": 60,"max_latency": 10000}' -H "Content-Type: application/json"
+curl http://10.0.0.58:8080/objectives -d '{"min_bandwidth": 60,"max_latency": 10000}' -H "Content-Type: application/json"
+curl http://10.0.0.243:8080/objectives -d '{"min_bandwidth": 60,"max_latency": 10000}' -H "Content-Type: application/json"
+curl http://10.0.0.245:8080/objectives -d '{"min_bandwidth": 60,"max_latency": 10000}' -H "Content-Type: application/json"
+curl http://10.0.0.210:8080/objectives -d '{"min_bandwidth": 60,"max_latency": 10000}' -H "Content-Type: application/json"
+curl http://10.0.0.122:8080/objectives -d '{"min_bandwidth": 60,"max_latency": 10000}' -H "Content-Type: application/json"
 
 curl http://10.0.0.34:8080/health
 curl http://10.0.0.34:8080/local-node-info
@@ -50,6 +50,7 @@ curl http://10.0.0.34:8080/cloud-node-info
 curl http://10.0.0.34:8080/refresh
 curl http://10.0.0.34:8080/objectives
 curl http://10.0.0.34:8080/current-topology
+curl http://10.0.0.34:8080/static-topology
 curl http://10.0.0.34:8080/next-topology
 curl http://10.0.0.34:8080/test-redis
 

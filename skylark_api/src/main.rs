@@ -88,7 +88,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 async fn node_graph_handler(node_info_url: &String) -> Result<(), SkylarkTopologyError> {
-    match get_from_url::<NodeGraph>(&format!("{}/{}", node_info_url, "current-topology").as_str()).await
+    match get_from_url::<NodeGraph>(&format!("{}/{}-topology", node_info_url, env::var("TOPOLOGY_MODE").unwrap_or("static".to_string())).as_str()).await
     {
         Err(e) => {
             error!("node_graph_handler: failed to get node graph!\n {:?}", e);
@@ -127,10 +127,10 @@ async fn node_graph_handler(node_info_url: &String) -> Result<(), SkylarkTopolog
 
 fn parse_from_query(
     uri: &Uri,
-) -> Result<(i16, i16, SkylarkPolicy, String), Box<dyn std::error::Error>> {
+) -> Result<(i64, i64, SkylarkPolicy, String), Box<dyn std::error::Error>> {
     debug!("Parsing URI: {}", uri);
-    let mut parsed_size = 0i16;
-    let mut parsed_time = 0i16;
+    let mut parsed_size = 0i64;
+    let mut parsed_time = 0i64;
     let mut parsed_policy = SkylarkPolicy::Skylark;
     let mut parsed_destination_node: String = "".to_string();
     let request_url = match Url::parse(&format!("http://skylark.at{}", uri.to_string())) {
@@ -145,13 +145,13 @@ fn parse_from_query(
         debug!("Parsing parameter: {}={}", param.0, param.1);
         if param.0.eq_ignore_ascii_case("size") {
             debug!("Parsing size: {}", param.1);
-            parsed_size = match param.1.parse::<i16>() {
+            parsed_size = match param.1.parse::<i64>() {
                 Ok(size) => size,
                 Err(_) => return Err(QueryParseError.into()),
             }
         } else if param.0.eq_ignore_ascii_case("time") {
             debug!("Parsing time: {}", param.1);
-            parsed_time = match param.1.parse::<i16>() {
+            parsed_time = match param.1.parse::<i64>() {
                 Ok(time) => time,
                 Err(_) => return Err(QueryParseError.into()),
             }
@@ -214,6 +214,27 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, Error> {
                 .body(Body::from(serde_json::to_string(&neighbors).unwrap()))
                 .unwrap())
         }
+        (&Method::GET, "/refresh") => {
+            info!("REFRESH: incoming");
+            let node_info_url = format!(
+                "http://{}:{}",
+                env::var("LOCAL_NODE_HOST").expect("LOCAL_NODE_HOST not provided"),
+                env::var("NODE_INFO_PORT").expect("NODE_INFO_PORT not provided")
+            );
+            match init(&node_info_url).await {
+                Ok(_) => {
+                    debug!("REFRESH: OK successfully refreshed");
+                    Ok(Response::new(Body::from("OK\n")))
+                }
+                Err(e) => {
+                    error!("REFRESH: INTERNAL_SERVER_ERROR refresh failed");
+                    Ok(Response::builder()
+                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                        .body(Body::from(e.to_string()))
+                        .unwrap())
+                }
+            }
+        }
         (&Method::GET, "/health") => Ok(Response::new(Body::from("OK\n"))),
         // Return the 404 Not Found for other routes.
         _ => Ok(Response::builder()
@@ -224,8 +245,8 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, Error> {
 }
 
 async fn elect_storage_node(
-    size: i16,
-    time: i16,
+    size: i64,
+    time: i64,
     policy: SkylarkPolicy,
     destination_node: String,
 ) -> Result<Response<Body>, Error> {
@@ -281,12 +302,11 @@ async fn elect_storage_node(
                 }
             }
         }
-        SkylarkPolicy::Serverless => {
+        SkylarkPolicy::Stateless => {
             debug!(
-                "elect_storage_node::ServerlessPolicy: OK returning destination node host {}",
+                "elect_storage_node::StatelessPolicy: OK returning destination node host {}",
                 destination_node
             );
-            let node_map = NODE_MAP.lock().unwrap();
             match node_map.get(&destination_node) {
                 Some(node) => {
                     let ip = node.node_ip().to_string();
@@ -299,7 +319,7 @@ async fn elect_storage_node(
                 None => {
                     Ok(Response::builder()
                         .status(StatusCode::NOT_FOUND)
-                        .body(Body::from("ServerlessPolicy: IP of destination node not found"))
+                        .body(Body::from("StatelessPolicy: IP of destination node not found"))
                         .unwrap())
                 }
             }
@@ -308,27 +328,27 @@ async fn elect_storage_node(
 }
 
 async fn benchmark(
-    size: i16,
-    time: i16,
+    size: i64,
+    time: i64,
 ) -> Result<Response<Body>, Error> {
     info!("benchmark: initializing");
     let slo = OBJECTIVES.lock().unwrap().clone();
     let graph_10_file = fs::read_to_string("graph_10.json").unwrap();
     let start_10 = "Node1".to_string();
     let destination_10 = "Node6".to_string();
-    let graph_10: HashMap<String, Vec<(String, i16)>> = serde_json::from_str(&graph_10_file).unwrap();
+    let graph_10: HashMap<String, Vec<(String, i64)>> = serde_json::from_str(&graph_10_file).unwrap();
     let graph_100_file = fs::read_to_string("graph_100.json").unwrap();
     let start_100 = "Node51".to_string();
     let destination_100 = "Node58".to_string();
-    let graph_100: HashMap<String, Vec<(String, i16)>> = serde_json::from_str(&graph_100_file).unwrap();
+    let graph_100: HashMap<String, Vec<(String, i64)>> = serde_json::from_str(&graph_100_file).unwrap();
     let graph_1000_file = fs::read_to_string("graph_1000.json").unwrap();
     let start_1000 = "Node18".to_string();
     let destination_1000 = "Node28".to_string();
-    let graph_1000: HashMap<String, Vec<(String, i16)>> = serde_json::from_str(&graph_1000_file).unwrap();
+    let graph_1000: HashMap<String, Vec<(String, i64)>> = serde_json::from_str(&graph_1000_file).unwrap();
     let graph_10000_file = fs::read_to_string("graph_10000.json").unwrap();
     let start_10000 = "Node3615".to_string();
     let destination_10000 = "Node5807".to_string();
-    let graph_10000: HashMap<String, Vec<(String, i16)>> = serde_json::from_str(&graph_10000_file).unwrap();
+    let graph_10000: HashMap<String, Vec<(String, i64)>> = serde_json::from_str(&graph_10000_file).unwrap();
     info!("benchmark: initializing done, starting...");
     let mut timer = Instant::now();
     apply_skylark_policy(&start_10, &destination_10, size, time, &graph_10, &slo);

@@ -51,7 +51,7 @@
         "node_type": "Sat"
       },
       "target": {
-        "node_ip": "10.0.0.123",
+        "node_ip": "10.0.0.122",
         "node_name": "pi4u6",
         "node_type": "Sat"
       }
@@ -60,7 +60,7 @@
       "bandwidth": 90,
       "latency": 10,
       "source": {
-        "node_ip": "10.0.0.123",
+        "node_ip": "10.0.0.122",
         "node_name": "pi4u6",
         "node_type": "Sat"
       },
@@ -81,20 +81,6 @@
       "target": {
         "node_ip": "10.0.0.245",
         "node_name": "pi4p1",
-        "node_type": "Sat"
-      }
-    },
-    {
-      "bandwidth": 90,
-      "latency": 10,
-      "source": {
-        "node_ip": "10.0.0.245",
-        "node_name": "pi4p1",
-        "node_type": "Sat"
-      },
-      "target": {
-        "node_ip": "10.0.0.34",
-        "node_name": "pi5u2",
         "node_type": "Sat"
       }
     },
@@ -165,7 +151,7 @@
         "node_type": "Sat"
       },
       "target": {
-        "node_ip": "10.0.0.123",
+        "node_ip": "10.0.0.122",
         "node_name": "pi4u6",
         "node_type": "Sat"
       }
@@ -174,7 +160,7 @@
       "bandwidth": 90,
       "latency": 10,
       "source": {
-        "node_ip": "10.0.0.123",
+        "node_ip": "10.0.0.122",
         "node_name": "pi4u6",
         "node_type": "Sat"
       },
@@ -195,20 +181,6 @@
       "target": {
         "node_ip": "10.0.0.245",
         "node_name": "pi4p1",
-        "node_type": "Sat"
-      }
-    },
-    {
-      "bandwidth": 90,
-      "latency": 10,
-      "source": {
-        "node_ip": "10.0.0.245",
-        "node_name": "pi4p1",
-        "node_type": "Sat"
-      },
-      "target": {
-        "node_ip": "10.0.0.34",
-        "node_name": "pi5u2",
         "node_type": "Sat"
       }
     },
@@ -279,7 +251,7 @@
         "node_type": "Sat"
       },
       "target": {
-        "node_ip": "10.0.0.123",
+        "node_ip": "10.0.0.122",
         "node_name": "pi4u6",
         "node_type": "Sat"
       }
@@ -288,7 +260,7 @@
       "bandwidth": 90,
       "latency": 10,
       "source": {
-        "node_ip": "10.0.0.123",
+        "node_ip": "10.0.0.122",
         "node_name": "pi4u6",
         "node_type": "Sat"
       },
@@ -309,20 +281,6 @@
       "target": {
         "node_ip": "10.0.0.245",
         "node_name": "pi4p1",
-        "node_type": "Sat"
-      }
-    },
-    {
-      "bandwidth": 90,
-      "latency": 10,
-      "source": {
-        "node_ip": "10.0.0.245",
-        "node_name": "pi4p1",
-        "node_type": "Sat"
-      },
-      "target": {
-        "node_ip": "10.0.0.34",
-        "node_name": "pi5u2",
         "node_type": "Sat"
       }
     },
@@ -393,7 +351,7 @@
         "node_type": "Sat"
       },
       "target": {
-        "node_ip": "10.0.0.123",
+        "node_ip": "10.0.0.122",
         "node_name": "pi4u6",
         "node_type": "Sat"
       }
@@ -402,7 +360,7 @@
       "bandwidth": 90,
       "latency": 10,
       "source": {
-        "node_ip": "10.0.0.123",
+        "node_ip": "10.0.0.122",
         "node_name": "pi4u6",
         "node_type": "Sat"
       },
@@ -423,20 +381,6 @@
       "target": {
         "node_ip": "10.0.0.245",
         "node_name": "pi4p1",
-        "node_type": "Sat"
-      }
-    },
-    {
-      "bandwidth": 90,
-      "latency": 10,
-      "source": {
-        "node_ip": "10.0.0.245",
-        "node_name": "pi4p1",
-        "node_type": "Sat"
-      },
-      "target": {
-        "node_ip": "10.0.0.34",
-        "node_name": "pi5u2",
         "node_type": "Sat"
       }
     },
@@ -507,7 +451,7 @@
         "node_type": "Sat"
       },
       "target": {
-        "node_ip": "10.0.0.123",
+        "node_ip": "10.0.0.122",
         "node_name": "pi4u6",
         "node_type": "Sat"
       }
@@ -516,7 +460,7 @@
       "bandwidth": 90,
       "latency": 10,
       "source": {
-        "node_ip": "10.0.0.123",
+        "node_ip": "10.0.0.122",
         "node_name": "pi4u6",
         "node_type": "Sat"
       },
@@ -537,20 +481,6 @@
       "target": {
         "node_ip": "10.0.0.245",
         "node_name": "pi4p1",
-        "node_type": "Sat"
-      }
-    },
-    {
-      "bandwidth": 90,
-      "latency": 10,
-      "source": {
-        "node_ip": "10.0.0.245",
-        "node_name": "pi4p1",
-        "node_type": "Sat"
-      },
-      "target": {
-        "node_ip": "10.0.0.34",
-        "node_name": "pi5u2",
         "node_type": "Sat"
       }
     },
@@ -558,7 +488,7 @@
       "bandwidth": 30,
       "latency": 40,
       "source": {
-        "node_ip": "10.0.0.123",
+        "node_ip": "10.0.0.122",
         "node_name": "pi4u6",
         "node_type": "Sat"
       },
@@ -621,7 +551,7 @@
         "node_type": "Sat"
       },
       "target": {
-        "node_ip": "10.0.0.123",
+        "node_ip": "10.0.0.122",
         "node_name": "pi4u6",
         "node_type": "Sat"
       }
@@ -630,7 +560,7 @@
       "bandwidth": 90,
       "latency": 10,
       "source": {
-        "node_ip": "10.0.0.123",
+        "node_ip": "10.0.0.122",
         "node_name": "pi4u6",
         "node_type": "Sat"
       },
@@ -651,20 +581,6 @@
       "target": {
         "node_ip": "10.0.0.245",
         "node_name": "pi4p1",
-        "node_type": "Sat"
-      }
-    },
-    {
-      "bandwidth": 90,
-      "latency": 10,
-      "source": {
-        "node_ip": "10.0.0.245",
-        "node_name": "pi4p1",
-        "node_type": "Sat"
-      },
-      "target": {
-        "node_ip": "10.0.0.34",
-        "node_name": "pi5u2",
         "node_type": "Sat"
       }
     },
@@ -735,7 +651,7 @@
         "node_type": "Sat"
       },
       "target": {
-        "node_ip": "10.0.0.123",
+        "node_ip": "10.0.0.122",
         "node_name": "pi4u6",
         "node_type": "Sat"
       }
@@ -744,7 +660,7 @@
       "bandwidth": 90,
       "latency": 10,
       "source": {
-        "node_ip": "10.0.0.123",
+        "node_ip": "10.0.0.122",
         "node_name": "pi4u6",
         "node_type": "Sat"
       },
@@ -765,20 +681,6 @@
       "target": {
         "node_ip": "10.0.0.245",
         "node_name": "pi4p1",
-        "node_type": "Sat"
-      }
-    },
-    {
-      "bandwidth": 90,
-      "latency": 10,
-      "source": {
-        "node_ip": "10.0.0.245",
-        "node_name": "pi4p1",
-        "node_type": "Sat"
-      },
-      "target": {
-        "node_ip": "10.0.0.34",
-        "node_name": "pi5u2",
         "node_type": "Sat"
       }
     },

@@ -11,8 +11,8 @@ wasmedge compile target/wasm32-wasip1/release/ex_client.wasm ex_client.wasm
 
 ### Docker Build and Push
 ```bash
-docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-client:0.2.203 .
-docker push guelmino/skylark-ex-client:0.2.203
+docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-ex-client:0.2.206 .
+docker push guelmino/skylark-ex-client:0.2.206
 ```
 ### Deploy
 ```bash

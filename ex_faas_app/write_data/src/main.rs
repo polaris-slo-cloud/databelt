@@ -44,7 +44,7 @@ fn parse_workflow_metadata(
     uri: &Uri,
 ) -> Result<(SkylarkPolicy, SkylarkStorageType, String, usize, usize), Box<dyn std::error::Error>> {
     debug!("Parsing URI: {}", uri);
-    let mut parsed_policy = SkylarkPolicy::Serverless;
+    let mut parsed_policy = SkylarkPolicy::Stateless;
     let mut parsed_storage_type = SkylarkStorageType::Single;
     let mut parsed_destination_node: String = "pi5u1".to_string();
     let mut parsed_size_kb: usize = 100;

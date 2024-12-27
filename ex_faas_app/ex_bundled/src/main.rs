@@ -112,7 +112,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                         .unwrap());
                 }
             };
-            let tdr = timer_tdr.elapsed().as_millis() as i32;
+            let tdr = timer_tdr.elapsed().as_millis();
             let timer_ex = Instant::now();
             let mut df = 0;
             for state in &states {
@@ -123,21 +123,16 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                 let data_hash = format!("{:x}", hasher.finalize());
                 debug!("get-and-set: generated data hash {}", data_hash);
             }
-            let tex = timer_ex.elapsed().as_millis() as i32;
+            let tex = timer_ex.elapsed().as_millis();
             let timer_tdm = Instant::now();
             match store_bundled_state(states, &dest_node, &policy).await {
                 Ok(key) => {
                     debug!("get-and-set::store_bundled_state: skylark lib result: {:?}", key);
-                    let tf = timer_tf.elapsed().as_millis() as i32;
-                    let tdm = timer_tdm.elapsed().as_millis() as i32;
+                    let tf = timer_tf.elapsed().as_millis();
+                    let tdm = timer_tdm.elapsed().as_millis();
                     info!("\n\tRESULT\n\tT(f)\t\t{:?}\n\tT(ex)\t\t{:?}\n\tT(dm)\t\t{:?}\n\tT(dr)\t\t{:?}\n\tD(f)\t\t{:?}", tf, tex, tdm, tdr, df);
                     Ok(Response::builder()
                         .status(StatusCode::OK)
-                        .header("T_f", tf)
-                        .header("T_ex", tex)
-                        .header("T_dm", tdm)
-                        .header("T_dr", tdr)
-                        .header("D_f", df)
                         .body(Body::from(key))
                         .unwrap())
                 }

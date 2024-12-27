@@ -89,8 +89,8 @@ impl SkylarkState {
     }
 }
 
-pub type Graph = HashMap<String, Vec<(String, i16)>>;
-pub type NodePath = Vec<(i16, String)>;
+pub type Graph = HashMap<String, Vec<(String, i64)>>;
+pub type NodePath = Vec<(i64, String)>;
 pub type SkylarkNodeMap = HashMap<String, SkylarkNode>;
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -186,12 +186,12 @@ impl SkylarkNode {
 pub struct Edge {
     source: SkylarkNode,
     target: SkylarkNode,
-    bandwidth: i16,
-    latency: i16,
+    bandwidth: i64,
+    latency: i64,
 }
 
 impl Edge {
-    pub fn new(source: SkylarkNode, target: SkylarkNode, bandwidth: i16, latency: i16) -> Self {
+    pub fn new(source: SkylarkNode, target: SkylarkNode, bandwidth: i64, latency: i64) -> Self {
         Self {
             source,
             target,
@@ -208,11 +208,11 @@ impl Edge {
         &self.target
     }
 
-    pub fn bandwidth(&self) -> i16 {
+    pub fn bandwidth(&self) -> i64 {
         self.bandwidth
     }
 
-    pub fn latency(&self) -> i16 {
+    pub fn latency(&self) -> i64 {
         self.latency
     }
 
@@ -224,25 +224,25 @@ impl Edge {
         self.target = target;
     }
 
-    pub fn set_bandwidth(&mut self, bandwidth: i16) {
+    pub fn set_bandwidth(&mut self, bandwidth: i64) {
         self.bandwidth = bandwidth;
     }
 
-    pub fn set_latency(&mut self, latency: i16) {
+    pub fn set_latency(&mut self, latency: i64) {
         self.latency = latency;
     }
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct SkylarkSLOs {
-    min_bandwidth: i16,
-    max_latency: i16,
+    min_bandwidth: i64,
+    max_latency: i64,
 }
 
 impl SkylarkSLOs {
     pub fn new(
-        min_bandwidth: i16,
-        max_latency: i16,
+        min_bandwidth: i64,
+        max_latency: i64,
     ) -> Self {
         Self {
             min_bandwidth,
@@ -250,19 +250,19 @@ impl SkylarkSLOs {
         }
     }
 
-    pub fn min_bandwidth(&self) -> i16 {
+    pub fn min_bandwidth(&self) -> i64 {
         self.min_bandwidth
     }
 
-    pub fn max_latency(&self) -> i16 {
+    pub fn max_latency(&self) -> i64 {
         self.max_latency
     }
 
-    pub fn set_min_bandwidth(&mut self, min_bandwidth: i16) {
+    pub fn set_min_bandwidth(&mut self, min_bandwidth: i64) {
         self.min_bandwidth = min_bandwidth;
     }
 
-    pub fn set_max_latency(&mut self, max_latency: i16) {
+    pub fn set_max_latency(&mut self, max_latency: i64) {
         self.max_latency = max_latency;
     }
 }
@@ -278,14 +278,14 @@ impl Default for SkylarkSLOs {
 pub enum SkylarkPolicy {
     Skylark,
     Random,
-    Serverless
+    Stateless
 }
 impl From<String> for SkylarkPolicy {
     fn from(mode: String) -> Self {
         match mode.to_lowercase().as_str() {
             "skylark" => SkylarkPolicy::Skylark,
             "random" => SkylarkPolicy::Random,
-            "serverless" => SkylarkPolicy::Serverless,
+            "stateless" => SkylarkPolicy::Stateless,
             _ => SkylarkPolicy::Skylark,
         }
     }

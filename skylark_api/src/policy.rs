@@ -20,7 +20,7 @@ pub fn build_graph(node_graph: &NodeGraph) -> Graph {
     graph
 }
 fn dijkstra(graph: &Graph, start: &String, destination: &String) -> NodePath {
-    let mut distances: HashMap<String, i16> = HashMap::new();
+    let mut distances: HashMap<String, i64> = HashMap::new();
     let mut heap = BinaryHeap::new();
 
     distances.insert(start.clone(), 0);
@@ -47,7 +47,7 @@ fn dijkstra(graph: &Graph, start: &String, destination: &String) -> NodePath {
                     "dijkstra: Checking neighbor: {}, Edge weight: {}, Next cost: {}",
                     neighbor, weight, next_cost
                 );
-                if next_cost < *distances.get(neighbor).unwrap_or(&i16::MAX) {
+                if next_cost < *distances.get(neighbor).unwrap_or(&i64::MAX) {
                     debug!(
                         "dijkstra: Updating distance for neighbor: {}, New cost: {}",
                         neighbor, next_cost
@@ -79,8 +79,8 @@ fn dijkstra(graph: &Graph, start: &String, destination: &String) -> NodePath {
 pub fn apply_skylark_policy(
     start: &String,
     destination: &String,
-    size: i16,
-    time: i16,
+    size: i64,
+    time: i64,
     graph: &Graph,
     slo: &SkylarkSLOs,
 ) -> Option<String> {
@@ -90,8 +90,8 @@ pub fn apply_skylark_policy(
         return None;
     }
     let reverse_path = dijkstra(&graph, start, destination);
-    let avg_bandwidth = env::var("AVG_SAT_BANDWIDTH").unwrap().parse::<i16>().unwrap();
-    info!("Computed path, it has {:?} nodes", reverse_path.len());
+    let avg_bandwidth = env::var("AVG_SAT_BANDWIDTH").unwrap().parse::<i64>().unwrap();
+    info!("Computed path: {:?}", reverse_path.len());
     info!("T(ex): {:?}", time);
     info!("D(f): {:?}", size);
     info!("Tmax(f): {:?}", slo.max_latency());
@@ -149,6 +149,6 @@ pub fn apply_random_policy(
     Some(random_step.1.clone())
 }
 
-fn calc_migration_time(s: i16, b: i16, l: i16) -> i16 {
-    l + (s / b) + l
+fn calc_migration_time(s: i64, b: i64, l: i64) -> i64 {
+    l + (s / (100 * b)) + l
 }

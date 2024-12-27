@@ -1,6 +1,6 @@
 [package]
 name = "ex_single"
-version = "0.2.801"
+version = "0.2.803"
 edition = "2021"
 
 [dependencies]
