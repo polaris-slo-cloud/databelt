@@ -1,4 +1,4 @@
 {
   "min_bandwidth": 60,
-  "max_latency": 5000
+  "max_latency": 25
 }

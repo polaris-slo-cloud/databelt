@@ -85,10 +85,6 @@ pub fn apply_skylark_policy(
     slo: &SkylarkSLOs,
 ) -> Option<String> {
     debug!("apply_skylark_heuristic: start");
-    if time > slo.max_latency() {
-        warn!("Already violating SLO!, ABORTING");
-        return None;
-    }
     let reverse_path = dijkstra(&graph, start, destination);
     let avg_bandwidth = env::var("AVG_SAT_BANDWIDTH").unwrap().parse::<i64>().unwrap();
     info!("Computed path: {:?}", reverse_path.len());
@@ -112,7 +108,7 @@ pub fn apply_skylark_policy(
             "apply_skylark_heuristic: time: {}, mig_time: {}, latency: {}",
             time, mig_time, step.0
         );
-        if (time + mig_time) > slo.max_latency() {
+        if mig_time > slo.max_latency() {
             continue;
         }
 
@@ -150,5 +146,5 @@ pub fn apply_random_policy(
 }
 
 fn calc_migration_time(s: i64, b: i64, l: i64) -> i64 {
-    l + (s / (100 * b)) + l
+    l + (s / (1000 * b)) + l
 }
