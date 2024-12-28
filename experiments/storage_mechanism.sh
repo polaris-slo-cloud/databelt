@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# ./workflow_latency.sh pi5u2 pi4u6 pi4p1 pi5u1 --tex 30 --img 1M --policy Stateless
+# ./storage_mechanism.sh pi5u2 pi4u6 pi4p1 pi5u1 --tex 30 --img 1M --policy Stateless
 # ./workflow_latency.sh pi5u2 pi4u6 pi4p1 pi5u1 --tex 30 --img 1M --policy Skylark
 # ./workflow_latency.sh pi5u2 pi4u6 pi4p1 pi5u1 --tex 30 --img 1M --policy Random
 # ./workflow_latency.sh pi5u2 pi4u6 pi4p1 pi5u1 --tex 30 --img 2M --policy Stateless

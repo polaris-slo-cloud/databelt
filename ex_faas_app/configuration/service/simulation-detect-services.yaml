@@ -116,6 +116,7 @@ spec:
     metadata:
       annotations:
         module.wasm.image/variant: compat-smart
+        autoscaling.knative.dev/scale-down-delay: "10m"
     spec:
       nodeSelector:
         node-name: pi4u5
@@ -152,6 +153,7 @@ spec:
     metadata:
       annotations:
         module.wasm.image/variant: compat-smart
+        autoscaling.knative.dev/scale-down-delay: "10m"
     spec:
       nodeSelector:
         node-name: pi4u6
@@ -224,6 +226,7 @@ spec:
     metadata:
       annotations:
         module.wasm.image/variant: compat-smart
+        autoscaling.knative.dev/scale-down-delay: "10m"
     spec:
       nodeSelector:
         node-name: pi4p1

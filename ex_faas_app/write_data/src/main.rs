@@ -3,10 +3,7 @@ use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode, Uri};
 use rand::distributions::Alphanumeric;
 use rand::Rng;
-use skylark_lib::{
-    skylark_lib_version, start_timing, store_bundled_state, store_single_state, SkylarkPolicy,
-    SkylarkStorageType,
-};
+use skylark_lib::{init_new_chain, skylark_lib_version, start_timing, store_bundled_state, store_single_state, SkylarkPolicy, SkylarkStorageType};
 use std::env;
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
@@ -100,6 +97,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
     match (req.method(), req.uri().path()) {
         (&Method::GET, "/single") => {
             info!("Incoming");
+            init_new_chain().await;
             start_timing().await;
             let policy: SkylarkPolicy;
             let dest_node: String;
@@ -148,6 +146,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
         (&Method::GET, "/bundled") => {
             info!("Incoming");
             start_timing().await;
+            init_new_chain().await;
             let policy: SkylarkPolicy;
             let dest_node: String;
             let size_kb: usize;

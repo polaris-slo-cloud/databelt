@@ -1,20 +1,13 @@
 #!/bin/bash
 
-# ./workflow_latency.sh pi5u2 pi4u6 pi4p1 pi5u1 --tex 30 --img 1M --policy Stateless
-# ./workflow_latency.sh pi5u2 pi4u6 pi4p1 pi5u1 --tex 30 --img 1M --policy Skylark
-# ./workflow_latency.sh pi5u2 pi4u6 pi4p1 pi5u1 --tex 30 --img 1M --policy Random
-# ./workflow_latency.sh pi5u2 pi4u6 pi4p1 pi5u1 --tex 30 --img 2M --policy Stateless
-# ./workflow_latency.sh pi5u2 pi4u6 pi4p1 pi5u1 --tex 30 --img 2M --policy Skylark
-# ./workflow_latency.sh pi5u2 pi4u6 pi4p1 pi5u1 --tex 30 --img 2M --policy Random
-# ./workflow_latency.sh pi5u2 pi4u6 pi4p1 pi5u1 --tex 30 --img 2K --policy Stateless
-# ./workflow_latency.sh pi5u2 pi4u6 pi4p1 pi5u1 --tex 30 --img 2K --policy Skylark
-# ./workflow_latency.sh pi5u2 pi4u6 pi4p1 pi5u1 --tex 30 --img 2K --policy Random
+# ./storage_mechanism.sh pi5u2 pi4u6 pi4p1 pi5u1 --tex 30 --img 1M --policy Stateless
 # pi5u2 -> pi4u6 -> pi4p1 -> pi5u1
 # Default values for optional arguments
-TEX="20"
+STYPE="single"
+BSIZE="1"
+SIZE="1"
 POLICY="Skylark"
 DESTINATION="pi5u1"
-IMG="2K" # 2K/1M/2M
 
 N1=$1
 N2=$2

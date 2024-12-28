@@ -2,7 +2,7 @@ use hyper::server::conn::Http;
 use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode, Uri};
 use sha2::{Digest, Sha256};
-use skylark_lib::{get_bundled_state, skylark_lib_version, start_timing, store_bundled_state, SkylarkPolicy};
+use skylark_lib::{get_bundled_state, init_new_chain, skylark_lib_version, start_timing, store_bundled_state, SkylarkPolicy};
 use std::env;
 use std::net::SocketAddr;
 use std::time::Instant;
@@ -82,11 +82,12 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
         (&Method::GET, "/get-and-set") => {
             info!("get-and-set: Incoming");
             start_timing().await;
+            init_new_chain().await;
             let timer_tf = Instant::now();
             let policy: SkylarkPolicy;
             let dest_node: String;
             let key: String;
-            let task_ids: Vec<String> = vec![];
+            let mut task_ids: Vec<String> = vec![];
             (policy, dest_node, key, task_ids) = match parse_workflow_metadata(req.uri()) {
                 Ok(res) => res,
                 Err(e) => {

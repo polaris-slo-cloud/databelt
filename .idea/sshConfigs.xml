@@ -17,8 +17,8 @@
       <sshConfig authType="PASSWORD" host="pi4u5" id="229a1c4e-1972-4f6d-8147-85599410fa9b" port="22" customName="pi4u5@58" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
         <option name="customName" value="pi4u5@58" />
       </sshConfig>
-      <sshConfig authType="PASSWORD" host="pi4u6" id="a6ca58ac-d9f4-4ee1-8bb7-7c93cde95a62" port="22" customName="pi4u6@123" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
-        <option name="customName" value="pi4u6@123" />
+      <sshConfig authType="PASSWORD" host="pi4u6" id="a6ca58ac-d9f4-4ee1-8bb7-7c93cde95a62" port="22" customName="pi4u6@122" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
+        <option name="customName" value="pi4u6@122" />
       </sshConfig>
       <sshConfig authType="PASSWORD" host="pi4u7" id="42afebca-d9bc-41ee-afef-0dc8cce06f51" port="22" customName="pi4u7@96" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
         <option name="customName" value="pi4u7@96" />

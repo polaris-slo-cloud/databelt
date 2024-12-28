@@ -2,7 +2,7 @@ use hyper::server::conn::Http;
 use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode, Uri};
 use sha2::{Digest, Sha256};
-use skylark_lib::{get_single_state, skylark_lib_version, start_timing, store_single_state, SkylarkPolicy, SkylarkStorageType};
+use skylark_lib::{get_single_state, init_new_chain, skylark_lib_version, start_timing, store_single_state, SkylarkPolicy, SkylarkStorageType};
 use std::env;
 use std::net::SocketAddr;
 use std::time::Instant;
@@ -73,9 +73,10 @@ fn parse_workflow_metadata(
 
 async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
     match (req.method(), req.uri().path()) {
-        (&Method::GET, "/") => {
+        (&Method::GET, "/get-and-set") => {
             info!("Incoming");
             start_timing().await;
+            init_new_chain().await;
             let timer_tf = Instant::now();
             let policy: SkylarkPolicy;
             let dest_node: String;

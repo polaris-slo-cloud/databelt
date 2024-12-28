@@ -13,7 +13,7 @@ spec:
         node-name: pi5u1
       runtimeClassName: wasmedge
       containers:
-        - image: guelmino/skylark-write-data:0.1.1003
+        - image: guelmino/skylark-write-data:0.1.1004
           ports:
             - containerPort: 8080
           readinessProbe:
