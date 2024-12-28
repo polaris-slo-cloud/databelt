@@ -13,8 +13,8 @@ wasmedge compile target/wasm32-wasip1/release/skylark_api.wasm skylark_api.wasm
 
 ### Docker Build and Push
 ```bash
-docker buildx build --platform wasi/wasm --provenance=false -t guelmino/skylark-api:0.2.740 .
-docker push guelmino/skylark-api:0.2.740
+docker buildx build --platform wasi/wasm --provenance=false -t guelmino/skylark-api:0.2.741 .
+docker push guelmino/skylark-api:0.2.741
 ```
 
 ### Deploy
@@ -30,9 +30,9 @@ curl -v  http://10.0.0.34:8081/health; curl -v  http://10.0.0.45:8081/health; cu
 curl http://10.0.0.34:8081/refresh; curl http://10.0.0.45:8081/refresh; curl http://10.0.0.167:8081/refresh; curl http://10.0.0.58:8081/refresh; curl http://10.0.0.122:8081/refresh; curl http://10.0.0.210:8081/refresh; curl http://10.0.0.245:8081/refresh; curl http://10.0.0.243:8081/refresh
 
 curl - http://10.0.0.167:8081/storage-node?size=3000\&time=57\&policy=Skylark\&destination=pi5u1
-curl -v http://10.0.0.34:8081/save/edge -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","task_id": "fn1"},"value": "V0.2.740E"}'
-curl -v http://10.0.0.34:8081/save/cloud -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","task_id": "fn1"},"value": "V0.2.740C"}'
-curl -v http://10.0.0.34:8081/save/sat -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","task_id": "fn1"},"value": "V0.2.740S"}'
+curl -v http://10.0.0.34:8081/save/edge -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","task_id": "fn1"},"value": "V0.2.741E"}'
+curl -v http://10.0.0.34:8081/save/cloud -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","task_id": "fn1"},"value": "V0.2.741C"}'
+curl -v http://10.0.0.34:8081/save/sat -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","task_id": "fn1"},"value": "V0.2.741S"}'
 curl -v http://10.0.0.34:8081/save/sat -H "Content-Type: application/json" -d '{"key":{"chain_id":"78599338-10aa-41be-961e-227d91b690be","task_id":"ex_preprocess"},"value":"11b430a1795c0608903b6d6f4ff2565b32c3456c0ddc74ad4ef2fc92205b211a"}'
 curl -v http://10.0.0.34:8081/state?key=ch1:fn1
 curl -X DELETE -v http://10.0.0.34:8081/state?key=ch1:fn1

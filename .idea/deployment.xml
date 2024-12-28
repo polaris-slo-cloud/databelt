@@ -10,6 +10,13 @@
           </mappings>
         </serverdata>
       </paths>
+      <paths name="Experiments -&gt; pi5u2">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/" local="$PROJECT_DIR$/experiments" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="deployment configs -&gt; pi5u1">
         <serverdata>
           <mappings>

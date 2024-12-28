@@ -14,11 +14,11 @@ use hyper::{Body, Error, Method, Request, Uri};
 use hyper::{Response, StatusCode};
 use lazy_static::lazy_static;
 use std::collections::HashMap;
-use std::{env, fs};
 use std::net::SocketAddr;
 use std::string::ToString;
-use std::sync::{Mutex};
+use std::sync::Mutex;
 use std::time::{Duration, Instant};
+use std::{env, fs};
 use tokio::net::TcpListener;
 use url::Url;
 
@@ -56,16 +56,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let listener = TcpListener::bind(addr).await?;
     info!("Listening on http://{}", addr);
 
-    let refresh_rate = env::var("NODE_REFRESH_INTERVAL_SECS")
-        .unwrap()
-        .parse::<u64>()
-        .unwrap();
-    info!(
-        "Starting node graph handler with refresh rate of {}sec",
-        refresh_rate
-    );
+    info!("Starting node graph handler");
     tokio::spawn(async move {
         loop {
+            let refresh_rate = env::var("NODE_REFRESH_INTERVAL_SECS")
+                .unwrap()
+                .parse::<u64>()
+                .unwrap();
+            debug!("node_graph_handler: refresh rate: {}s", refresh_rate);
             if let Err(err) = node_graph_handler(&node_info_url).await {
                 error!("Error monitoring node graph: {:?}", err);
             }
@@ -88,8 +86,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 async fn node_graph_handler(node_info_url: &String) -> Result<(), SkylarkTopologyError> {
-    match get_from_url::<NodeGraph>(&format!("{}/{}-topology", node_info_url, env::var("TOPOLOGY_MODE").unwrap_or("static".to_string())).as_str()).await
-    {
+    let endpoint = format!(
+        "{}/{}-topology",
+        node_info_url,
+        env::var("TOPOLOGY_MODE")
+            .unwrap_or("static".to_string())
+            .as_str()
+    );
+    debug!("node_graph_handler: NodeGraph updated ({})", env::var("TOPOLOGY_MODE").unwrap());
+    match get_from_url::<NodeGraph>(&endpoint).await {
         Err(e) => {
             error!("node_graph_handler: failed to get node graph!\n {:?}", e);
             return Err(SkylarkTopologyError.into());
@@ -201,7 +206,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, Error> {
                         .status(StatusCode::BAD_REQUEST)
                         .body(Body::from(e.to_string()))
                         .unwrap())
-                        .into();
+                    .into();
                 }
             };
             benchmark(params.0, params.1).await
@@ -265,7 +270,10 @@ async fn elect_storage_node(
                     let node = node_map.get(&node_name).unwrap();
                     Ok(Response::builder()
                         .status(StatusCode::OK)
-                        .header("policy-execution-time", timer.elapsed().as_millis().to_string())
+                        .header(
+                            "policy-execution-time",
+                            timer.elapsed().as_millis().to_string(),
+                        )
                         .body(Body::from(node.node_ip().to_string()))
                         .unwrap())
                 }
@@ -287,7 +295,10 @@ async fn elect_storage_node(
                     let node = node_map.get(&node_name).unwrap();
                     Ok(Response::builder()
                         .status(StatusCode::OK)
-                        .header("policy-execution-time", timer.elapsed().as_millis().to_string())
+                        .header(
+                            "policy-execution-time",
+                            timer.elapsed().as_millis().to_string(),
+                        )
                         .body(Body::from(node.node_ip().to_string()))
                         .unwrap())
                 }
@@ -312,69 +323,111 @@ async fn elect_storage_node(
                     let ip = node.node_ip().to_string();
                     Ok(Response::builder()
                         .status(StatusCode::OK)
-                        .header("policy-execution-time", timer.elapsed().as_millis().to_string())
+                        .header(
+                            "policy-execution-time",
+                            timer.elapsed().as_millis().to_string(),
+                        )
                         .body(Body::from(ip))
                         .unwrap())
-                },
-                None => {
-                    Ok(Response::builder()
-                        .status(StatusCode::NOT_FOUND)
-                        .body(Body::from("StatelessPolicy: IP of destination node not found"))
-                        .unwrap())
                 }
+                None => Ok(Response::builder()
+                    .status(StatusCode::NOT_FOUND)
+                    .body(Body::from(
+                        "StatelessPolicy: IP of destination node not found",
+                    ))
+                    .unwrap()),
             }
         }
     }
 }
 
-async fn benchmark(
-    size: i64,
-    time: i64,
-) -> Result<Response<Body>, Error> {
+async fn benchmark(size: i64, time: i64) -> Result<Response<Body>, Error> {
     info!("benchmark: initializing");
     let slo = OBJECTIVES.lock().unwrap().clone();
     let graph_10_file = fs::read_to_string("graph_10.json").unwrap();
     let start_10 = "Node1".to_string();
     let destination_10 = "Node6".to_string();
-    let graph_10: HashMap<String, Vec<(String, i64)>> = serde_json::from_str(&graph_10_file).unwrap();
+    let graph_10: HashMap<String, Vec<(String, i64)>> =
+        serde_json::from_str(&graph_10_file).unwrap();
     let graph_100_file = fs::read_to_string("graph_100.json").unwrap();
     let start_100 = "Node51".to_string();
     let destination_100 = "Node58".to_string();
-    let graph_100: HashMap<String, Vec<(String, i64)>> = serde_json::from_str(&graph_100_file).unwrap();
+    let graph_100: HashMap<String, Vec<(String, i64)>> =
+        serde_json::from_str(&graph_100_file).unwrap();
     let graph_1000_file = fs::read_to_string("graph_1000.json").unwrap();
     let start_1000 = "Node18".to_string();
     let destination_1000 = "Node28".to_string();
-    let graph_1000: HashMap<String, Vec<(String, i64)>> = serde_json::from_str(&graph_1000_file).unwrap();
+    let graph_1000: HashMap<String, Vec<(String, i64)>> =
+        serde_json::from_str(&graph_1000_file).unwrap();
     let graph_10000_file = fs::read_to_string("graph_10000.json").unwrap();
     let start_10000 = "Node3615".to_string();
     let destination_10000 = "Node5807".to_string();
-    let graph_10000: HashMap<String, Vec<(String, i64)>> = serde_json::from_str(&graph_10000_file).unwrap();
+    let graph_10000: HashMap<String, Vec<(String, i64)>> =
+        serde_json::from_str(&graph_10000_file).unwrap();
     info!("benchmark: initializing done, starting...");
     let mut timer = Instant::now();
     apply_skylark_policy(&start_10, &destination_10, size, time, &graph_10, &slo);
-    info!("benchmark::SKYLARK: graph_10 done: {}ms", timer.elapsed().as_millis());
+    info!(
+        "benchmark::SKYLARK: graph_10 done: {}ms",
+        timer.elapsed().as_millis()
+    );
     timer = Instant::now();
     apply_skylark_policy(&start_100, &destination_100, size, time, &graph_100, &slo);
-    info!("benchmark::SKYLARK: graph_100 done: {}ms", timer.elapsed().as_millis());
+    info!(
+        "benchmark::SKYLARK: graph_100 done: {}ms",
+        timer.elapsed().as_millis()
+    );
     timer = Instant::now();
-    apply_skylark_policy(&start_1000, &destination_1000, size, time, &graph_1000, &slo);
-    info!("benchmark::SKYLARK: graph_1000 done: {}ms", timer.elapsed().as_millis());
+    apply_skylark_policy(
+        &start_1000,
+        &destination_1000,
+        size,
+        time,
+        &graph_1000,
+        &slo,
+    );
+    info!(
+        "benchmark::SKYLARK: graph_1000 done: {}ms",
+        timer.elapsed().as_millis()
+    );
     timer = Instant::now();
-    apply_skylark_policy(&start_10000, &destination_10000, size, time, &graph_10000, &slo);
-    info!("benchmark::SKYLARK: graph_10000 done: {}ms", timer.elapsed().as_millis());
+    apply_skylark_policy(
+        &start_10000,
+        &destination_10000,
+        size,
+        time,
+        &graph_10000,
+        &slo,
+    );
+    info!(
+        "benchmark::SKYLARK: graph_10000 done: {}ms",
+        timer.elapsed().as_millis()
+    );
 
     timer = Instant::now();
     apply_random_policy(&start_10, &destination_10, &graph_10);
-    info!("benchmark::RANDOM: graph_10 done: {}ms", timer.elapsed().as_millis());
+    info!(
+        "benchmark::RANDOM: graph_10 done: {}ms",
+        timer.elapsed().as_millis()
+    );
     timer = Instant::now();
     apply_random_policy(&start_100, &destination_100, &graph_100);
-    info!("benchmark::RANDOM: graph_100 done: {}ms", timer.elapsed().as_millis());
+    info!(
+        "benchmark::RANDOM: graph_100 done: {}ms",
+        timer.elapsed().as_millis()
+    );
     timer = Instant::now();
     apply_random_policy(&start_1000, &destination_1000, &graph_1000);
-    info!("benchmark::RANDOM: graph_1000 done: {}ms", timer.elapsed().as_millis());
+    info!(
+        "benchmark::RANDOM: graph_1000 done: {}ms",
+        timer.elapsed().as_millis()
+    );
     timer = Instant::now();
     apply_random_policy(&start_10000, &destination_10000, &graph_10000);
-    info!("benchmark::RANDOM: graph_10000 done: {}ms", timer.elapsed().as_millis());
+    info!(
+        "benchmark::RANDOM: graph_10000 done: {}ms",
+        timer.elapsed().as_millis()
+    );
 
     Ok(Response::builder()
         .status(StatusCode::OK)
@@ -396,8 +449,7 @@ async fn init(node_info_url: &String) -> Result<(), Box<dyn std::error::Error>> 
             LOCAL_NODE.lock().unwrap().clone_from(&node);
         }
     }
-    match get_from_url::<SkylarkSLOs>(&format!("{}/{}", node_info_url, "objectives").as_str())
-        .await
+    match get_from_url::<SkylarkSLOs>(&format!("{}/{}", node_info_url, "objectives").as_str()).await
     {
         Err(e) => {
             error!("skylark::init: failed to get objectives!\n {:?}", e);

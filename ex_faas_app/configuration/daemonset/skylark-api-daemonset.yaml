@@ -20,14 +20,14 @@ spec:
       runtimeClassName: wasmedge
       containers:
         - name: skylark-api
-          image: guelmino/skylark-api:0.2.740
+          image: guelmino/skylark-api:0.2.741
           ports:
             - containerPort: 8081
           env:
             - name: RUST_BACKTRACE
               value: "full"
             - name: RUST_LOG
-              value: "debug"
+              value: "info"
             - name: LOCAL_NODE_HOST
               valueFrom:
                 fieldRef:
@@ -35,7 +35,7 @@ spec:
             - name: NODE_INFO_PORT
               value: "8080"
             - name: NODE_REFRESH_INTERVAL_SECS
-              value: "120"
+              value: "12000"
             - name: AVG_SAT_BANDWIDTH
               value: "70"
             - name: TOPOLOGY_MODE

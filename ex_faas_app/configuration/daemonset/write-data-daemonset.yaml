@@ -22,7 +22,7 @@ spec:
       runtimeClassName: wasmedge
       containers:
         - name: skylark-write-data
-          image: guelmino/skylark-write-data:0.1.1002
+          image: guelmino/skylark-write-data:0.1.1003
           ports:
             - containerPort: 8084
           readinessProbe:

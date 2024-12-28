@@ -4,6 +4,7 @@ metadata:
   name: skylark-config
   namespace: default
 data:
+  scale-down-delay: "15m"
   SKYLARK_API_PORT: "8081"
   RUST_LOG: "info"
   RUST_BACKTRACE: "full"

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# ./workflow_latency.sh pi5u2 pi5u4 pi4u8 pi5u1 --tex 30 --img 2K --policy Skylark
-# pi5u2 -> pi5u4 -> pi4u8 -> pi5u1
+# ./workflow_latency.sh pi5u2 pi4u6 pi4p1 pi5u1 --tex 30 --img 1M --policy Skylark
+# pi5u2 -> pi4u6 -> pi4p1 -> pi5u1
 # Default values for optional arguments
 TEX="20"
 POLICY="Skylark"

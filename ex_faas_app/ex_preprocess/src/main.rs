@@ -3,9 +3,7 @@ use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode, Uri};
 use rand::distributions::Alphanumeric;
 use rand::Rng;
-use skylark_lib::{
-    skylark_lib_version, start_timing, store_single_state, SkylarkPolicy, SkylarkStorageType,
-};
+use skylark_lib::{init_new_chain, skylark_lib_version, start_timing, store_single_state, SkylarkPolicy, SkylarkStorageType};
 use std::env;
 use std::fs::File;
 use std::io::Read;
@@ -85,6 +83,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
         (&Method::GET, "/") => {
             info!("Incoming");
             start_timing().await;
+            init_new_chain().await;
             let timer_tf = Instant::now();
             let policy: SkylarkPolicy;
             let dest_node: String;

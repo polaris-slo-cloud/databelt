@@ -1,6 +1,6 @@
 [package]
 name = "skylark_api"
-version = "0.2.740"
+version = "0.2.741"
 edition = "2021"
 
 [dependencies]

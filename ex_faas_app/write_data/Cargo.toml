@@ -1,6 +1,6 @@
 [package]
 name = "write_data"
-version = "0.1.1002"
+version = "0.1.1003"
 edition = "2021"
 
 [dependencies]
