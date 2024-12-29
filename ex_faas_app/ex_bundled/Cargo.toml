@@ -1,6 +1,6 @@
 [package]
 name = "ex_bundled"
-version = "0.2.907"
+version = "0.2.908"
 edition = "2021"
 
 [dependencies]

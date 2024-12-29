@@ -11,8 +11,8 @@ wasmedge compile target/wasm32-wasip1/release/write_data.wasm write_data.wasm
 
 ### Docker Build and Push
 ```bash
-docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-write-data:0.1.1004 .
-docker push guelmino/skylark-write-data:0.1.1004
+docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-write-data:0.1.1005 .
+docker push guelmino/skylark-write-data:0.1.1005
 ```
 ### Deploy
 ```bash

@@ -3,7 +3,10 @@ use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode, Uri};
 use rand::distributions::Alphanumeric;
 use rand::Rng;
-use skylark_lib::{init_new_chain, skylark_lib_version, start_timing, store_bundled_state, store_single_state, SkylarkPolicy, SkylarkStorageType};
+use skylark_lib::{
+    init_new_chain, skylark_lib_version, start_timing, store_bundled_state, store_single_state,
+    SkylarkPolicy,
+};
 use std::env;
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
@@ -37,12 +40,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     }
 }
 
-fn parse_workflow_metadata(
-    uri: &Uri,
-) -> Result<(SkylarkPolicy, SkylarkStorageType, String, usize, usize), Box<dyn std::error::Error>> {
+fn parse_query_data(uri: &Uri) -> Result<(String, usize, usize), Box<dyn std::error::Error>> {
     debug!("Parsing URI: {}", uri);
-    let mut parsed_policy = SkylarkPolicy::Stateless;
-    let mut parsed_storage_type = SkylarkStorageType::Single;
     let mut parsed_destination_node: String = "pi5u1".to_string();
     let mut parsed_size_kb: usize = 100;
     let mut parsed_state_count: usize = 1;
@@ -56,10 +55,7 @@ fn parse_workflow_metadata(
     let params = request_url.query_pairs();
     for param in params {
         debug!("Parsing parameter: {}={}", param.0, param.1);
-        if param.0.eq_ignore_ascii_case("policy") {
-            debug!("Parsing policy: {}", param.1);
-            parsed_policy = SkylarkPolicy::try_from(param.1.to_string()).unwrap();
-        } else if param.0.eq_ignore_ascii_case("destination") {
+        if param.0.eq_ignore_ascii_case("destination") {
             debug!("Parsing destination: {}", param.1);
             parsed_destination_node = param.1.to_string();
         } else if param.0.eq_ignore_ascii_case("size") {
@@ -78,19 +74,9 @@ fn parse_workflow_metadata(
                     return Err(e.into());
                 }
             };
-        } else if param.0.eq_ignore_ascii_case("stype") {
-            debug!("Parsing storage type: {}", param.1);
-            debug!("Parsing policy: {}", param.1);
-            parsed_storage_type = SkylarkStorageType::try_from(param.1.to_string()).unwrap();
         }
     }
-    Ok((
-        parsed_policy,
-        parsed_storage_type,
-        parsed_destination_node,
-        parsed_size_kb,
-        parsed_state_count,
-    ))
+    Ok((parsed_destination_node, parsed_size_kb, parsed_state_count))
 }
 
 async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
@@ -99,31 +85,25 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             info!("Incoming");
             init_new_chain().await;
             start_timing().await;
-            let policy: SkylarkPolicy;
             let dest_node: String;
             let size_kb: usize;
             let state_count: usize;
-            let storage_type: SkylarkStorageType;
-            (policy, storage_type, dest_node, size_kb, state_count) =
-                match parse_workflow_metadata(req.uri()) {
-                    Ok(res) => res,
-                    Err(e) => {
-                        error!("Error parsing URI: {}", e.to_string());
-                        return Ok(Response::builder()
-                            .status(StatusCode::BAD_REQUEST)
-                            .body(hyper::Body::from("Not able to parse URL"))
-                            .unwrap());
-                    }
-                };
+            (dest_node, size_kb, state_count) = match parse_query_data(req.uri()) {
+                Ok(res) => res,
+                Err(e) => {
+                    error!("Error parsing URI: {}", e.to_string());
+                    return Ok(Response::builder()
+                        .status(StatusCode::BAD_REQUEST)
+                        .body(hyper::Body::from("Not able to parse URL"))
+                        .unwrap());
+                }
+            };
             debug!("Parsed state_count: {:?}", state_count);
             let rnd_str = generate_random_data(size_kb);
-            match store_single_state(rnd_str, &dest_node, &policy, &storage_type).await {
+            match store_single_state(rnd_str, &dest_node, &SkylarkPolicy::Stateless).await {
                 Ok(key) => {
                     info!("single_handler::store_state: OK");
-                    debug!(
-                        "single_handler::store_state: skylark lib result: {:?}",
-                        key
-                    );
+                    debug!("single_handler::store_state: skylark lib result: {:?}", key);
                     Ok(Response::builder()
                         .status(StatusCode::OK)
                         .header("Node-Name", env::var("NODE_NAME").unwrap())
@@ -147,23 +127,19 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             info!("Incoming");
             start_timing().await;
             init_new_chain().await;
-            let policy: SkylarkPolicy;
             let dest_node: String;
             let size_kb: usize;
             let state_count: usize;
-            let storage_type: SkylarkStorageType;
-            (policy, storage_type, dest_node, size_kb, state_count) =
-                match parse_workflow_metadata(req.uri()) {
-                    Ok(res) => res,
-                    Err(e) => {
-                        error!("Error parsing URI: {}", e.to_string());
-                        return Ok(Response::builder()
-                            .status(StatusCode::BAD_REQUEST)
-                            .body(hyper::Body::from("Not able to parse URL"))
-                            .unwrap());
-                    }
-                };
-            debug!("Parsed storage_type: {:?}", storage_type);
+            (dest_node, size_kb, state_count) = match parse_query_data(req.uri()) {
+                Ok(res) => res,
+                Err(e) => {
+                    error!("Error parsing URI: {}", e.to_string());
+                    return Ok(Response::builder()
+                        .status(StatusCode::BAD_REQUEST)
+                        .body(hyper::Body::from("Not able to parse URL"))
+                        .unwrap());
+                }
+            };
             let rnd_str = generate_random_data(size_kb);
             let mut bundled_state: Vec<(String, String)> = vec![];
             for n in 1..(state_count + 1) {
@@ -172,7 +148,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                 bundled_state.push((fn_name.clone(), rnd_str.clone()));
             }
 
-            match store_bundled_state(bundled_state, &dest_node, &policy).await {
+            match store_bundled_state(bundled_state, &dest_node, &SkylarkPolicy::Stateless).await {
                 Ok(key) => {
                     info!("bundled_handler::store_state: OK");
                     debug!(

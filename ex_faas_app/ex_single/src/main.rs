@@ -2,7 +2,10 @@ use hyper::server::conn::Http;
 use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode, Uri};
 use sha2::{Digest, Sha256};
-use skylark_lib::{get_single_state, init_new_chain, skylark_lib_version, start_timing, store_single_state, SkylarkPolicy, SkylarkStorageType};
+use skylark_lib::{
+    get_single_state, init_new_chain, skylark_lib_version, start_timing, store_single_state,
+    SkylarkPolicy,
+};
 use std::env;
 use std::net::SocketAddr;
 use std::time::Instant;
@@ -40,11 +43,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
-fn parse_workflow_metadata(
+fn parse_query_data(
     uri: &Uri,
 ) -> Result<(SkylarkPolicy, String, String), Box<dyn std::error::Error>> {
     debug!("Parsing URI: {}", uri);
-    let mut parsed_policy = SkylarkPolicy::Skylark;
+    let mut parsed_policy = SkylarkPolicy::Stateless;
     let mut parsed_destination_node: String = "pi5u1".to_string();
     let mut parsed_key: String = "".to_string();
     let request_url = match Url::parse(&format!("http://ex.at{}", uri.to_string())) {
@@ -81,7 +84,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             let policy: SkylarkPolicy;
             let dest_node: String;
             let key: String;
-            (policy, dest_node, key) = match parse_workflow_metadata(req.uri()) {
+            (policy, dest_node, key) = match parse_query_data(req.uri()) {
                 Ok(res) => res,
                 Err(e) => {
                     error!("Error parsing URI: {}", e.to_string());
@@ -92,7 +95,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                 }
             };
             let timer_tdr = Instant::now();
-            let state: String = match get_single_state(&key, &policy, &SkylarkStorageType::Single).await {
+            let state: String = match get_single_state(&key, &policy).await {
                 Ok(s) => {
                     info!("get_state: OK");
                     debug!("get_state: found state of length {}", s.len());
@@ -112,10 +115,13 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             let mut hasher = Sha256::new();
             hasher.update(state.as_bytes());
             let data_hash = format!("{:x}", hasher.finalize());
-            debug!("generated data hash {}, attempting to store state", data_hash);
+            debug!(
+                "generated data hash {}, attempting to store state",
+                data_hash
+            );
             let tex = timer_ex.elapsed().as_millis();
             let timer_tdm = Instant::now();
-            match store_single_state(state, &dest_node, &policy, &SkylarkStorageType::Single).await {
+            match store_single_state(state, &dest_node, &policy).await {
                 Ok(key) => {
                     debug!("store_state: skylark lib result: {:?}", key);
                     let tf = timer_tf.elapsed().as_millis();

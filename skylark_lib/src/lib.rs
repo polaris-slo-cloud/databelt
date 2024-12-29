@@ -7,7 +7,7 @@ mod model;
 mod redis_client;
 
 pub use crate::model::{
-    SkylarkBundledState, SkylarkKey, SkylarkPolicy, SkylarkState, SkylarkStorageType,
+    SkylarkBundledState, SkylarkKey, SkylarkPolicy, SkylarkState,
 };
 use lazy_static::lazy_static;
 use std::env;
@@ -18,10 +18,7 @@ use tokio::sync::Mutex;
 extern crate pretty_env_logger;
 use crate::error::{ParseSkylarkKeyError, SkylarkStateError};
 use crate::http_client::{get_neighbors, get_storage_node};
-use crate::redis_client::{
-    del_state_by_host, get_bundled_state_by_host, get_single_state_by_host,
-    set_bundled_state_by_host, set_single_state_by_host,
-};
+use crate::redis_client::{del_bundled_state_by_host, del_single_state_by_host, get_bundled_state_by_host, get_single_state_by_host, set_bundled_state_by_host, set_single_state_by_host};
 use uuid::Uuid;
 
 #[macro_use]
@@ -64,8 +61,7 @@ async fn check_neighbors() {
 
 pub async fn get_single_state(
     key: &String,
-    policy: &SkylarkPolicy,
-    storage_type: &SkylarkStorageType,
+    policy: &SkylarkPolicy
 ) -> Result<String> {
     // Fetch state for given `key` based on policy
     // Stateless: 1. global
@@ -84,7 +80,7 @@ pub async fn get_single_state(
     output_key.set_node_id(env::var("LOCAL_NODE_HOST").unwrap());
     output_key.set_task_id(Uuid::new_v4().to_string());
     debug!("get_single_state: fetch state based on policy: {}", policy);
-    match get_single_state_by_host(&input_key, input_key.node_id(), storage_type).await
+    match get_single_state_by_host(&input_key, input_key.node_id()).await
     {
         Ok(local_state) => {
             info!("HOPS: {} -> {}", env::var("LOCAL_NODE_HOST").unwrap(), input_key.node_id());
@@ -134,8 +130,7 @@ pub async fn get_bundled_state(
 pub async fn store_single_state(
     final_state: String,
     destination_host: &String,
-    policy: &SkylarkPolicy,
-    storage_type: &SkylarkStorageType,
+    policy: &SkylarkPolicy
 ) -> Result<String> {
     // Fetch target host to store state based on `policy` for `destination` host.
     debug!("store_single_state: incoming");
@@ -168,7 +163,7 @@ pub async fn store_single_state(
     let skylark_state = SkylarkState::new(output_key.clone(), final_state);
     // Store state to elected and global store
     let tde = Instant::now();
-    match set_single_state_by_host(&skylark_state, &elected_host, storage_type).await {
+    match set_single_state_by_host(&skylark_state, &elected_host).await {
         Ok(_) => {
             info!("T(de): {:?}ms", tde.elapsed().as_millis());
             debug!("store_single_state: successfully stored state");
@@ -230,17 +225,35 @@ pub async fn store_bundled_state(
     Ok(output_key.to_string())
 }
 
-pub async fn delete_state(key: String, storage_type: &SkylarkStorageType) -> Result<()> {
+pub async fn delete_single_state(key: String) -> Result<()> {
     // Deletes state from previous host and global state host.
-    debug!("delete_state: Incoming");
+    debug!("delete_single_state: Incoming for key {}", key);
     let parsed_key = SkylarkKey::try_from(key.clone()).unwrap();
-    match del_state_by_host(&parsed_key, parsed_key.node_id(), storage_type).await {
+    match del_single_state_by_host(&parsed_key, parsed_key.node_id()).await {
         Ok(_) => {
-            debug!("delete_state: deleted from host: {}", parsed_key.node_id());
+            debug!("delete_single_state: deleted from host: {}", parsed_key.node_id());
         }
         Err(e) => {
             warn!(
-                "delete_state: failed to delete state from previous host: {:?}",
+                "delete_single_state: failed to delete state from previous host: {:?}",
+                e
+            );
+        }
+    }
+    Ok(())
+}
+
+pub async fn delete_bundled_state(key: String) -> Result<()> {
+    // Deletes state from previous host and global state host.
+    debug!("delete_bundled_state: Incoming for key {}", key);
+    let parsed_key = SkylarkKey::try_from(key.clone()).unwrap();
+    match del_bundled_state_by_host(&parsed_key, parsed_key.node_id()).await {
+        Ok(_) => {
+            debug!("delete_bundled_state: deleted from host: {}", parsed_key.node_id());
+        }
+        Err(e) => {
+            warn!(
+                "delete_bundled_state: failed to delete state from previous host: {:?}",
                 e
             );
         }

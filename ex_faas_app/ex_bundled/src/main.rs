@@ -2,7 +2,10 @@ use hyper::server::conn::Http;
 use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode, Uri};
 use sha2::{Digest, Sha256};
-use skylark_lib::{get_bundled_state, init_new_chain, skylark_lib_version, start_timing, store_bundled_state, SkylarkPolicy};
+use skylark_lib::{
+    get_bundled_state, init_new_chain, skylark_lib_version, start_timing, store_bundled_state,
+    SkylarkPolicy,
+};
 use std::env;
 use std::net::SocketAddr;
 use std::time::Instant;
@@ -40,14 +43,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
-fn parse_workflow_metadata(
+fn parse_query_data(
     uri: &Uri,
-) -> Result<(SkylarkPolicy, String, String, Vec<String>), Box<dyn std::error::Error>> {
+) -> Result<(SkylarkPolicy, String, String), Box<dyn std::error::Error>> {
     debug!("Parsing URI: {}", uri);
-    let mut parsed_policy = SkylarkPolicy::Skylark;
+    let mut parsed_policy = SkylarkPolicy::Stateless;
     let mut parsed_destination_node: String = "pi5u1".to_string();
     let mut parsed_key: String = "".to_string();
-    let mut parsed_task_ids: Vec<String> = vec![];
     let request_url = match Url::parse(&format!("http://ex.at{}", uri.to_string())) {
         Ok(url) => url,
         Err(e) => {
@@ -67,14 +69,9 @@ fn parse_workflow_metadata(
         } else if param.0.eq_ignore_ascii_case("key") {
             debug!("Parsing key: {}", param.1);
             parsed_key = param.1.to_string();
-        } else if param.0.eq_ignore_ascii_case("tasks") {
-            debug!("Parsing tasks: {}", param.1);
-            for step in param.1.split(",") {
-                parsed_task_ids.push(step.to_string());
-            }
         }
     }
-    Ok((parsed_policy, parsed_destination_node, parsed_key, parsed_task_ids))
+    Ok((parsed_policy, parsed_destination_node, parsed_key))
 }
 
 async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
@@ -87,8 +84,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             let policy: SkylarkPolicy;
             let dest_node: String;
             let key: String;
-            let mut task_ids: Vec<String> = vec![];
-            (policy, dest_node, key, task_ids) = match parse_workflow_metadata(req.uri()) {
+            (policy, dest_node, key) = match parse_query_data(req.uri()) {
                 Ok(res) => res,
                 Err(e) => {
                     error!("Error parsing URI: {}", e.to_string());
@@ -102,7 +98,10 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             let states: Vec<(String, String)> = match get_bundled_state(&key, &policy).await {
                 Ok(s) => {
                     info!("get-and-set::get_bundled_state: OK");
-                    debug!("get-and-set::get_bundled_state: found state of {} functions", s.len());
+                    debug!(
+                        "get-and-set::get_bundled_state: found state of {} functions",
+                        s.len()
+                    );
                     s
                 }
                 Err(err) => {
@@ -118,7 +117,11 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             let mut df = 0;
             for state in &states {
                 let mut hasher = Sha256::new();
-                debug!("get-and-set: hashing state for function {} with length {:?}", &state.0, state.1.len());
+                debug!(
+                    "get-and-set: hashing state for function {} with length {:?}",
+                    &state.0,
+                    state.1.len()
+                );
                 df += state.1.len();
                 hasher.update(state.1.as_bytes());
                 let data_hash = format!("{:x}", hasher.finalize());
@@ -128,7 +131,10 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             let timer_tdm = Instant::now();
             match store_bundled_state(states, &dest_node, &policy).await {
                 Ok(key) => {
-                    debug!("get-and-set::store_bundled_state: skylark lib result: {:?}", key);
+                    debug!(
+                        "get-and-set::store_bundled_state: skylark lib result: {:?}",
+                        key
+                    );
                     let tf = timer_tf.elapsed().as_millis();
                     let tdm = timer_tdm.elapsed().as_millis();
                     info!("\n\tRESULT\n\tT(f)\t\t{:?}\n\tT(ex)\t\t{:?}\n\tT(dm)\t\t{:?}\n\tT(dr)\t\t{:?}\n\tD(f)\t\t{:?}", tf, tex, tdm, tdr, df);

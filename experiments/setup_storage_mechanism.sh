@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# ./storage_mechanism.sh pi5u2 pi4u6 pi4p1 pi5u1 --tex 30 --img 1M --policy Stateless
+# ./setup_storage_mechanism.sh --stype single --bsize 1 --size
 # pi5u2 -> pi4u6 -> pi4p1 -> pi5u1
 # Default values for optional arguments
 STYPE="single"
@@ -9,7 +9,7 @@ SIZE="1"
 POLICY="Skylark"
 DESTINATION="pi5u1"
 
-N1=$1
+STYPE=$1
 N2=$2
 N3=$3
 N4=$4

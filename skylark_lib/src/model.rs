@@ -187,24 +187,3 @@ impl Display for SkylarkPolicy {
         write!(f, "{:?}", self)
     }
 }
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub enum SkylarkStorageType {
-    Single,
-    Bundled,
-}
-impl From<String> for SkylarkStorageType {
-    fn from(mode: String) -> Self {
-        match mode.to_lowercase().as_str() {
-            "single" => SkylarkStorageType::Single,
-            "bundled" => SkylarkStorageType::Bundled,
-            _ => SkylarkStorageType::Single,
-        }
-    }
-}
-
-impl Display for SkylarkStorageType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
