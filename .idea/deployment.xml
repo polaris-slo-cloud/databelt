@@ -3,6 +3,13 @@
   <component name="PublishConfigData" serverName="deployment configs -&gt; pi5u1" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
     <option name="confirmBeforeUploading" value="false" />
     <serverData>
+      <paths name="Experiments -&gt; pi4u5">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/" local="$PROJECT_DIR$/experiments" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="Experiments -&gt; pi5u1">
         <serverdata>
           <mappings>

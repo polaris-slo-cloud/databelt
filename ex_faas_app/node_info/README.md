@@ -44,6 +44,15 @@ curl http://10.0.0.245:8080/objectives -d '{"min_bandwidth": 60,"max_latency": 1
 curl http://10.0.0.210:8080/objectives -d '{"min_bandwidth": 60,"max_latency": 100}' -H "Content-Type: application/json"
 curl http://10.0.0.122:8080/objectives -d '{"min_bandwidth": 60,"max_latency": 100}' -H "Content-Type: application/json"
 
+curl http://10.0.0.34:8080/refresh
+curl http://10.0.0.45:8080/refresh
+curl http://10.0.0.167:8080/refresh
+curl http://10.0.0.58:8080/refresh
+curl http://10.0.0.243:8080/refresh
+curl http://10.0.0.245:8080/refresh
+curl http://10.0.0.210:8080/refresh
+curl http://10.0.0.122:8080/refresh
+
 curl http://10.0.0.34:8080/health
 curl http://10.0.0.34:8080/local-node-info
 curl http://10.0.0.34:8080/cloud-node-info

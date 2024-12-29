@@ -23,7 +23,8 @@ kubectl delete ksvc skylark-write-data && kubectl delete route skylark-write-dat
 ### Troubleshoot
 ```bash
 # params: policy, destination
-curl -v http://10.0.0.243:8084/single?policy=Stateless\&destination=pi5u1\&stype=Single\&size=500\&scount=1
+curl -v http://10.0.0.243:8084/single?destination=pi5u1\&size=500\&scount=1
+curl -v http://10.0.0.243:8084/bundled?destination=pi5u1\&size=500\&scount=2
 curl -v http://10.0.0.243:8084/single?policy=Stateless\&destination=pi5u1\&stype=Single\&size=500\&scount=1
 curl -v http://10.0.0.243:8084/single?policy=Stateless\&destination=pi5u1\&stype=Single\&size=500\&scount=1
 curl -v http://10.0.0.243:8084/single?policy=Stateless\&destination=pi5u1\&stype=Single\&size=500\&scount=1

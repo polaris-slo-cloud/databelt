@@ -79,6 +79,13 @@
           </advancedOptions>
         </fileTransfer>
       </webServer>
+      <webServer id="9e7b6d43-6c96-4204-9210-9a5eb1101de1" name="Experiments -&gt; pi4u5">
+        <fileTransfer rootFolder="/home/skylark/experiments" accessType="SFTP" host="pi4u5" port="22" sshConfigId="229a1c4e-1972-4f6d-8147-85599410fa9b" sshConfig="pi4u5@58">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
     </option>
   </component>
 </project>

@@ -80,7 +80,6 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             info!("get-and-set: Incoming");
             start_timing().await;
             init_new_chain().await;
-            let timer_tf = Instant::now();
             let policy: SkylarkPolicy;
             let dest_node: String;
             let key: String;
@@ -113,21 +112,6 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                 }
             };
             let tdr = timer_tdr.elapsed().as_millis();
-            let timer_ex = Instant::now();
-            let mut df = 0;
-            for state in &states {
-                let mut hasher = Sha256::new();
-                debug!(
-                    "get-and-set: hashing state for function {} with length {:?}",
-                    &state.0,
-                    state.1.len()
-                );
-                df += state.1.len();
-                hasher.update(state.1.as_bytes());
-                let data_hash = format!("{:x}", hasher.finalize());
-                debug!("get-and-set: generated data hash {}", data_hash);
-            }
-            let tex = timer_ex.elapsed().as_millis();
             let timer_tdm = Instant::now();
             match store_bundled_state(states, &dest_node, &policy).await {
                 Ok(key) => {
@@ -135,12 +119,12 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                         "get-and-set::store_bundled_state: skylark lib result: {:?}",
                         key
                     );
-                    let tf = timer_tf.elapsed().as_millis();
                     let tdm = timer_tdm.elapsed().as_millis();
-                    info!("\n\tRESULT\n\tT(f)\t\t{:?}\n\tT(ex)\t\t{:?}\n\tT(dm)\t\t{:?}\n\tT(dr)\t\t{:?}\n\tD(f)\t\t{:?}", tf, tex, tdm, tdr, df);
+                    let result = format!("{:?}\t{:?}", tdr, tdm);
+                    info!("\n\tRESULT\n\tT(dr)\t\t{:?}\n\tT(dm)\t\t{:?}", tdr, tdm);
                     Ok(Response::builder()
                         .status(StatusCode::OK)
-                        .body(Body::from(key))
+                        .body(Body::from(result))
                         .unwrap())
                 }
                 Err(e) => {

@@ -80,7 +80,6 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             info!("Incoming");
             start_timing().await;
             init_new_chain().await;
-            let timer_tf = Instant::now();
             let policy: SkylarkPolicy;
             let dest_node: String;
             let key: String;
@@ -110,26 +109,16 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                 }
             };
             let tdr = timer_tdr.elapsed().as_millis();
-            let timer_ex = Instant::now();
-            let df = state.len();
-            let mut hasher = Sha256::new();
-            hasher.update(state.as_bytes());
-            let data_hash = format!("{:x}", hasher.finalize());
-            debug!(
-                "generated data hash {}, attempting to store state",
-                data_hash
-            );
-            let tex = timer_ex.elapsed().as_millis();
             let timer_tdm = Instant::now();
             match store_single_state(state, &dest_node, &policy).await {
                 Ok(key) => {
                     debug!("store_state: skylark lib result: {:?}", key);
-                    let tf = timer_tf.elapsed().as_millis();
                     let tdm = timer_tdm.elapsed().as_millis();
-                    info!("\n\tRESULT\n\tT(f)\t\t{:?}\n\tT(ex)\t\t{:?}\n\tT(dm)\t\t{:?}\n\tT(dr)\t\t{:?}\n\tD(f)\t\t{:?}", tf, tex, tdm, tdr, df);
+                    let result = format!("{:?}\t{:?}", tdr, tdm);
+                    info!("\n\tRESULT\n\tT(dr)\t\t{:?}\n\tT(dm)\t\t{:?}", tdr, tdm);
                     Ok(Response::builder()
                         .status(StatusCode::OK)
-                        .body(Body::from(key))
+                        .body(Body::from(result))
                         .unwrap())
                 }
                 Err(e) => {
