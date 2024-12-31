@@ -1,0 +1,104 @@
+State Size: 20MB
+Sat Node: pi4u5
+Cloud Node: pi5u1
+Latency: 60ms 7ms jitter
+Bandwidth: 35Mbit
+
+Run     T(dr)   T(dm)   Single-Stateless-1
+1       10222   9808
+2       6217    10041
+
+Run     T(dr)   T(dm)   Single-Stateless-2
+3       15574   15908
+4       12752   13209
+
+Run     T(dr)   T(dm)   Single-Stateless-3
+5       20775   22073
+6       22462   22939
+
+Run     T(dr)   T(dm)   Single-Stateless-4
+7       23847   29693
+8       25787   27835
+
+Run     T(dr)   T(dm)   Single-Stateless-5
+9       38590   39117
+10      38397   38066
+
+--------------------------------------------------------
+
+Run     T(dr)   T(dm)   Single-Stateful-1
+1       1258    116
+2       1224    113
+
+Run     T(dr)   T(dm)   Single-Stateful-2
+3       2467    220
+4       2572    232
+
+Run     T(dr)   T(dm)   Single-Stateful-3
+5       3910    387
+6       3704    386
+
+Run     T(dr)   T(dm)   Single-Stateful-4
+7       5095    550
+8       4993    1017
+
+Run     T(dr)   T(dm)   Single-Stateful-5
+9       6129    695
+10      6222    699
+
+--------------------------------------------------------
+
+Run     T(dr)   T(dm)   Bundled-Stateless-1
+1       6510    9177
+2       6379    7827
+
+Run     T(dr)   T(dm)   Bundled-Stateless-2
+3       16773   15917
+4       11170   15868
+
+Run     T(dr)   T(dm)   Bundled-Stateless-3
+5       24239   20756
+6       26859   18971
+
+Run     T(dr)   T(dm)   Bundled-Stateless-4
+7       23961   29277
+8       35209   27443
+
+Run     T(dr)   T(dm)   Bundled-Stateless-5
+9       28116   29667
+10      28475   27997
+
+--------------------------------------------------------
+
+Run     T(dr)   T(dm)   Bundled-Stateful-1
+1       1226    179
+2       1305    158
+
+Run     T(dr)   T(dm)   Bundled-Stateful-2
+3       2507    311
+4       2459    367
+
+Run     T(dr)   T(dm)   Bundled-Stateful-3
+5       3610    480
+6       3796    451
+
+Run     T(dr)   T(dm)   Bundled-Stateful-4
+7       5029    575
+8       5089    657
+
+Run     T(dr)   T(dm)   Bundled-Stateful-5
+9       6239    764
+10      6262    770
+
+--------------------------------------------------------
+run,ssl_tdr,ssl_tdm,ssl_tdr,ssf_tdm,bsf_tdr,bsl_tdm,bsf_tdr,bsf_tdm
+0,10222,9808,1258,116,6510,9177,1226,179
+1,6217,10041,1224,113,6379,7827,1305,158
+2,15574,15908,2467,220,16773,15917,2507,311
+3,12752,13209,2572,232,11170,15868,2459,367
+4,20775,22073,3910,387,24239,20756,3610,480
+5,22462,22939,3704,386,26859,18971,3796,451
+6,23847,29693,5095,550,23961,29277,5029,575
+7,25787,27835,4993,1017,35209,27443,5089,657
+8,38590,39117,6129,695,28116,29667,6239,764
+9,38397,38066,6222,699,28475,27997,6262,770

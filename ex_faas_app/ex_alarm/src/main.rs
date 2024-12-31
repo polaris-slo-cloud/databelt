@@ -1,7 +1,7 @@
 use hyper::server::conn::Http;
 use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode, Uri};
-use skylark_lib::{get_single_state, skylark_lib_version, start_timing, store_single_state, SkylarkPolicy, SkylarkStorageType};
+use skylark_lib::{get_single_state, skylark_lib_version, start_timing, SkylarkPolicy};
 use std::env;
 use std::net::SocketAddr;
 use std::time::Instant;
@@ -38,12 +38,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
 fn parse_workflow_metadata(
     uri: &Uri,
-) -> Result<(SkylarkPolicy, String, String, i64), Box<dyn std::error::Error>> {
+) -> Result<(SkylarkPolicy, String), Box<dyn std::error::Error>> {
     debug!("Parsing URI: {}", uri);
     let mut parsed_policy = SkylarkPolicy::Stateless;
-    let mut parsed_destination_node: String = "pi5u1".to_string();
     let mut parsed_key: String = "".to_string();
-    let mut parsed_tex: i64 = 40;
     let request_url = match Url::parse(&format!("http://ex.at{}", uri.to_string())) {
         Ok(url) => url,
         Err(e) => {
@@ -57,18 +55,12 @@ fn parse_workflow_metadata(
         if param.0.eq_ignore_ascii_case("policy") {
             debug!("Parsing policy: {}", param.1);
             parsed_policy = SkylarkPolicy::try_from(param.1.to_string()).unwrap();
-        } else if param.0.eq_ignore_ascii_case("destination") {
-            debug!("Parsing destination: {}", param.1);
-            parsed_destination_node = param.1.to_string();
         } else if param.0.eq_ignore_ascii_case("key") {
             debug!("Parsing key: {}", param.1);
             parsed_key = param.1.to_string();
-        } else if param.0.eq_ignore_ascii_case("tex") {
-            debug!("Parsing tex: {}", param.1);
-            parsed_tex = param.1.to_string().parse::<i64>().unwrap();
         }
     }
-    Ok((parsed_policy, parsed_destination_node, parsed_key, parsed_tex))
+    Ok((parsed_policy, parsed_key))
 }
 
 async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
@@ -76,12 +68,9 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
         (&Method::GET, "/") => {
             info!("Incoming");
             start_timing().await;
-            let timer_tf = Instant::now();
             let policy: SkylarkPolicy;
-            let dest_node: String;
             let key: String;
-            let tex : i64;
-            (policy, dest_node, key, tex) = match parse_workflow_metadata(req.uri()) {
+            (policy, key) = match parse_workflow_metadata(req.uri()) {
                 Ok(res) => res,
                 Err(e) => {
                     error!("Error parsing URI: {}", e.to_string());
@@ -92,51 +81,26 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                 }
             };
             let timer_tdr = Instant::now();
-            let state: String = match get_single_state(&key, &policy, &SkylarkStorageType::Single).await {
+            match get_single_state(&key, &policy).await {
                 Ok(s) => {
                     info!("get_state: OK");
                     debug!("get_state: found state of length {}", s.len());
-                    s
+                    let tdr = timer_tdr.elapsed().as_millis();
+
+                    Ok(Response::builder()
+                        .status(StatusCode::OK)
+                        .body(Body::from(format!("{:?}", tdr)))
+                        .unwrap())
                 }
                 Err(err) => {
                     error!("get_state: Error fetching predecessor state: {:?}", err);
-                    return Ok(Response::builder()
+                    Ok(Response::builder()
                         .status(StatusCode::NOT_FOUND)
                         .body(Body::from("Error fetching predecessor state"))
-                        .unwrap());
-                }
-            };
-            let tdr = timer_tdr.elapsed().as_millis();
-            let df = state.len();
-            // let timer_ex = Instant::now();
-            // let mut hasher = Sha256::new();
-            // hasher.update(state.as_bytes());
-            // let data_hash = format!("{:x}", hasher.finalize());
-            // debug!("generated data hash, attempting to store {}", data_hash);
-            // let tex = timer_ex.elapsed().as_millis();
-            let timer_tdm = Instant::now();
-            match store_single_state(state, &dest_node, &policy, &SkylarkStorageType::Single).await {
-                Ok(key) => {
-                    debug!("store_state: skylark lib result: {:?}", key);
-                    let tf = timer_tf.elapsed().as_millis();
-                    let tdm = timer_tdm.elapsed().as_millis();
-                    info!("\n\tRESULT\n\tT(f)\t\t{:?}\n\tT(ex)\t\t{:?}\n\tT(dm)\t\t{:?}\n\tT(dr)\t\t{:?}\n\tD(f)\t\t{:?}", tf, tex, tdm, tdr, df);
-                    Ok(Response::builder()
-                        .status(StatusCode::OK)
-                        .body(Body::from(key))
-                        .unwrap())
-                }
-                Err(e) => {
-                    error!(
-                        "store_state: Error calling skylark lib store state: {:?}",
-                        e
-                    );
-                    Ok(Response::builder()
-                        .status(StatusCode::INTERNAL_SERVER_ERROR)
-                        .body(Body::from("Error calling skylark lib store state"))
                         .unwrap())
                 }
             }
+
         }
         (&Method::GET, "/health") => Ok(Response::new(Body::from("OK\n"))),
         // Return the 404 Not Found for other routes.

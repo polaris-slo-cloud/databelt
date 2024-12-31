@@ -3,7 +3,7 @@ use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode, Uri};
 use rand::distributions::Alphanumeric;
 use rand::Rng;
-use skylark_lib::{init_new_chain, skylark_lib_version, start_timing, store_single_state, SkylarkPolicy, SkylarkStorageType};
+use skylark_lib::{init_new_chain, skylark_lib_version, start_timing, store_single_state, SkylarkPolicy};
 use std::env;
 use std::fs::File;
 use std::io::Read;
@@ -115,7 +115,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             let rnd_str = generate_random_data(img_buffer.len());
             // debug!("preprocess_handler: Computed hash: {:x}", hasher.finalize());
             let timer_tdm = Instant::now();
-            match store_single_state(rnd_str, &dest_node, &policy, &SkylarkStorageType::Single)
+            match store_single_state(rnd_str, &dest_node, &policy)
                 .await
             {
                 Ok(key) => {
@@ -128,7 +128,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     info!("\n\tRESULT\n\tT(f)\t\t{:?}\n\tT(ex)\t\t{:?}\n\tT(dm)\t\t{:?}\n\tD(f)\t\t{:?}", tf, tex, tdm, img_buffer.len());
                     Ok(Response::builder()
                         .status(StatusCode::OK)
-                        .body(Body::from(key))
+                        .body(Body::from(format!("{}\t{:?}", key, tdm)))
                         .unwrap())
                 }
                 Err(e) => {

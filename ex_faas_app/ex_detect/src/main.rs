@@ -1,7 +1,7 @@
 use hyper::server::conn::Http;
 use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode, Uri};
-use skylark_lib::{get_single_state, skylark_lib_version, start_timing, store_single_state, SkylarkPolicy, SkylarkStorageType};
+use skylark_lib::{get_single_state, skylark_lib_version, start_timing, store_single_state, SkylarkPolicy};
 use std::env;
 use std::net::SocketAddr;
 use std::time::Instant;
@@ -95,7 +95,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                 }
             };
             let timer_tdr = Instant::now();
-            let state: String = match get_single_state(&key, &policy, &SkylarkStorageType::Single).await {
+            let state: String = match get_single_state(&key, &policy).await {
                 Ok(s) => {
                     info!("get_state: OK");
                     debug!("get_state: found state of length {}", s.len());
@@ -118,7 +118,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             // debug!("generated data hash, attempting to store {}", data_hash);
             // let tex = timer_ex.elapsed().as_millis();
             let timer_tdm = Instant::now();
-            match store_single_state(state, &dest_node, &policy, &SkylarkStorageType::Single).await {
+            match store_single_state(state, &dest_node, &policy).await {
                 Ok(key) => {
                     debug!("store_state: skylark lib result: {:?}", key);
                     let tf = timer_tf.elapsed().as_millis();
@@ -126,7 +126,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     info!("\n\tRESULT\n\tT(f)\t\t{:?}\n\tT(ex)\t\t{:?}\n\tT(dm)\t\t{:?}\n\tT(dr)\t\t{:?}\n\tD(f)\t\t{:?}", tf, tex, tdm, tdr, df);
                     Ok(Response::builder()
                         .status(StatusCode::OK)
-                        .body(Body::from(key))
+                        .body(Body::from(format!("{}\t{:?}\t{:?}", key, tdr, tdm)))
                         .unwrap())
                 }
                 Err(e) => {

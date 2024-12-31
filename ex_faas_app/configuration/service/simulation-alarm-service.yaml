@@ -14,7 +14,7 @@ spec:
         node-name: pi5u1
       runtimeClassName: wasmedge
       containers:
-        - image: guelmino/skylark-ex-alarm:0.2.519
+        - image: guelmino/skylark-ex-alarm:0.2.520
           ports:
             - containerPort: 8080
           readinessProbe:
