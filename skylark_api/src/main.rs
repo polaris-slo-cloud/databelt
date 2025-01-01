@@ -19,6 +19,7 @@ use std::string::ToString;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 use std::{env, fs};
+use rand::Rng;
 use tokio::net::TcpListener;
 use url::Url;
 
@@ -289,29 +290,17 @@ async fn elect_storage_node(
             }
         }
         SkylarkPolicy::Random => {
-            match apply_random_policy(&start_node, &destination_node, &graph) {
-                Some(node_name) => {
-                    debug!("elect_storage_node::RandomPolicy: OK elected node for state propagation {}", &node_name);
-                    let node = node_map.get(&node_name).unwrap();
-                    Ok(Response::builder()
-                        .status(StatusCode::OK)
-                        .header(
-                            "policy-execution-time",
-                            timer.elapsed().as_millis().to_string(),
-                        )
-                        .body(Body::from(node.node_ip().to_string()))
-                        .unwrap())
-                }
-                None => {
-                    error!(
-                        "elect_storage_node::RandomPolicy: ERROR No Node elected for given input"
-                    );
-                    Ok(Response::builder()
-                        .status(StatusCode::INTERNAL_SERVER_ERROR)
-                        .body(Body::from("RandomPolicy: No Node elected for given input"))
-                        .unwrap())
-                }
-            }
+            let mut rng = rand::thread_rng();
+            let candidates = vec!["10.0.0.34","10.0.0.45","10.0.0.167","10.0.0.58","10.0.0.122","10.0.0.210","10.0.0.245","10.0.0.243"];
+            let elect = rng.gen_range(0..=candidates.len()-1);
+            Ok(Response::builder()
+                .status(StatusCode::OK)
+                .header(
+                    "policy-execution-time",
+                    timer.elapsed().as_millis().to_string(),
+                )
+                .body(Body::from(candidates[elect].to_string()))
+                .unwrap())
         }
         SkylarkPolicy::Stateless => {
             debug!(

@@ -5,10 +5,10 @@
 #   Latency -   60ms
 #   Jitter -    15ms
 sudo tc qdisc del dev wlan0 root
+sudo tc filter del dev wlan0 parent 1:0
 tc -s qdisc show dev wlan0
 tc -s class show dev wlan0
 tc -s filter show dev wlan0
-sudo tc filter del dev wlan0 parent 1:0
 iperf3 -c 10.0.0.
 ping 10.0.0.
 

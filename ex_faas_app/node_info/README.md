@@ -17,8 +17,8 @@ Exposes HTTP API to serve the following information:
 Bandwidth and latencies can be configured in [simulation-settings.json](settings/simulation-settings.json)
 ### Docker Build and Push
 ```bash
-docker buildx build --platform linux/arm64 -t guelmino/skylark-node-info:0.2.108 .
-docker push guelmino/skylark-node-info:0.2.108
+docker buildx build --platform linux/arm64 -t guelmino/skylark-node-info:0.2.109 .
+docker push guelmino/skylark-node-info:0.2.109
 ```
 ### Deploy
 ```bash

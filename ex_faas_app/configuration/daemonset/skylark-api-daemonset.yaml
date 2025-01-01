@@ -20,7 +20,7 @@ spec:
       runtimeClassName: wasmedge
       containers:
         - name: skylark-api
-          image: guelmino/skylark-api:0.2.741
+          image: guelmino/skylark-api:0.2.743
           ports:
             - containerPort: 8081
           env:
@@ -35,8 +35,8 @@ spec:
             - name: NODE_INFO_PORT
               value: "8080"
             - name: NODE_REFRESH_INTERVAL_SECS
-              value: "100"
+              value: "5"
             - name: AVG_SAT_BANDWIDTH
-              value: "70"
+              value: "80"
             - name: TOPOLOGY_MODE
               value: "static"

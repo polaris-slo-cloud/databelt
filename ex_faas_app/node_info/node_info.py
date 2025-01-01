@@ -1,4 +1,5 @@
 import json
+import random
 from datetime import datetime
 
 from flask import Flask, jsonify, request
@@ -40,6 +41,17 @@ STATE = {
 }
 
 SAT_NODES = []
+
+def update_topology_weights():
+    topologies = STATE["topologies"]
+    for topology in topologies:
+        for edge in topology:
+            if edge["source"]["node_type"] == "Cloud" or edge["target"]["node_type"] == "Cloud":
+                edge["latency"] = random.randint(int(os.environ['CLOUD_LATENCY_LOWER']), int(os.environ['CLOUD_LATENCY_UPPER']))
+            else:
+                edge["latency"] = random.randint(int(os.environ['SAT_LATENCY_LOWER']), int(os.environ['SAT_LATENCY_UPPER']))
+
+
 
 
 def set_nodes():
@@ -126,6 +138,7 @@ def current_topology():
     """Returns a JSON response with node and edge information."""
     app.logger.info("current_topology: incoming")
     try:
+        update_topology_weights()
         t = datetime.now().minute % 7
         return jsonify({'edges': STATE.get('topologies')[t]}), 200
     except Exception as e:
@@ -137,6 +150,7 @@ def static_topology():
     """Returns a JSON response with node and edge information."""
     app.logger.info("static_topology: incoming")
     try:
+        update_topology_weights()
         t = request.args.get('t')
         if t is None:
             t = 6
@@ -150,6 +164,7 @@ def next_topology():
     """Returns a JSON response with node and edge information."""
     app.logger.info("next_topology: incoming")
     try:
+        update_topology_weights()
         t = ((datetime.now().minute + 1) % 60) % 7
         return jsonify({'edges': STATE.get('topologies')[t]}), 200
     except Exception as e:

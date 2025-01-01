@@ -88,7 +88,6 @@ pub fn apply_skylark_policy(
     let reverse_path = dijkstra(&graph, start, destination);
     let avg_bandwidth = env::var("AVG_SAT_BANDWIDTH").unwrap().parse::<i64>().unwrap();
     info!("Computed path: {:?}", reverse_path.len());
-    info!("T(ex): {:?}", time);
     info!("D(f): {:?}", size);
     info!("Tmax(f): {:?}", slo.max_latency());
     info!("B(sat): {:?}", avg_bandwidth);

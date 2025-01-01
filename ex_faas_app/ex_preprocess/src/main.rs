@@ -3,7 +3,7 @@ use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode, Uri};
 use rand::distributions::Alphanumeric;
 use rand::Rng;
-use skylark_lib::{init_new_chain, skylark_lib_version, start_timing, store_single_state, SkylarkPolicy};
+use skylark_lib::{init_new_chain, skylark_lib_version, start_timing, store_single_state, SkylarkKey, SkylarkPolicy};
 use std::env;
 use std::fs::File;
 use std::io::Read;
@@ -125,10 +125,10 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     );
                     let tf = timer_tf.elapsed().as_millis();
                     let tdm = timer_tdm.elapsed().as_millis();
-                    info!("\n\tRESULT\n\tT(f)\t\t{:?}\n\tT(ex)\t\t{:?}\n\tT(dm)\t\t{:?}\n\tD(f)\t\t{:?}", tf, tex, tdm, img_buffer.len());
+                    let s_key = SkylarkKey::try_from(key).unwrap();
                     Ok(Response::builder()
                         .status(StatusCode::OK)
-                        .body(Body::from(format!("{}\t{:?}", key, tdm)))
+                        .body(Body::from(format!("{}\t{:?}\t{:?}", s_key.to_string(), tdm, s_key.node_id())))
                         .unwrap())
                 }
                 Err(e) => {

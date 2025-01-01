@@ -86,7 +86,7 @@
     },
     {
       "bandwidth": 30,
-      "latency": 80,
+      "latency": 50,
       "source": {
         "node_ip": "10.0.0.34",
         "node_name": "pi5u2",
@@ -186,7 +186,7 @@
     },
     {
       "bandwidth": 30,
-      "latency": 80,
+      "latency": 50,
       "source": {
         "node_ip": "10.0.0.45",
         "node_name": "pi5u3",
@@ -286,7 +286,7 @@
     },
     {
       "bandwidth": 30,
-      "latency": 80,
+      "latency": 50,
       "source": {
         "node_ip": "10.0.0.167",
         "node_name": "pi5u4",
@@ -386,7 +386,7 @@
     },
     {
       "bandwidth": 30,
-      "latency": 80,
+      "latency": 50,
       "source": {
         "node_ip": "10.0.0.58",
         "node_name": "pi4u5",
@@ -486,7 +486,7 @@
     },
     {
       "bandwidth": 30,
-      "latency": 80,
+      "latency": 50,
       "source": {
         "node_ip": "10.0.0.122",
         "node_name": "pi4u6",
@@ -586,7 +586,7 @@
     },
     {
       "bandwidth": 30,
-      "latency": 80,
+      "latency": 50,
       "source": {
         "node_ip": "10.0.0.210",
         "node_name": "pi4u8",
@@ -686,7 +686,7 @@
     },
     {
       "bandwidth": 30,
-      "latency": 80,
+      "latency": 50,
       "source": {
         "node_ip": "10.0.0.245",
         "node_name": "pi4p1",
