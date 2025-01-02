@@ -1,6 +1,6 @@
 [package]
 name = "ex_detect"
-version = "0.2.424"
+version = "0.2.425"
 edition = "2021"
 
 [dependencies]

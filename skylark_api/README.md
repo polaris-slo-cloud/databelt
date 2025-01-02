@@ -28,9 +28,15 @@ kubectl delete daemonset skylark-api-daemonset
 ```bash
 curl -v  http://10.0.0.34:8081/health; curl -v  http://10.0.0.45:8081/health; curl -v  http://10.0.0.167:8081/health
 curl http://10.0.0.34:8081/refresh; curl http://10.0.0.45:8081/refresh; curl http://10.0.0.167:8081/refresh; curl http://10.0.0.122:8081/refresh; curl http://10.0.0.210:8081/refresh; curl http://10.0.0.245:8081/refresh; curl http://10.0.0.243:8081/refresh; curl http://10.0.0.58:8081/refresh
-curl http://10.0.0.167:8081/storage-node?size=3000\&time=57\&policy=Skylark\&destination=pi5u1
-curl http://10.0.0.243:8081/storage-node?size=3000\&time=57\&policy=Stateless\&destination=pi5u1
-curl http://10.0.0.243:8081/storage-node?size=3000\&time=57\&policy=Random\&destination=pi5u1
+curl http://10.0.0.167:8081/storage-node?size=1902847\&time=57\&policy=Skylark\&destination=pi5u1
+curl http://10.0.0.122:8081/storage-node?size=1902847\&time=57\&policy=Skylark\&destination=pi5u1
+curl http://10.0.0.34:8081/storage-node?size=1002847\&time=57\&policy=Skylark\&destination=pi5u1
+curl http://10.0.0.58:8081/storage-node?size=1002847\&time=57\&policy=Skylark\&destination=pi5u1
+curl http://10.0.0.167:8081/storage-node?size=1002847\&time=57\&policy=Skylark\&destination=pi5u1
+curl http://10.0.0.210:8081/storage-node?size=1002847\&time=57\&policy=Skylark\&destination=pi5u1
+curl http://10.0.0.34:8081/storage-node?size=5000\&time=57\&policy=Skylark\&destination=pi5u1
+curl http://10.0.0.58:8081/storage-node?size=5000\&time=57\&policy=Skylark\&destination=pi5u1
+curl http://10.0.0.245:8081/storage-node?size=5000\&time=57\&policy=Skylark\&destination=pi5u1
 curl -v http://10.0.0.34:8081/save/edge -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","task_id": "fn1"},"value": "V0.2.743E"}'
 curl -v http://10.0.0.34:8081/save/cloud -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","task_id": "fn1"},"value": "V0.2.743C"}'
 curl -v http://10.0.0.34:8081/save/sat -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","task_id": "fn1"},"value": "V0.2.743S"}'

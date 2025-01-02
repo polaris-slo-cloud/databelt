@@ -41,12 +41,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 fn parse_workflow_metadata(
     uri: &Uri,
-) -> Result<(SkylarkPolicy, String, String, i64), Box<dyn std::error::Error>> {
+) -> Result<(SkylarkPolicy, String, String), Box<dyn std::error::Error>> {
     debug!("Parsing URI: {}", uri);
     let mut parsed_policy = SkylarkPolicy::Skylark;
     let mut parsed_destination_node: String = "pi5u1".to_string();
     let mut parsed_key: String = "".to_string();
-    let mut parsed_tex: i64 = 40;
     let request_url = match Url::parse(&format!("http://ex.at{}", uri.to_string())) {
         Ok(url) => url,
         Err(e) => {
@@ -66,12 +65,9 @@ fn parse_workflow_metadata(
         } else if param.0.eq_ignore_ascii_case("key") {
             debug!("Parsing key: {}", param.1);
             parsed_key = param.1.to_string();
-        } else if param.0.eq_ignore_ascii_case("tex") {
-            debug!("Parsing tex: {}", param.1);
-            parsed_tex = param.1.to_string().parse::<i64>().unwrap();
         }
     }
-    Ok((parsed_policy, parsed_destination_node, parsed_key, parsed_tex))
+    Ok((parsed_policy, parsed_destination_node, parsed_key))
 }
 
 async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
@@ -83,8 +79,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             let policy: SkylarkPolicy;
             let dest_node: String;
             let key: String;
-            let tex : i64;
-            (policy, dest_node, key, tex) = match parse_workflow_metadata(req.uri()) {
+            (policy, dest_node, key) = match parse_workflow_metadata(req.uri()) {
                 Ok(res) => res,
                 Err(e) => {
                     error!("Error parsing URI: {}", e.to_string());
@@ -124,10 +119,10 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     let tf = timer_tf.elapsed().as_millis();
                     let tdm = timer_tdm.elapsed().as_millis();
                     let s_key = SkylarkKey::try_from(key).unwrap();
-                    info!("\n\tRESULT\n\tT(f)\t\t{:?}\n\tT(ex)\t\t{:?}\n\tT(dm)\t\t{:?}\n\tT(dr)\t\t{:?}\n\tD(f)\t\t{:?}", tf, tex, tdm, tdr, df);
+                    info!("\n\tRESULT\n\tT(f)\t\t{:?}\n\tT(dm)\t\t{:?}\n\tT(dr)\t\t{:?}\n\tD(f)\t\t{:?}", tf, tdm, tdr, df);
                     Ok(Response::builder()
                         .status(StatusCode::OK)
-                        .body(Body::from(format!("{}\t{:?}\t{:?}\t{:?}", s_key.to_string(), tdr, tdm, s_key.node_id())))
+                        .body(Body::from(format!("{}\t{:?}\t{:?}\t{}", s_key.to_string(), tdr, tdm, s_key.node_id())))
                         .unwrap())
                 }
                 Err(e) => {

@@ -14,7 +14,7 @@ spec:
         node-name: pi5u2
       runtimeClassName: wasmedge
       containers:
-        - image: guelmino/skylark-ex-preprocess:0.2.337
+        - image: guelmino/skylark-ex-preprocess:0.2.339
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -51,7 +51,7 @@ spec:
         node-name: pi5u3
       runtimeClassName: wasmedge
       containers:
-        - image: guelmino/skylark-ex-preprocess:0.2.337
+        - image: guelmino/skylark-ex-preprocess:0.2.339
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -88,7 +88,7 @@ spec:
         node-name: pi5u4
       runtimeClassName: wasmedge
       containers:
-        - image: guelmino/skylark-ex-preprocess:0.2.337
+        - image: guelmino/skylark-ex-preprocess:0.2.339
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -124,7 +124,7 @@ spec:
         node-name: pi4u5
       runtimeClassName: wasmedge
       containers:
-        - image: guelmino/skylark-ex-preprocess:0.2.337
+        - image: guelmino/skylark-ex-preprocess:0.2.339
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -160,7 +160,7 @@ spec:
         node-name: pi4u6
       runtimeClassName: wasmedge
       containers:
-        - image: guelmino/skylark-ex-preprocess:0.2.337
+        - image: guelmino/skylark-ex-preprocess:0.2.339
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -196,7 +196,7 @@ spec:
         node-name: pi4u8
       runtimeClassName: wasmedge
       containers:
-        - image: guelmino/skylark-ex-preprocess:0.2.337
+        - image: guelmino/skylark-ex-preprocess:0.2.339
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -232,7 +232,7 @@ spec:
         node-name: pi4p1
       runtimeClassName: wasmedge
       containers:
-        - image: guelmino/skylark-ex-preprocess:0.2.337
+        - image: guelmino/skylark-ex-preprocess:0.2.339
           ports:
             - containerPort: 8080
           readinessProbe:

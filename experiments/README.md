@@ -26,6 +26,7 @@ Measures the policy execution time with increasing topology size
 Run experiment:
 ```bash
 curl http://10.0.0.167:8081/benchmark
+curl http://10.0.0.34:8081/benchmark
 ```
 
 *Growing Graph Results*
