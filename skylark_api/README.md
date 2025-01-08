@@ -33,8 +33,8 @@ curl http://10.0.0.122:8081/storage-node?size=1902847\&time=57\&policy=Skylark\&
 curl http://10.0.0.34:8081/storage-node?size=1002847\&time=57\&policy=Skylark\&destination=pi5u1
 curl http://10.0.0.58:8081/storage-node?size=1002847\&time=57\&policy=Skylark\&destination=pi5u1
 curl http://10.0.0.167:8081/storage-node?size=1002847\&time=57\&policy=Skylark\&destination=pi5u1
-curl http://10.0.0.210:8081/storage-node?size=1002847\&time=57\&policy=Skylark\&destination=pi5u1
-curl http://10.0.0.34:8081/storage-node?size=5000\&time=57\&policy=Skylark\&destination=pi5u1
+curl http://10.0.0.210:8081/storage-node?size=1002847\&policy=Skylark\&destination=pi5u1
+curl http://10.0.0.34:8081/storage-node?policy=Skylark\&destination=pi5u1\&size=10028470
 curl http://10.0.0.58:8081/storage-node?size=5000\&time=57\&policy=Skylark\&destination=pi5u1
 curl http://10.0.0.245:8081/storage-node?size=5000\&time=57\&policy=Skylark\&destination=pi5u1
 curl -v http://10.0.0.34:8081/save/edge -H "Content-Type: application/json" -d '{"key": {"chain_id": "ch1","task_id": "fn1"},"value": "V0.2.743E"}'

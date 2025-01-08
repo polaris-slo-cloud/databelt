@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: telemd
+  namespace: default
+  labels:
+    app: telemd
+spec:
+  selector:
+    matchLabels:
+      app: telemd
+  template:
+    metadata:
+      labels:
+        app: telemd
+    spec:
+      containers:
+        - name: telemd
+          image: keniack/telemd@sha256:654a3db4334fc211e18b37c568494e5205636f06ac59ba12d298a2c8fd67095e
+          ports:
+            - containerPort: 8080

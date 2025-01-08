@@ -51,19 +51,19 @@ sudo tc qdisc add dev wlan0 parent 1:7 handle 70: netem delay 35ms
 sudo tc qdisc del dev wlan0 root
 sudo tc qdisc add dev wlan0 root handle 1: htb default 8
 sudo tc class add dev wlan0 parent 1: classid 1:1 htb rate 80mbit ceil 100mbit
-sudo tc qdisc add dev wlan0 parent 1:1 handle 10: netem delay 20ms
+sudo tc qdisc add dev wlan0 parent 1:1 handle 10: netem delay 10ms
 sudo tc class add dev wlan0 parent 1: classid 1:2 htb rate 70mbit ceil 100mbit
-sudo tc qdisc add dev wlan0 parent 1:2 handle 20: netem delay 25ms
+sudo tc qdisc add dev wlan0 parent 1:2 handle 20: netem delay 15ms
 sudo tc class add dev wlan0 parent 1: classid 1:3 htb rate 70mbit ceil 100mbit
-sudo tc qdisc add dev wlan0 parent 1:3 handle 30: netem delay 30ms
+sudo tc qdisc add dev wlan0 parent 1:3 handle 30: netem delay 20ms
 sudo tc class add dev wlan0 parent 1: classid 1:4 htb rate 70mbit ceil 100mbit
-sudo tc qdisc add dev wlan0 parent 1:4 handle 40: netem delay 35ms
+sudo tc qdisc add dev wlan0 parent 1:4 handle 40: netem delay 25ms
 sudo tc class add dev wlan0 parent 1: classid 1:5 htb rate 70mbit ceil 100mbit
-sudo tc qdisc add dev wlan0 parent 1:5 handle 50: netem delay 40ms
+sudo tc qdisc add dev wlan0 parent 1:5 handle 50: netem delay 30ms
 sudo tc class add dev wlan0 parent 1: classid 1:6 htb rate 70mbit ceil 100mbit
-sudo tc qdisc add dev wlan0 parent 1:6 handle 60: netem delay 45ms
+sudo tc qdisc add dev wlan0 parent 1:6 handle 60: netem delay 35ms
 sudo tc class add dev wlan0 parent 1: classid 1:7 htb rate 70mbit ceil 100mbit
-sudo tc qdisc add dev wlan0 parent 1:7 handle 70: netem delay 50ms
+sudo tc qdisc add dev wlan0 parent 1:7 handle 70: netem delay 40ms
 sudo tc class add dev wlan0 parent 1: classid 1:8 htb rate 1000mbit ceil 1000mbit
 sudo tc filter del dev wlan0 parent 1:0
 sudo tc filter add dev wlan0 protocol ip parent 1:0 prio 7 u32 match ip dst 10.0.0.34 flowid 1:7

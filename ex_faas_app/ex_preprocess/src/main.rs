@@ -1,12 +1,8 @@
 use hyper::server::conn::Http;
 use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode, Uri};
-use rand::distributions::Alphanumeric;
-use rand::Rng;
-use skylark_lib::{init_new_chain, skylark_lib_version, start_timing, store_single_state, SkylarkKey, SkylarkPolicy};
+use skylark_lib::{get_single_state, init_new_chain, skylark_lib_version, start_timing, store_single_state, SkylarkKey, SkylarkPolicy};
 use std::env;
-use std::fs::File;
-use std::io::Read;
 use std::net::SocketAddr;
 use std::time::Instant;
 use tokio::net::TcpListener;
@@ -49,7 +45,7 @@ fn parse_workflow_metadata(
     debug!("Parsing URI: {}", uri);
     let mut parsed_policy = SkylarkPolicy::Skylark;
     let mut parsed_destination_node: String = "pi5u1".to_string();
-    let mut parsed_image_name: String = "eo-2K.jpeg".to_string();
+    let mut parsed_key: String = "UNKNOWN_KEY".to_string();
     let request_url = match Url::parse(&format!("http://ex.at{}", uri.to_string())) {
         Ok(url) => url,
         Err(e) => {
@@ -66,12 +62,12 @@ fn parse_workflow_metadata(
         } else if param.0.eq_ignore_ascii_case("destination") {
             debug!("Parsing destination: {}", param.1);
             parsed_destination_node = param.1.to_string();
-        } else if param.0.eq_ignore_ascii_case("img") {
-            debug!("Parsing img: {}", param.1);
-            parsed_image_name = param.1.to_string();
+        } else if param.0.eq_ignore_ascii_case("key"){
+            debug!("Parsing key: {}", param.1);
+            parsed_key = param.1.to_string();
         }
     }
-    Ok((parsed_policy, parsed_destination_node, parsed_image_name))
+    Ok((parsed_policy, parsed_destination_node, parsed_key))
 }
 
 async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
@@ -80,11 +76,10 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             info!("Incoming");
             start_timing().await;
             init_new_chain().await;
-            let timer_tf = Instant::now();
             let policy: SkylarkPolicy;
             let dest_node: String;
-            let img_name: String;
-            (policy, dest_node, img_name) = match parse_workflow_metadata(req.uri()) {
+            let key: String;
+            (policy, dest_node, key) = match parse_workflow_metadata(req.uri()) {
                 Ok(res) => res,
                 Err(e) => {
                     error!("Error parsing URI: {}", e.to_string());
@@ -94,24 +89,25 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                         .unwrap());
                 }
             };
-            debug!("preprocess_handler: Opening file");
-            let mut file = File::open(img_name).expect("Failed to open image file.");
-            let mut img_buffer = Vec::new();
-            debug!("preprocess_handler: Reading image");
-            file.read_to_end(&mut img_buffer)
-                .expect("Failed to read image file.");
-            debug!(
-                "preprocess_handler: Image was read and has length: {}",
-                img_buffer.len()
-            );
+            let timer_tdr = Instant::now();
+            let state: String = match get_single_state(&key, &policy).await {
+                Ok(s) => {
+                    info!("get_state: OK");
+                    debug!("get_state: found state of length {}", s.len());
+                    s
+                }
+                Err(err) => {
+                    error!("get_state: Error fetching predecessor state: {:?}", err);
+                    return Ok(Response::builder()
+                        .status(StatusCode::NOT_FOUND)
+                        .body(Body::from("Error fetching predecessor state"))
+                        .unwrap());
+                }
+            };
+            let tdr = timer_tdr.elapsed().as_millis();
 
-            // let mut hasher = Sha256::new();
-            // hasher.update(&img_buffer);
-            let rnd_str = generate_random_data(img_buffer.len());
-            // debug!("preprocess_handler: Computed hash: {:x}", hasher.finalize());
-            let tf = timer_tf.elapsed().as_millis();
             let timer_tdm = Instant::now();
-            match store_single_state(rnd_str, &dest_node, &policy)
+            match store_single_state(state, &dest_node, &policy)
                 .await
             {
                 Ok(key) => {
@@ -123,7 +119,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                     let s_key = SkylarkKey::try_from(key).unwrap();
                     Ok(Response::builder()
                         .status(StatusCode::OK)
-                        .body(Body::from(format!("{}\t{:?}\t{:?}\t{}", s_key.to_string(), tdm, tf, s_key.node_id())))
+                        .body(Body::from(format!("{}\t{:?}\t{:?}\t{}", s_key.to_string(), tdm, tdr, s_key.node_id())))
                         .unwrap())
                 }
                 Err(e) => {
@@ -145,13 +141,4 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             .body(Body::from("Route not found"))
             .unwrap()),
     }
-}
-
-fn generate_random_data(size: usize) -> String {
-    debug!("generate_random_data");
-    rand::thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(size)
-        .map(char::from)
-        .collect()
 }

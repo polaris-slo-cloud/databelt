@@ -11,7 +11,27 @@ tc -s class show dev wlan0
 tc -s filter show dev wlan0
 iperf3 -c 10.0.0.
 ping 10.0.0.
+# Fixed latency, Variable Bundle
+# 40Mbit/s, 45ms
+# pi5u1 5-HOP
+sudo tc qdisc del dev wlan0 root
+sudo tc qdisc add dev wlan0 root handle 1: htb default 1
+sudo tc class add dev wlan0 parent 1: classid 1:1 htb rate 1000mbit ceil 10000mbit
+sudo tc class add dev wlan0 parent 1: classid 1:2 htb rate 40mbit ceil 50mbit
+sudo tc qdisc add dev wlan0 parent 1:2 handle 20: netem delay 20ms 8ms
+sudo tc filter del dev wlan0 parent 1:0
+sudo tc filter add dev wlan0 protocol ip parent 1:0 prio 2 u32 match ip dst 10.0.0.34 flowid 1:2
+# pi5u2 5-HOP
+sudo tc qdisc del dev wlan0 root
+sudo tc qdisc add dev wlan0 root handle 1: htb default 1
+sudo tc class add dev wlan0 parent 1: classid 1:1 htb rate 1000mbit ceil 10000mbit
+sudo tc class add dev wlan0 parent 1: classid 1:2 htb rate 40mbit ceil 50mbit
+sudo tc qdisc add dev wlan0 parent 1:2 handle 20: netem delay 20ms 8ms
+sudo tc filter del dev wlan0 parent 1:0
+sudo tc filter add dev wlan0 protocol ip parent 1:0 prio 2 u32 match ip dst 10.0.0.243 flowid 1:2
 
+
+# Variable latency, Fixed Bundle
 # pi5u1 3-HOP
 sudo tc qdisc del dev wlan0 root
 sudo tc qdisc add dev wlan0 root handle 1: htb default 1

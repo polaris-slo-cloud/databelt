@@ -26,15 +26,8 @@ kubectl delete ksvc skylark-write-data && kubectl delete route skylark-write-dat
 curl -v http://10.0.0.243:8084/single?destination=pi5u1\&size=500\&scount=1
 curl -v http://10.0.0.243:8084/bundled?destination=pi5u1\&size=500\&scount=2
 curl -v http://10.0.0.243:8084/single?policy=Stateless\&destination=pi5u1\&stype=Single\&size=500\&scount=1
-curl -v http://10.0.0.243:8084/single?policy=Stateless\&destination=pi5u1\&stype=Single\&size=500\&scount=1
-curl -v http://10.0.0.243:8084/single?policy=Stateless\&destination=pi5u1\&stype=Single\&size=500\&scount=1
-curl -v http://10.0.0.243:8084/single?policy=Stateless\&destination=pi5u1\&stype=Single\&size=500\&scount=1
 
-curl -v http://10.0.0.243:8084/single?policy=Stateless\&destination=pi4u5\&stype=Single\&size=500\&scount=1
-curl -v http://10.0.0.243:8084/single?policy=Stateless\&destination=pi4u5\&stype=Single\&size=500\&scount=1
-curl -v http://10.0.0.243:8084/single?policy=Stateless\&destination=pi4u5\&stype=Single\&size=500\&scount=1
-curl -v http://10.0.0.243:8084/single?policy=Stateless\&destination=pi4u5\&stype=Single\&size=500\&scount=1
-curl -v http://10.0.0.243:8084/single?policy=Stateless\&destination=pi4u5\&stype=Single\&size=500\&scount=1
+curl -v http://10.0.0.243:8084/bundled?policy=Stateless\&destination=pi4u5\&stype=Single\&size=500\&scount=1
 
 curl -v http://10.0.0.243:8084/bundled?policy=Stateless\&stype=Bundled\&destination=pi5u2\&size=100\&scount=3
 curl -v http://10.152.183.86/?policy=Skylark\&destination=pi5u1\&img=eo-2K.jpeg -H "Host: pi5u4-write-data.default.svc.cluster.local"
