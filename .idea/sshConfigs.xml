@@ -8,8 +8,8 @@
       <sshConfig authType="PASSWORD" host="pi5u2" id="429044de-d340-49b5-ad5e-ceabde1ea114" port="22" customName="!pi5u2@34" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
         <option name="customName" value="!pi5u2@34" />
       </sshConfig>
-      <sshConfig authType="PASSWORD" host="pi5u3" id="32f53ec3-3736-41c1-9fd2-362e8aecb461" port="22" customName="!pi5u3@45" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
-        <option name="customName" value="!pi5u3@45" />
+      <sshConfig authType="PASSWORD" host="pi5u3" id="32f53ec3-3736-41c1-9fd2-362e8aecb461" port="22" customName="!MASTERpi5u3@45" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
+        <option name="customName" value="!MASTERpi5u3@45" />
       </sshConfig>
       <sshConfig authType="PASSWORD" host="pi5u4" id="e12d8348-8d11-4496-a147-047f4ae25846" port="22" customName="!pi5u4@167" nameFormat="CUSTOM" username="skylark" useOpenSSHConfig="true">
         <option name="customName" value="!pi5u4@167" />

@@ -138,6 +138,12 @@ impl SkylarkBundledState {
     pub fn new(key: SkylarkKey, fields: Vec<(String, String)>) -> Self {
         Self { key, fields }
     }
+    pub fn get_field_keys(&self) -> Vec<(String)> {
+        self.fields.clone().into_iter().map(|(key, _)| key).collect()
+    }
+    pub fn get_field_values(&self) -> Vec<(String)> {
+        self.fields.clone().into_iter().map(|(_, value)| value).collect()
+    }
 
     pub fn key(&self) -> &SkylarkKey {
         &self.key

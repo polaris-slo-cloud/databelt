@@ -1,8 +1,6 @@
 use hyper::server::conn::Http;
 use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode, Uri};
-use rand::distributions::Alphanumeric;
-use rand::Rng;
 use skylark_lib::{
     init_new_chain, skylark_lib_version, start_timing, store_bundled_state, store_single_state,
     SkylarkPolicy,
@@ -11,6 +9,7 @@ use std::env;
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
 use url::Url;
+use std::fmt::Write;
 
 extern crate pretty_env_logger;
 #[macro_use]
@@ -185,9 +184,9 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
 fn generate_random_data(size_kb: usize) -> String {
     debug!("generate_random_data: generating {:?}KB", size_kb);
     let size = size_kb * 1024;
-    rand::thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(size)
-        .map(char::from)
-        .collect()
+    let mut s = String::with_capacity(size);
+    for i in 0..size {
+        write!(s, "{}", i % 10).unwrap();
+    }
+    s
 }

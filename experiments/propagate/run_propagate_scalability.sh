@@ -1,20 +1,32 @@
 #!/bin/bash
 
-# ./run_propagate_scalability.sh 5 run_propagate_workflow.sh keys_1M Skylark 10
+# ./run_propagate_scalability.sh run_propagate_workflow.sh keys_2M 5 Skylark 5
 # Check for input arguments
 if [ "$#" -lt 4 ]; then
-    echo "Usage: $0  <test_script> <policy> <repetition_count> <input_file> <fanout_degree>"
+    echo "Usage: $0  <test_script> <input_file> <repetition_count> <policy> <fanout_degree>"
     exit 1
 fi
 
 # Arguments
-
 TEST_SCRIPT=$1
-POLICY=$2
+KEY_FILE=$2
 REP=$3
-KEY_FILE=$4
+POLICY=$4
 FANOUT_DEGREE=$5
-echo -e "FANOUT_DEGREE: $FANOUT_DEGREE\nTEST_SCRIPT: $TEST_SCRIPT\nKEY_FILE: $KEY_FILE\nPOLICY: $POLICY\nREP: $REP"
+
+# CLEAR REDIS
+clear_redis() {
+    echo "CLEAR REDIS"
+    redis-cli -h pi5u1 -p 6379 FLUSHALL
+    redis-cli -h pi5u3 -p 6379 FLUSHALL
+    redis-cli -h pi5u4 -p 6379 FLUSHALL
+    redis-cli -h pi4u5 -p 6379 FLUSHALL
+    redis-cli -h pi4u6 -p 6379 FLUSHALL
+    redis-cli -h pi4u8 -p 6379 FLUSHALL
+    redis-cli -h pi4p1 -p 6379 FLUSHALL
+}
+
+echo -e "$FANOUT_DEGREE,$KEY_FILE,$POLICY,$REP"
 # Verify test script exists
 if [ ! -f "$TEST_SCRIPT" ]; then
     echo "Error: Test script '$TEST_SCRIPT' not found!"
@@ -39,6 +51,7 @@ run_test() {
 for i in $(seq 1 "$REP"); do
   # Loop through inputs with fanout logic
   count=0
+  clear_redis
   START_TIME=$(date +%s%3N)
   for key in "${KEYS[@]}"; do
       run_test "$key"
@@ -53,6 +66,5 @@ for i in $(seq 1 "$REP"); do
   wait
   END_TIME=$(date +%s%3N)
   WORKFLOW_LATENCY=$((END_TIME - START_TIME))
-
-  echo "$FANOUT_DEGREE,$WORKFLOW_LATENCY"
+  echo "$FANOUT_DEGREE,$WORKFLOW_LATENCY" >> propagate_scalability.log
 done

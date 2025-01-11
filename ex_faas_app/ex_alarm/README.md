@@ -28,7 +28,7 @@ kubectl logs skylark-ex-alarm-00001-deployment-
 ### API
 ```bash
 # params: key, policy, destination
-curl http://pi5u1-alarm.default.svc.cluster.local/?key=debugchain\:debugchain:pi5u2-detect\&policy=Skylark\&destination=pi5u1
+curl http://pi5u1-alarm.default.svc.cluster.local/?key=11bd79cb-cc2a-4e1f-9c68-a1c1b89c69d5\:10.0.0.34\:357410df-d24a-4e42-a40e-e81bc2d994b2\&policy=Skylark\&destination=pi5u1
 curl http://pi5u1-alarm.default.svc.cluster.local/?key=24b32795-69a5-4ac1-9762-e0f644abd0bf\:pi5u4-detect\&policy=Skylark\&destination=pi5u1
 curl http://pi5u1-detect.default.svc.cluster.local/health
 ```

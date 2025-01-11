@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" serverName="deployment configs -&gt; pi5u1" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
+  <component name="PublishConfigData" serverName="deployment configs -&gt; pi5u3" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
     <option name="confirmBeforeUploading" value="false" />
     <serverData>
       <paths name="Experiments -&gt; pi4u5">
@@ -24,7 +24,7 @@
           </mappings>
         </serverdata>
       </paths>
-      <paths name="deployment configs -&gt; pi5u1">
+      <paths name="deployment configs -&gt; pi5u3">
         <serverdata>
           <mappings>
             <mapping deploy="/" local="$PROJECT_DIR$/ex_faas_app/configuration" web="/" />

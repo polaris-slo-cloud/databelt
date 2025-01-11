@@ -6,7 +6,7 @@ metadata:
 data:
   scale-down-delay: "15m"
   SKYLARK_API_PORT: "8081"
-  RUST_LOG: "info"
+  RUST_LOG: "debug"
   RUST_BACKTRACE: "full"
   DNS_SERVER: "10.152.183.10:53"
   GLOBAL_STATE_HOST: "10.0.0.243"

@@ -1,11 +1,7 @@
 use hyper::server::conn::Http;
 use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode, Uri};
-use sha2::{Digest, Sha256};
-use skylark_lib::{
-    get_single_state, init_new_chain, skylark_lib_version, start_timing, store_single_state,
-    SkylarkPolicy,
-};
+use skylark_lib::{delete_single_state, get_single_state, init_new_chain, skylark_lib_version, start_timing, store_single_state, SkylarkPolicy};
 use std::env;
 use std::net::SocketAddr;
 use std::time::Instant;
@@ -110,11 +106,29 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
             };
             let tdr = timer_tdr.elapsed().as_millis();
             let timer_tdm = Instant::now();
-            match store_single_state(state, &dest_node, &policy).await {
+            let new_key = match store_single_state(state, &dest_node, &policy).await {
                 Ok(key) => {
+                    info!("get-and-set::new state set");
                     debug!("store_state: skylark lib result: {:?}", key);
+                    key
+                }
+                Err(e) => {
+                    error!(
+                        "store_state: Error calling skylark lib store state: {:?}",
+                        e
+                    );
+                    return Ok(Response::builder()
+                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                        .body(Body::from("Error calling skylark lib store state"))
+                        .unwrap());
+                }
+            };
+            let tdm = timer_tdm.elapsed().as_millis();
+            let result = format!("{:?}\t{:?}", tdr, tdm);
+            match delete_single_state(new_key).await {
+                Ok(_) => {
+                    info!("get-and-set::new state deleted");
                     let tdm = timer_tdm.elapsed().as_millis();
-                    let result = format!("{:?}\t{:?}", tdr, tdm);
                     info!("\n\tRESULT\n\tT(dr)\t\t{:?}\n\tT(dm)\t\t{:?}", tdr, tdm);
                     Ok(Response::builder()
                         .status(StatusCode::OK)
@@ -123,7 +137,7 @@ async fn http_handler(req: Request<Body>) -> Result<Response<Body>, hyper::Error
                 }
                 Err(e) => {
                     error!(
-                        "store_state: Error calling skylark lib store state: {:?}",
+                        "get-and-set::delete_single_state: Error calling skylark lib delete state: {:?}",
                         e
                     );
                     Ok(Response::builder()

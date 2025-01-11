@@ -15,9 +15,10 @@ pub async fn set_single_state_by_host(state: &SkylarkState, host: &str) -> Redis
 
 pub async fn set_bundled_state_by_host(state: &SkylarkBundledState, host: &str) -> RedisResult<()> {
     debug!(
-        "set_bundled_state_by_host: Attempting to store key {} at redis host {}",
+        "set_bundled_state_by_host: Attempting to store key {} at redis host {} with {:?} fields",
         state.key().chain_id(),
-        host
+        host,
+        state.fields().len()
     );
     let client = Client::open(format!("redis://{}:6379/", host))?;
     let mut con = client.get_multiplexed_async_connection().await?;

@@ -43,6 +43,7 @@ sudo microk8s enable community
 sudo microk8s enable knative
 sudo microk8s enable kwasm
 kubectl apply -f ~/deployment/wasmedge-runtimeclass.yaml
+kubectl apply -f ~/deployment/skylark-configmap.yaml
 
 kubectl delete ValidatingWebhookConfiguration validation.webhook.serving.knative.dev
 
@@ -58,9 +59,9 @@ kubectl apply -f ~/deployment/service/ex-client-service.yaml
 ### Reset microk8s
 ```bash
 # On each client node
-microk8s leave
+sudo microk8s leave
 # On main node remove client nodes
-microk8s remove-node pi5u3
+sudo microk8s remove-node pi5u3
 
 sudo microk8s reset
 sudo reboot now
@@ -103,6 +104,7 @@ alias kdwds='kubectl delete ksvc pi5u1-write-data; kubectl delete svc pi5u1-writ
 ```
 
 ```bash
+microk8s kubectl get pods -n knative-serving
 # new version
 kubectl delete ksvc skylark-ex-client skylark-ex-detect skylark-ex-alarm skylark-ex-preprocess
 kubectl delete svc skylark-ex-client skylark-ex-detect skylark-ex-alarm skylark-ex-preprocess

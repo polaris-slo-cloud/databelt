@@ -8,10 +8,10 @@ POLICY=$1
 DESTINATION="pi5u1"
 debug=0
 IMG=$2
-FUNC1_URL="http://10.152.183.86/?tex=$TEX&policy=$POLICY&destination=$DESTINATION&img=eo-$IMG.jpeg"
+FUNC1_URL="http://10.152.183.221/?tex=$TEX&policy=$POLICY&destination=$DESTINATION&img=eo-$IMG.jpeg"
 FUNC1_HEADER="Host: pi5u2-preprocess.default.svc.cluster.local"
 
-# curl "http://10.152.183.86/?tex=20&policy=Skylark&destination=pi5u1&img=eo-1M.jpeg"  -H Host: "pi5u2-preprocess.default.svc.cluster.local"
+# curl "http://10.152.183.221/?tex=20&policy=Skylark&destination=pi5u1&img=eo-1M.jpeg"  -H Host: "pi5u2-preprocess.default.svc.cluster.local"
 echo "Preprocess image loading offset"
 echo "Init Run"
 START_TIME=$(date +%s%3N)

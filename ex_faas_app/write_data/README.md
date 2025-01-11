@@ -11,8 +11,8 @@ wasmedge compile target/wasm32-wasip1/release/write_data.wasm write_data.wasm
 
 ### Docker Build and Push
 ```bash
-docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-write-data:0.1.1005 .
-docker push guelmino/skylark-write-data:0.1.1005
+docker buildx build --platform wasi/wasm  --provenance=false -t guelmino/skylark-write-data:0.1.1006 .
+docker push guelmino/skylark-write-data:0.1.1006
 ```
 ### Deploy
 ```bash
@@ -30,8 +30,9 @@ curl -v http://10.0.0.243:8084/single?policy=Stateless\&destination=pi5u1\&stype
 curl -v http://10.0.0.243:8084/bundled?policy=Stateless\&destination=pi4u5\&stype=Single\&size=500\&scount=1
 
 curl -v http://10.0.0.243:8084/bundled?policy=Stateless\&stype=Bundled\&destination=pi5u2\&size=100\&scount=3
-curl -v http://10.152.183.86/?policy=Skylark\&destination=pi5u1\&img=eo-2K.jpeg -H "Host: pi5u4-write-data.default.svc.cluster.local"
-curl -v http://10.152.183.86/health -H "Host: pi5u4-write-data.default.svc.cluster.local"
+curl -v http://10.152.183.221/?policy=Skylark\&destination=pi5u1\&img=eo-2K.jpeg -H "Host: pi5u4-write-data.default.svc.cluster.local"
+curl -v http://10.0.0.34:8084/single?destination=pi5u3&size=10000
+curl -v http://10.152.183.221/health -H "Host: pi5u4-write-data.default.svc.cluster.local"
 curl -v http://pi5u4-write-data.default.svc.cluster.local/health
 ```
 

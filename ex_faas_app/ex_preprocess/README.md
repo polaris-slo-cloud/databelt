@@ -25,9 +25,9 @@ kubectl delete ksvc skylark-ex-preprocess && kubectl delete route skylark-ex-pre
 ```bash
 # params: policy, destination
 curl -v http://pi5u2-preprocess.default.svc.cluster.local/?policy=Skylark\&destination=pi5u1\&key=1e29da5c-9299-43a4-b765-6725afc877d4:10.0.0.34:fbcf5092-266d-454e-b404-eb624bb21834
-curl -v http://10.152.183.86/?policy=Skylark\&destination=pi5u1\&img=eo-2K.jpeg -H "Host: pi5u2-preprocess.default.svc.cluster.local"
-curl -v http://10.152.183.86/?policy=Skylark\&destination=pi5u1\&img=eo-1M.jpeg -H "Host: pi5u3-preprocess.default.svc.cluster.local"
-curl -v http://10.152.183.86/health -H "Host: pi5u4-preprocess.default.svc.cluster.local"
+curl -v http://10.152.183.221/?policy=Skylark\&destination=pi5u1\&key=11bd79cb-cc2a-4e1f-9c68-a1c1b89c69d5\:10.0.0.34\:357410df-d24a-4e42-a40e-e81bc2d994b2 -H "Host: pi5u2-preprocess.default.svc.cluster.local"
+curl -v http://10.152.183.221/?policy=Skylark\&destination=pi5u1\&img=eo-1M.jpeg -H "Host: pi5u3-preprocess.default.svc.cluster.local"
+curl -v http://10.152.183.221/health -H "Host: pi5u4-preprocess.default.svc.cluster.local"
 curl -v http://pi5u4-preprocess.default.svc.cluster.local/health
 ```
 

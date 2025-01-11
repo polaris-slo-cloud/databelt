@@ -13,7 +13,7 @@ spec:
         node-name: pi5u1
       runtimeClassName: wasmedge
       containers:
-        - image: guelmino/skylark-write-data:0.1.1005
+        - image: guelmino/skylark-write-data:0.1.1006
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -32,3 +32,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+          resources:
+            requests:
+              cpu: "800m"       # ~ 0.25 vCPU
+              memory: "512Mi"
+            limits:
+              cpu: "900m"       # ~ 0.5 vCPU
+              memory: "512Mi"

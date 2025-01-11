@@ -5,8 +5,8 @@ CLOUD="pi5u1"
 H_SINGLE="Host: $SAT-single.default.svc.cluster.local"
 H_BUNDLE="Host: $SAT-bundled.default.svc.cluster.local"
 
-HOST_STATEFUL="http://10.152.183.86/get-and-set?destination=$SAT&key="
-HOST_STATELESS="http://10.152.183.86/get-and-set?destination=$CLOUD&key="
+HOST_STATEFUL="http://10.152.183.221/get-and-set?destination=$SAT&key="
+HOST_STATELESS="http://10.152.183.221/get-and-set?destination=$CLOUD&key="
 
 # Keys of states with size 10MB both single and bundled of depth 1-5
 K_SINGLE_SAT_1=941c4646-beaa-41b1-b268-9eace3d14ae6:10.0.0.58:5e2ce0e0-ecd1-497c-8100-317ca169581c

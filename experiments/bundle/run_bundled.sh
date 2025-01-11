@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# ./bundle__1M.sh 1
+# ./run_bundled.sh 1; ./run_bundled.sh 2; ./run_bundled.sh 3; ./run_bundled.sh 4; ./run_bundled.sh 5
 # Bundle size 1-5
 # State size 10MB
 # Default values for optional arguments
@@ -8,26 +8,19 @@
 
 # Sate keys
 declare -A keys
-keys["SS1"]="e1348879-14b0-466d-b394-401e554cdb75:10.0.0.34:c2d4e7da-10c3-4c07-8b7f-0572253a950b"
-keys["SC1"]="a0e4d0bd-14d0-4811-abe6-40c73f489f23:10.0.0.243:1d4a3969-a659-4d39-a8da-56b88bfacc9b"
-keys["BS1"]="a47fe193-a75f-4346-9ada-5bb7c667701b:10.0.0.34:a4952c8b-4ba6-47d3-93d3-5887eb1808c5"
-keys["BC1"]="ffb797e8-cbde-48eb-8728-5529b450c0be:10.0.0.243:c7757955-b8e2-4ef4-b388-e2406512ba03"
-keys["SS2"]="4ebe63ad-e38e-4026-91cc-dcc6095697c8:10.0.0.34:bbc8d811-85e3-49dd-b94f-75394335d95e"
-keys["SC2"]="b5f65a1b-5133-428d-927a-df9fb51c6ade:10.0.0.243:af79d694-de11-4e55-87f1-f11705824363"
-keys["BS2"]="e6c086e3-3f13-4946-885a-91c79cd1f23c:10.0.0.34:171e7dff-f1a7-4bda-8485-9cb476e877ec"
-keys["BC2"]="50940e55-48ae-417b-8637-87c436e7dbe1:10.0.0.243:0ea2cde3-b7c1-40f0-86ea-3cfd803c52ac"
-keys["SS3"]="8e1d694b-5712-4752-9474-1be1385b98db:10.0.0.34:05ea059c-3742-401e-a7a3-79aaf1ec207e"
-keys["SC3"]="c2ae32c4-a8df-48dc-bc07-b34ef01a16e6:10.0.0.243:bc1518f1-3cbb-4c5b-a157-080fa88d6de6"
-keys["BS3"]="4243ae2a-4ba3-46ee-b397-81b2c63b7b07:10.0.0.34:9181bfaa-bf37-4296-8225-88a7614a075d"
-keys["BC3"]="8ab7c55a-e1de-42e5-8b3c-f8ac31f68785:10.0.0.243:d42b6b33-0afe-4627-b9b5-209b57249e97"
-keys["SS4"]="46a6e1ce-7905-49c9-8de1-e917dcf943d5:10.0.0.34:0810f6bf-4c44-4115-ba73-2cf17c2d1478"
-keys["SC4"]="38e02191-2c5c-4283-a7f5-fe86128ea84d:10.0.0.243:45366101-e425-40ec-97ae-890d5d09a36c"
-keys["BS4"]="f88efb44-60d0-400e-881e-10de5f133011:10.0.0.34:76861cfa-1509-405c-a0f8-1abdb2a848dc"
-keys["BC4"]="6c02e8e9-6499-47cb-8c32-0a0435ee485b:10.0.0.243:8c2f3c5b-ff5f-4f71-b53f-0a38ef35a03f"
-keys["SS5"]="e4edd5d7-6a22-4244-a0ed-5296d6d47b1f:10.0.0.34:cc529996-b2ad-4153-af67-67d35370ab0a"
-keys["SC5"]="c380fd6b-79a8-4681-a66d-5eeea928b794:10.0.0.243:da74815e-4a48-435f-9b16-45b494d1c9de"
-keys["BS5"]="1ee80dc0-8f70-4e69-82c8-32feaae459d1:10.0.0.34:fb42e716-1d8b-4feb-9ba7-024979bb5dd3"
-keys["BC5"]="076e9671-b7ab-4b4c-8934-2bcf332bf9bb:10.0.0.243:1afcd33d-747f-4d83-a466-8a34f53780ad"
+keys["SS1"]="d7c0eee7-535d-4993-b54d-2d20ab5ff430:10.0.0.34:a2be9783-6670-4aed-a1e4-bff07ac3d322"
+keys["SC1"]="efc6b1dd-1350-43fe-9523-642baf3a24d0:10.0.0.243:0540af22-9994-4061-a0de-5de896c16ef3"
+keys["BS1"]="2824bc33-4edf-4139-b826-491eca1fd9c4:10.0.0.34:07f3968e-4242-47da-84f0-0716c40b047c"
+keys["BC1"]="3edcf8b5-cfb0-4cdf-bffb-9a47f701e871:10.0.0.243:6fe2dd35-c5b4-4de9-ad31-177a9d131d0c"
+keys["BS2"]="a57d934a-7564-4991-b955-d4dc2210a15a:10.0.0.34:346360b2-02c1-41ec-a34f-7f2e0cf64989"
+keys["BC2"]="01fe0eaf-5860-439e-90fa-222a0357bfaa:10.0.0.243:43cd8d6d-81d2-4af6-8262-b7337f08c6aa"
+keys["BS3"]="aca2e4bc-a146-47fd-ab06-fa775c3963bb:10.0.0.34:38bad0b5-16a2-4927-a45c-de332e59f880"
+keys["BC3"]="f8d05885-8db4-42af-9542-47ef3be918af:10.0.0.243:dfe0e33b-a485-4c84-b112-41858f77ebbd"
+keys["BS4"]="fc69f286-9555-4358-ba89-eff273c16c2a:10.0.0.34:44d04326-a125-41b4-8a2f-b705897e9f8a"
+keys["BC4"]="7928c888-acc8-47d5-a7eb-99597f6c801d:10.0.0.243:24540523-cf8e-4ad2-be8f-c0a1c89fc880"
+keys["BS5"]="44c54241-0d13-4815-a639-5c750aabdfce:10.0.0.34:aa6a3e98-2787-42c3-963d-abaa999a6e4d"
+keys["BC5"]="49661694-e0b7-4f1a-a52b-d708c6ba978a:10.0.0.243:8349c631-5573-4ac8-9d7c-f9b78d1b2b01"
+
 
 B=$1
 CLOUD="pi5u1"
@@ -35,25 +28,25 @@ SAT="pi5u2"
 H_SINGLE="Host: $SAT-single.default.svc.cluster.local"
 H_BUNDLE="Host: $SAT-bundled.default.svc.cluster.local"
 
-HOST_DCLOUD="http://10.152.183.86/get-and-set?destination=$CLOUD&key="
-HOST_DSAT="http://10.152.183.86/get-and-set?destination=$SAT&key="
+HOST_DCLOUD="http://10.152.183.221/get-and-set?destination=$CLOUD&key="
+HOST_DSAT="http://10.152.183.221/get-and-set?destination=$SAT&key="
 
 echo "Storage Mechanism"
-echo "State Size: 1MB"
-echo "Bundle Size: $B"
+echo "State Size: 10MB"
+echo "Bundle Size: $B" >> bundle_performance.log
 echo "Sat Node: $SAT"
 echo "Cloud Node: $CLOUD"
 echo "Latency: 60ms"
 echo -e "\n--------------------------------------------------------\n"
 echo -e "Single-Stateful  Single-Stateless	Bundled-Stateful  Bundled-Stateless"
 echo -e "Run,Tt,Tr,Tm,Tt,Tr,Tm,Tt,Tr,Tm,Tt,Tr,Tm"
-for i in {0..100}; do
+for i in {0..10}; do
   # Single-Stateless
   ssl_tr=0
   ssl_tm=0
   START_SSL=$(date +%s%3N)
   for b in $(seq 1 "$B"); do
-    read tr tm <<< $(curl -s "$HOST_DCLOUD${keys["SC$b"]}" -H "$H_SINGLE")
+    read tr tm <<< $(curl -s "$HOST_DCLOUD${keys["SC1"]}" -H "$H_SINGLE")
     ssl_tr=$((ssl_tr + tr))
     ssl_tm=$((ssl_tm + tm))
   done
@@ -65,7 +58,7 @@ for i in {0..100}; do
   ssf_tm=0
   START_SSF=$(date +%s%3N)
   for b in $(seq 1 "$B"); do
-    read tr tm <<< $(curl -s "$HOST_DSAT${keys["SS$b"]}" -H "$H_SINGLE")
+    read tr tm <<< $(curl -s "$HOST_DSAT${keys["SS1"]}" -H "$H_SINGLE")
     ssf_tr=$((ssf_tr + tr))
     ssf_tm=$((ssf_tm + tm))
   done
@@ -84,7 +77,7 @@ for i in {0..100}; do
   END_BSF=$(date +%s%3N)
   bsf_tt=$((END_BSF - START_BSF))
 
-  echo -e "$i,$ssf_tt,$ssf_tr,$ssf_tm,$ssl_tt,$ssl_tr,$ssl_tm,$bsf_tt,$bsf_tr,$bsf_tm,$bsl_tt,$bsl_tr,$bsl_tm"
+  echo -e "$i,$ssf_tt,$ssf_tr,$ssf_tm,$ssl_tt,$ssl_tr,$ssl_tm,$bsf_tt,$bsf_tr,$bsf_tm,$bsl_tt,$bsl_tr,$bsl_tm"  >> bundle_performance.log
 done
 
 echo -e "\n--------------------------------------------------------\n"

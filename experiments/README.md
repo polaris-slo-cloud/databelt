@@ -36,12 +36,37 @@ alias tcpuu8='redis-cli -h pi4u8 -p 6379 SUBSCRIBE "telem/pi4u8/cpu" >> cpu-pi4u
 alias tramu8='redis-cli -h pi4u8 -p 6379 SUBSCRIBE "telem/pi4u8/ram" >> ram-pi4u8.log'
 alias tcpup1='redis-cli -h pi4p1 -p 6379 SUBSCRIBE "telem/pi4p1/cpu" >> cpu-pi4p1.log'
 alias tramp1='redis-cli -h pi4p1 -p 6379 SUBSCRIBE "telem/pi4p1/ram" >> ram-pi4p1.log'
-alias monitor_all='tcpuu1 & tcpuu2 & tcpuu2 & tcpuu3 & tcpuu4 & tcpuu5 & tcpuu6 & tcpuu8 & tcpup1 & tramu1 & tramu2 & tramu2 & tramu3 & tramu4 & tramu5 & tramu6 & tramu8 & tramp1'
+alias monitor_all='tcpuu1 & tcpuu2 & tcpuu2 & tcpuu3 & tcpuu4 & tcpuu5 & tcpuu6 & tcpuu8 & tcpup1 & tramu1 & tramu2 & tramu2 & tramu3 & tramu4 & tramu5 & tramu6 & tramu8 & tramp1 &'
+alias monitor_stop='pkill -f "redis-cli"'
+alias monitor_bundle='tcpuu1 & tcpuu2 & tramu1 & tramu2'
 tcpuu1 & tcpuu2 & tcpuu2 & tcpuu3 & tcpuu4 & tcpuu5 & tcpuu6 & tcpuu8 & tcpup1 & tramu1 & tramu2 & tramu2 & tramu3 & tramu4 & tramu5 & tramu6 & tramu8 & tramp1
-alias propagate_random='./run_propagate_performance.sh 20 1MB 100 Random; ./run_propagate_performance.sh 20 5MB 150 Random; ./run_propagate_performance.sh 20 10MB 200 Random; ./run_propagate_performance.sh 20 15MB 200 Random; ./run_propagate_performance.sh 20 20MB 200 Random; ./run_propagate_performance.sh 20 25MB 200 Random; ./run_propagate_performance.sh 20 30MB 200 Random; ./run_propagate_performance.sh 20 35MB 200 Random; ./run_propagate_performance.sh 20 40MB 200 Random; ./run_propagate_performance.sh 20 45MB 200 Random; ./run_propagate_performance.sh 20 50MB 200 Random'
-alias propagate_skylark='./run_propagate_performance.sh 20 1MB 100 Skylark; ./run_propagate_performance.sh 20 5MB 150 Skylark; ./run_propagate_performance.sh 20 10MB 200 Skylark; ./run_propagate_performance.sh 20 15MB 260 Skylark; ./run_propagate_performance.sh 20 20MB 330 Skylark; ./run_propagate_performance.sh 20 25MB 390 Skylark; ./run_propagate_performance.sh 20 30MB 450 Skylark; ./run_propagate_performance.sh 20 35MB 510 Skylark; ./run_propagate_performance.sh 20 40MB 570 Skylark; ./run_propagate_performance.sh 20 45MB 630 Skylark; ./run_propagate_performance.sh 20 50MB 700 Skylark'
-alias propagate_stateless='./run_propagate_performance.sh 20 1MB 100 Stateless; ./run_propagate_performance.sh 20 5MB 150 Stateless; ./run_propagate_performance.sh 20 10MB 200 Stateless; ./run_propagate_performance.sh 20 15MB 200 Stateless; ./run_propagate_performance.sh 20 20MB 200 Stateless; ./run_propagate_performance.sh 20 25MB 200 Stateless; ./run_propagate_performance.sh 20 30MB 200 Stateless; ./run_propagate_performance.sh 20 35MB 200 Stateless; ./run_propagate_performance.sh 20 40MB 200 Stateless; ./run_propagate_performance.sh 20 45MB 200 Stateless; ./run_propagate_performance.sh 20 50MB 200 Stateless'
+alias propagate_random='./run_propagate_performance.sh 10 1MB 100 Random; ./run_propagate_performance.sh 10 5MB 150 Random; ./run_propagate_performance.sh 10 10MB 200 Random; ./run_propagate_performance.sh 10 15MB 200 Random; ./run_propagate_performance.sh 10 20MB 200 Random; ./run_propagate_performance.sh 10 25MB 200 Random; ./run_propagate_performance.sh 10 30MB 200 Random; ./run_propagate_performance.sh 10 35MB 200 Random; ./run_propagate_performance.sh 10 40MB 200 Random; ./run_propagate_performance.sh 10 45MB 200 Random; ./run_propagate_performance.sh 10 50MB 200 Random'
+alias propagate_skylark='./run_propagate_performance.sh 10 1MB 100 Skylark; ./run_propagate_performance.sh 10 5MB 150 Skylark; ./run_propagate_performance.sh 10 10MB 200 Skylark; ./run_propagate_performance.sh 10 15MB 260 Skylark; ./run_propagate_performance.sh 10 20MB 330 Skylark; ./run_propagate_performance.sh 10 25MB 390 Skylark; ./run_propagate_performance.sh 10 30MB 450 Skylark; ./run_propagate_performance.sh 10 35MB 510 Skylark; ./run_propagate_performance.sh 10 40MB 580 Skylark; ./run_propagate_performance.sh 10 45MB 650 Skylark; ./run_propagate_performance.sh 10 50MB 710 Skylark'
+alias propagate_stateless='./run_propagate_performance.sh 10 1MB 100 Stateless; ./run_propagate_performance.sh 10 5MB 150 Stateless; ./run_propagate_performance.sh 10 10MB 200 Stateless; ./run_propagate_performance.sh 10 15MB 200 Stateless; ./run_propagate_performance.sh 10 20MB 200 Stateless; ./run_propagate_performance.sh 10 25MB 200 Stateless; ./run_propagate_performance.sh 10 30MB 200 Stateless; ./run_propagate_performance.sh 10 35MB 200 Stateless; ./run_propagate_performance.sh 10 40MB 200 Stateless; ./run_propagate_performance.sh 10 45MB 200 Stateless; ./run_propagate_performance.sh 10 50MB 200 Stateless'
+alias propagate_stateless_10='./run_propagate_performance.sh 10 10MB 200 Stateless; ./run_propagate_performance.sh 10 15MB 200 Stateless; ./run_propagate_performance.sh 10 20MB 200 Stateless; ./run_propagate_performance.sh 10 25MB 200 Stateless; ./run_propagate_performance.sh 10 30MB 200 Stateless; ./run_propagate_performance.sh 10 35MB 200 Stateless; ./run_propagate_performance.sh 10 40MB 200 Stateless; ./run_propagate_performance.sh 10 45MB 200 Stateless; ./run_propagate_performance.sh 10 50MB 200 Stateless'
 propagate_skylark; propagate_stateless; propagate_random
+
+alias scalability_skylark='./run_propagate_scalability.sh run_propagate_workflow.sh keys_2M 2 Skylark'
+alias scalability_stateless='./run_propagate_scalability.sh run_propagate_workflow.sh keys_2M 2 Stateless'
+alias scalability_random='./run_propagate_scalability.sh run_propagate_workflow.sh keys_2M 2 Random'
+scalability_skylark 5; scalability_skylark 10; scalability_skylark 15; scalability_skylark 20; scalability_skylark 25; scalability_skylark 30; scalability_skylark 35; scalability_skylark 40; scalability_skylark 45; scalability_skylark 50
+scalability_stateless 5; scalability_stateless 10; scalability_stateless 15; scalability_stateless 20; scalability_stateless 25; scalability_stateless 30; scalability_stateless 35; scalability_stateless 40; scalability_stateless 45; scalability_stateless 50
+scalability_random 5; scalability_random 10; scalability_random 15; scalability_random 20; scalability_random 25; scalability_random 30; scalability_random 35; scalability_random 40; scalability_random 45; scalability_random 50
+
+./run_propagate_performance.sh 10 30MB 200 Random; ./run_propagate_performance.sh 10 35MB 200 Random; ./run_propagate_performance.sh 10 40MB 200 Random; ./run_propagate_performance.sh 10 45MB 200 Random; ./run_propagate_performance.sh 10 50MB 200 Random
+
+
+./run_propagate_performance.sh 10 5MB 150 Skylark 
+./run_propagate_performance.sh 10 10MB 200 Skylark
+./run_propagate_performance.sh 10 15MB 260 Skylark
+./run_propagate_performance.sh 10 20MB 330 Skylark
+./run_propagate_performance.sh 10 25MB 390 Skylark
+./run_propagate_performance.sh 10 30MB 450 Skylark
+./run_propagate_performance.sh 10 35MB 520 Skylark
+./run_propagate_performance.sh 10 40MB 580 Skylark
+./run_propagate_performance.sh 10 45MB 650 Skylark
+./run_propagate_performance.sh 10 50MB 710 Skylark
+
 ```
 
 ## Metrics
