@@ -11,10 +11,10 @@ KEY=$2
 debug=0
 #echo "KEY: $KEY"
 #echo "POLICY: $POLICY"
-FUNC1_URL="http://10.152.183.221/?policy=$POLICY&destination=$DESTINATION&key="
-FUNC2_URL="http://10.152.183.221/?policy=$POLICY&destination=$DESTINATION&key="
-FUNC3_URL="http://10.152.183.221/?policy=Stateless&destination=$DESTINATION&key="
-FUNC4_URL="http://10.152.183.221/?policy=$POLICY&destination=$DESTINATION&key="
+FUNC1_URL="http://10.152.183.251/?policy=$POLICY&destination=$DESTINATION&key="
+FUNC2_URL="http://10.152.183.251/?policy=$POLICY&destination=$DESTINATION&key="
+FUNC3_URL="http://10.152.183.251/?policy=Stateless&destination=$DESTINATION&key="
+FUNC4_URL="http://10.152.183.251/?policy=$POLICY&destination=$DESTINATION&key="
 
 N1="pi5u2"
 N2="pi5u4"

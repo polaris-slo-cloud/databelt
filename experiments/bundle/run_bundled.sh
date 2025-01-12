@@ -28,8 +28,8 @@ SAT="pi5u2"
 H_SINGLE="Host: $SAT-single.default.svc.cluster.local"
 H_BUNDLE="Host: $SAT-bundled.default.svc.cluster.local"
 
-HOST_DCLOUD="http://10.152.183.221/get-and-set?destination=$CLOUD&key="
-HOST_DSAT="http://10.152.183.221/get-and-set?destination=$SAT&key="
+HOST_DCLOUD="http://10.152.183.251/get-and-set?destination=$CLOUD&key="
+HOST_DSAT="http://10.152.183.251/get-and-set?destination=$SAT&key="
 
 echo "Storage Mechanism"
 echo "State Size: 10MB"

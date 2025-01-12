@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: skylark-elect-daemonset
+  namespace: default
+  labels:
+    app: skylark-elect
+spec:
+  selector:
+    matchLabels:
+      app: skylark-elect
+  template:
+    metadata:
+      annotations:
+        module.wasm.image/variant: compat-smart
+      labels:
+        app: skylark-elect
+    spec:
+      hostNetwork: true
+      runtimeClassName: wasmedge
+      containers:
+        - name: skylark-elect
+          image: guelmino/skylark-elect:0.2.743
+          ports:
+            - containerPort: 8081
+          env:
+            - name: RUST_BACKTRACE
+              value: "full"
+            - name: RUST_LOG
+              value: "info"
+            - name: LOCAL_NODE_HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: NODE_INFO_PORT
+              value: "8080"
+            - name: NODE_REFRESH_INTERVAL_SECS
+              value: "5"
+            - name: AVG_SAT_BANDWIDTH
+              value: "80"
+            - name: TOPOLOGY_MODE
+              value: "static"

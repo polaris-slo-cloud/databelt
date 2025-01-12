@@ -48,6 +48,10 @@ run_test() {
     # echo "Running $TEST_SCRIPT with input: $POLICY $key"
     bash "$TEST_SCRIPT" "$POLICY" "$key" &
 }
+
+EX_START_TIME=$(date +%s%3N)
+echo "EX START: $((EX_START_TIME / 1000))"
+
 for i in $(seq 1 "$REP"); do
   # Loop through inputs with fanout logic
   count=0
@@ -68,3 +72,8 @@ for i in $(seq 1 "$REP"); do
   WORKFLOW_LATENCY=$((END_TIME - START_TIME))
   echo "$FANOUT_DEGREE,$WORKFLOW_LATENCY" >> propagate_scalability.log
 done
+
+EX_END_TIME=$(date +%s%3N)
+echo "EX END: $((EX_END_TIME / 1000))"
+echo "EX RUNTIME: $(((EX_END_TIME - EX_START_TIME) / 1000))"
+echo "$((EX_START_TIME / 1000)),$((EX_END_TIME / 1000)),$(((EX_END_TIME - EX_START_TIME) / 1000))" >> propagate_scalability.log

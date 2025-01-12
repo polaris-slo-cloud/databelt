@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: skylark-elect-daemonset
+  namespace: default
+  labels:
+    app: skylark-elect
+spec:
+  selector:
+    matchLabels:
+      app: skylark-elect
+  template:
+    metadata:
+      annotations:
+        module.wasm.image/variant: compat-smart
+      labels:
+        app: skylark-elect
+    spec:
+      hostNetwork: true
+      nodeSelector:
+        node-type: Sat
+      runtimeClassName: wasmedge
+      containers:
+        - image: guelmino/skylark-ex-client:0.2.206
+          ports:
+            - containerPort: 8082
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8082
+          env:
+            - name: DNS_SERVER
+              value: "10.152.183.10:53"
+            - name: RUST_BACKTRACE
+              value: "full"
+            - name: RUST_LOG
+              value: "debug"
+            - name: PREPROCESS_URL
+              value: "http://skylark-ex-preprocess.default.svc.cluster.local/process"
+            - name: DETECT_URL
+              value: "http://skylark-ex-detect.default.svc.cluster.local"
+            - name: ALARM_URL
+              value: "http://skylark-ex-alarm.default.svc.cluster.local"
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName

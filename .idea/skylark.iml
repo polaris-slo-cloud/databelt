@@ -9,59 +9,59 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/example_faas_app/example_fn_1/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/testfn/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_fn_1/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_fn_2/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_fn_3/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_firealarm/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_img_preprocessor/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_obj_detector/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/rsclient/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/skylark/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/reqwest/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_alarm/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_detect/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_preprocess/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/evnt_preprocessor/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/skylark_api/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/skylark_lib/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_client/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_bundled/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/ex_single/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/ex_faas_app/write_data/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/examples/evnt_preprocessor/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/examples/ex_alarm/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/examples/ex_bundled/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/examples/ex_client/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/examples/ex_detect/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/examples/ex_firealarm/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/examples/ex_fn_1/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/examples/ex_fn_2/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/examples/ex_fn_3/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/examples/ex_img_preprocessor/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/examples/ex_obj_detector/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/examples/ex_preprocess/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/examples/ex_single/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/examples/reqwest/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/examples/rsclient/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/examples/write_data/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/skylark_elect/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/skylark_manage/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/example_faas_app/example_fn_1/target" />
       <excludeFolder url="file://$MODULE_DIR$/testfn/target" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_fn_1/target" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_fn_2/target" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_fn_3/target" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_firealarm/target" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_fn_4/.venv" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_fn_4/.venv/bin" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_fn_4/.venv/lib" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_img_preprocessor/lib" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_img_preprocessor/target" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_obj_detector/lib" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_obj_detector/target" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/rsclient/target" />
       <excludeFolder url="file://$MODULE_DIR$/skylark/target" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/reqwest/target" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_alarm/target" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_detect/target" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_eo_service/.venv" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_eo_service/eo.venv" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_preprocess/target" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/evnt_preprocessor/target" />
-      <excludeFolder url="file://$MODULE_DIR$/skylark_api/target" />
-      <excludeFolder url="file://$MODULE_DIR$/skylark_lib/target" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_client/target" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/node_info/.venv" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/node_info/.venv/bin" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/node_info/.venv/lib" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/node_info/ns.venv" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/neighbors_service/venv" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/node_info/venv" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_bundled/target" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/ex_single/target" />
-      <excludeFolder url="file://$MODULE_DIR$/ex_faas_app/write_data/target" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/evnt_preprocessor/target" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/ex_alarm/target" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/ex_bundled/target" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/ex_client/target" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/ex_detect/target" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/ex_eo_service/.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/ex_eo_service/eo.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/ex_firealarm/target" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/ex_fn_1/target" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/ex_fn_2/target" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/ex_fn_3/target" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/ex_fn_4/.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/ex_fn_4/.venv/bin" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/ex_fn_4/.venv/lib" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/ex_img_preprocessor/lib" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/ex_img_preprocessor/target" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/ex_obj_detector/lib" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/ex_obj_detector/target" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/ex_preprocess/target" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/ex_single/target" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/neighbors_service/venv" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/node_info/.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/node_info/.venv/bin" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/node_info/.venv/lib" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/node_info/ns.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/node_info/venv" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/reqwest/target" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/rsclient/target" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/write_data/target" />
+      <excludeFolder url="file://$MODULE_DIR$/skylark_elect/target" />
+      <excludeFolder url="file://$MODULE_DIR$/skylark_manage/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
