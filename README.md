@@ -1,5 +1,4 @@
-# Master Thesis
-## Skylark - Stateful Serverless Functions for the Edge-Cloud-Space 3D-Continuum
+# Skylark - Stateful Serverless Functions for the Edge-Cloud-Space 3D-Continuum
 This repository includes the following subprojects: 
 - [Skylark Elect: ](skylark_elect/README.md) Node Election service State Propagation
 - [Skylark Manage: ](skylark_manage/README.md) Client library for state bundling using Skylark Elect for successor node determination
